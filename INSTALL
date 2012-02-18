@@ -1,0 +1,19 @@
+
+Dependencies
+============
+
+1. ocaml(>=3.12)
+2. findlib
+3. pcre(pcre-ocaml)
+4. camomile
+
+Important notice
+================
+
+pcre library(http://www.pcre.org/) must be build with configuration "--enable-utf8".
+
+Installing
+==========
+
+1. make
+2. sudo make install

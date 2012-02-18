@@ -1,0 +1,20 @@
+SRCS:=\
+	test_runtime.ml \
+	test_output.ml \
+	test.ml \
+
+PKGS:=dynlink,oUnit,pcre,camomile
+CMPL:=ocamlfind ocamlopt -g -thread
+
+all: test
+
+.PHONY:test
+test: $(SRCS)
+	$(CMPL) -o $@ -package $(PKGS) -linkpkg -I ../src ../src/jingoo.cmxa $(SRCS)
+
+clean:
+	rm -f *.o *.cmi *.cmx test
+
+run:
+	./test
+

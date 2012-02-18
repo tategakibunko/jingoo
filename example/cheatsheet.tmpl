@@ -1,0 +1,283 @@
+{% extends "base.tmpl" %}
+
+{% block main %}
+
+include test
+============
+
+{% include "header.tmpl" %}
+
+binop
+======
+
+1+1 = {{ 1 + 1 }}
+1-1 = {{ 1 - 1 }}
+2*3 = {{ 2 * 3 }}
+4/2 = {{ 4 / 2 }}
+8^3 = {{ 8 ** 3 }}
+8%3 = {{ 8 % 3 }}
+not true = {{ !true }}
+not true(2) = {{ not true }}
+
+single quote string test
+=========================
+
+{% set single_quoted = 'hoge' %}
+single_quoted = {{single_quoted}}
+
+expand test
+===========
+
+{% set danger = "<script>alert(1)</script>" %}
+expand with escape = {{ danger }}
+expand with safe = {{ danger|safe }}
+
+set test
+=========
+
+set hoge = "ok"
+{% set hoge = "ok" %}
+now hoge = {{ hoge }}
+
+if test
+=======
+
+{% if hoge == "ok" %}
+value of hoge == "ok"
+{% else %}
+value of hoge != "ok"
+{% endif %}
+
+for test
+========
+
+{% for item in list %}
+{% set tmp = "hoge" %}
+<p>{{item}}</p>
+<p>{{loop.cycle(1,2,3)}}</p>
+<p>tmp = {{tmp}}</p>
+{% endfor %}
+
+{% for (href, title) in [("http://yahoo.co.jp", "yahoo japan"), ("http://google.co.jp", "google japan")] %}
+<a href="{{href}}">{{title}}</a>
+{% endfor %}
+
+{% for href, title in [("http://yahoo.co.jp", "yahoo japan"), ("http://google.co.jp", "google japan")] %}
+<a href="{{href}}">{{title}}</a>
+{% endfor %}
+
+obj test
+=========
+
+name = {{obj.name}}
+age = {{obj.age}}
+obj["name"] = {{ obj["name"] }}
+obj["age"] = {{ obj["age"] }}
+
+filter test
+===========
+
+upper test:{{ "must be upper"|upper }}
+word count for "hoge hage hige" = {{ "hoge hage hige"|wordcount}}
+
+func test
+=========
+
+range(0,3) = {% for x in range(0,3) %}{{x}}{% endfor %}
+range(3,0) = {% for x in range(3,0) %}{{x}}{% endfor %}
+
+strlen("hogehoge") = {{ strlen("hogehoge") }}
+strlen("日本語") = {{ strlen("日本語") }}
+
+round floor of 1.5 = {{1.5|round("floor")|int}}
+round ceil of 1.5 = {{1.5|round("ceil")|int}}
+
+join(",", list) = {{ join(",", list) }}
+
+slice with length 4 and padding value = "pad":
+{% for row in slice(4, "pad", long_list) %}
+  {% set y = loop.index %}
+  {% for col in row %}
+  {% set x = loop.index %}
+  {{x}},{{y}} = {{col}}
+  {% endfor %}
+{% endfor %}
+
+filter tag test
+===============
+
+{% filter upper %}
+must be upper
+{% endfilter %}
+
+list expr
+=========
+
+{% for x in [1,2,3,4.5,"str"] %}{{x}}{% endfor %}
+{% for x in [] %}{{x}}{% endfor %}
+
+{{ join("-", [1,2,3]) }}
+
+{{ "{{" }}
+
+syntax test "is"
+================
+
+6 is divisibleby 4 = {{ 6 is divisibleby(4) }}
+6 is divisibleby 3 = {{ 6 is divisibleby(3) }}
+6 is divisibleby 2 = {{ 6 is divisibleby(2) }}
+6 is divisibleby 2 = {{ 6 is divisibleby 2 }}
+6 is divisibleby 3 via func = {{ divisibleby(3,6) }}
+
+macro test
+==========
+
+{% macro hoge_macro(i,j) %}
+{{i}},{{j}}
+{% endmacro %}
+
+{{ hoge_macro(10,20) }}
+
+{# at this point, delay_macro is not declared, but jingoo can call it. #}
+{{ delay_macro(10,20) }}
+
+{% macro delay_macro(x,y) %}
+{{x}} {{ caller(1,2) }} {{y}}
+{% endmacro %}
+
+{% call(a,b) delay_macro("from", "to") %}
+inner text!
+args of call = {{a}},{{b}}
+macro name = {{delay_macro.name}}
+via caller = {{delay_macro.caller}}
+{% endcall %}
+
+{% macro subject_with_back(anchor, subject) %}
+<a name="#{{anchor}}"></a>
+<h2>{{subject}}</h2>
+{{ caller() }}
+<a href="#top">back to top</a>
+{% endmacro %}
+
+{% call subject_with_back("about", "about me") %}
+Hi, I'm a programmer living in Japan.
+{% endcall %}
+
+{% call subject_with_back("language", "favorite language") %}
+I love Ocaml.
+{% endcall %}
+
+{% import "macro.tmpl" as hoge %}
+
+{{ hoge.hoge_macro(10,20) }}
+
+{% from "macro.tmpl" import hoge_macro, other_macro %}
+
+{{ hoge_macro(30,40) }}
+{{ other_macro(50,60) }}
+
+{% endblock %}
+
+{% macro test_caller(x,y,z,age=120) %}
+this is test_caller
+age={{age}}
+class={{kwargs.class}}
+{{caller (x,y,z,kw_from_test_caller="yeah")}}
+{% endmacro %}
+
+{% call(a,b=100) test_caller(100,200,300,class="hoge") %}
+name={{test_caller.name}}
+caller={{test_caller.caller}}
+catch_kwargs={{test_caller.catch_kwargs}}
+catch_vargs={{test_caller.catch_vargs}}
+kw_from_test_caller={{kwargs.kw_from_test_caller}}
+{% endcall %}
+
+with statement test
+====================
+
+{% with foo = 10, hoge = 20 %}
+inner with foo = {{foo}}, hoge = {{hoge}}
+{% endwith %}
+
+after with foo = {{foo}}, hoge = {{hoge}}
+
+{% with %}
+{% set hige = 20 %}
+inner with hige = {{hige}}
+hige is defined = {{ hige is defined }}
+{% endwith %}
+
+after with hige = {{hige}}
+hige is defined = {{ hige is defined }}
+
+in expr test
+=============
+
+1 is in [1,2,3] = {{ 1 in [1,2,3] }}
+
+{% if 1 in [1,2,3] %}
+yes! 1 is in [1,2,3]
+{% endif %}
+
+raw statement test
+===================
+
+{% raw %}
+this is not expanded -> {{hoge}}
+this is not for loop -> {% for x in long_list %}hahaha{% endfor %}
+{% endraw %}
+
+autoescape test
+===============
+
+autoescape = true
+{% set script = "<script></script>" %}
+{% autoescape true %}
+{{ script }}
+{% endautoescape %}
+
+autoescape = false
+{% autoescape false %}
+{{ script }}
+{% endautoescape %}
+
+
+obj literal
+===========
+
+{% set person = {age:10, name:"taro"} %}
+
+person["age"] = {{ person["age"] }}
+person.age = {{ person.age }}
+person["name"] = {{ person["name"] }}
+person.name = {{ person.name }}
+
+enviroment variables
+=====================
+
+autoescape = {{jg_is_autoescape}}
+compiled = {{jg_is_compiled}}
+
+
+here is extended functions test(advanced.ml)
+=============================================
+
+if to_gmail and to_mail is not defined in filters field of environment, 
+this filed will be empty.
+
+to_gmail:{{ "hoge"|to_gmail }}
+to_mail:{{"hoge"|to_mail(domain="exicite.com")|to_mail(domain="yahoo.com")|to_mail}}
+
+here is extension functions test(advanced.ml)
+==============================================
+
+if my_ext.cmxs is not defined in extensions field of environment,
+this field will be empty.
+
+hash.to_md5("hoge") = {{ hash.to_md5("hoge") }}
+hash.to_md5("hoge") = {{ "hoge"|hash.to_md5 }}
+hash.to_md5("hoge") = {{ "hoge"|hash.to_md5() }}
+
+hash.to_md5("hoge", seed="aaa") = {{ hash.to_md5("hoge", seed="aaa") }}
+hash.to_md5("hoge", seed="aaa") = {{ "hoge"|hash.to_md5(seed="aaa") }}
