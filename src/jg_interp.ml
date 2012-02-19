@@ -47,6 +47,12 @@ let rec value_of_expr env ctx = function
       | other, expr -> failwith "invalid object syntax"
     ) expr_list)
 
+  | ApplyExpr(IdentExpr("eval"), expr :: rest) ->
+    let ctx = {ctx with buffer = Buffer.create 256} in
+    let statements = statements_from_string ctx @@ string_of_tvalue @@ value_of_expr env ctx expr in
+    let ctx = List.fold_left (eval_statement env) ctx statements in
+    Tstr (Buffer.contents ctx.buffer)
+
   | ApplyExpr(expr, args) ->
     let name = apply_name_of expr in
     let nargs = nargs_of env ctx args in
