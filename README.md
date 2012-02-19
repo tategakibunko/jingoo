@@ -162,31 +162,31 @@ also example/cheatsheet.tmpl may help you.
 ### for statement
 
 > {% for row in data_rows %}
->   <p>my name is {{ row.name }}</p>
->   <p>age = {{ row.age }}</p>
->   <p>{{loop.index0}}</p>
->   <p>{{loop.index}}</p>
->   <p>{{loop.revindex0}}</p>
->   <p>{{loop.revindex}}</p>
->   <p>{{loop.first}}</p>
->   <p>{{loop.last}}</p>
->   <p>{{loop.length}}</p>
->   <p>{{loop.cycle(1,2,3)}}</p>
+>   &lt;p&gt;my name is {{ row.name }}&lt;/p&gt;
+>   &lt;p&gt;age = {{ row.age }}&lt;/p&gt;
+>   &lt;p&gt;{{loop.index0}}&lt;/p&gt;
+>   &lt;p&gt;{{loop.index}}&lt;/p&gt;
+>   &lt;p&gt;{{loop.revindex0}}&lt;/p&gt;
+>   &lt;p&gt;{{loop.revindex}}&lt;/p&gt;
+>   &lt;p&gt;{{loop.first}}&lt;/p&gt;
+>   &lt;p&gt;{{loop.last}}&lt;/p&gt;
+>   &lt;p&gt;{{loop.length}}&lt;/p&gt;
+>   &lt;p&gt;{{loop.cycle(1,2,3)}}&lt;/p&gt;
 > {% endfor %}
 
 > {% for href, title in [("http://yahoo.co.jp", "yahoo"), ("http://google.co.jp", "google)] %}
-> <a href="{{href}}">{{title}}</a>
+> &lt;a href="{{href}}"&gt;{{title}}&lt;/a&gt;
 > {% endfor %}
 
 
 ### macro statement
 
 > {% macro login_box(user_name, password) %}
->   <form>
->     <input type="text" name="user_name" value="{{user_name}}" />
->     <input type="password" name="password" value="{{password}}" />
->     <input type="submit" value="login" />
->   </form>
+>   &lt;form&gt;
+>     &lt;input type="text" name="user_name" value="{{user_name}}" /&gt;
+>     &lt;input type="password" name="password" value="{{password}}" /&gt;
+>     &lt;input type="submit" value="login" /&gt;
+>   &lt;/form&gt;
 > {% endmacro %}
 
 > {{ login_box("some_user", "some_password") }}
@@ -195,10 +195,10 @@ also example/cheatsheet.tmpl may help you.
 ### call statement
 
 > {% macro subject_with_back(anchor, subject) %}
-> <a name="#{{anchor}}"></a>
-> <h2>{{subject}}</h2>
+> &lt;a name="\#{{anchor}}">&lt;/a>
+> &lt;h2&gt;{{subject}}&lt;/h2&gt;
 > {{ caller("hello", "macro body!") }}
-> <a href="#top">back to top</a>
+> &lt;a href="\#top">back to top&lt;/a&gt;
 > {% endmacro %}
 
 > {% call(a,b) subject_with_back("about", "about me") %}
@@ -243,7 +243,7 @@ also example/cheatsheet.tmpl may help you.
 
 ### autoescape statement
 
-> {% set script = "<script></script>" %}
+> {% set script = "&lt;script&gt;&lt;/script&gt;" %}
 
 > {% autoescape false %}
 > this is not escaped -> {{script}}
