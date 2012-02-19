@@ -2,19 +2,24 @@ PPRINT:=camlp4 pr_o.cmo pa_o.cmo
 PKG:=pcre,camomile,dynlink
 CMPL:=ocamlfind ocamlopt -g -thread -package $(PKG) -linkpkg -I ../src ../src/jingoo.cmxa
 JG_CMPL:=../src/compiler
-TARGET:= my_ext.cmxs cheatsheet.cmxs simple advanced 
+TARGET:= my_ext.cmxs cheatsheet.cmxs simple advanced bench
 
-.PHONY:$(TARGET)
+#.PHONY:$(TARGET)
 all: $(TARGET)
 
 my_ext.cmxs: my_ext.ml
 	$(CMPL) -shared -o $@ $<
 
-simple: simple.ml
-	$(CMPL) -o $@ $<
+simple: test_data.ml simple.ml
+	$(CMPL) -o $@ test_data.ml simple.ml
 
-advanced: advanced.ml
-	$(CMPL) -o $@ $<
+advanced: test_data.ml advanced.ml
+	$(CMPL) -o $@ test_data.ml advanced.ml
+
+# benchmark for interp mode: time ./bench
+# benchmark for compiler mode: time ./bench -cmpl
+bench: bench.ml
+	$(CMPL) -o $@ test_data.ml bench.ml
 
 # make compiled template
 cheatsheet.cmxs: cheatsheet.tmpl

@@ -40,16 +40,9 @@ let () =
 	"my_ext.cmxs";
       ];
     } in
+
   let result_string = 
-    Jg_template.from_file !file ~env ~use_compiled:(!compiled) ~models:[
-      ("msg", Tstr "hello, world");
-      ("list", Tlist [Tint 10; Tint 20;	Tint 30]);
-      ("long_list", Tlist [Tint 10; Tint 20; Tint 30; Tint 40; Tint 50;	Tint 60; Tint 70; Tint 80; Tint 90; Tint 100;]);
-      ("obj", Tobj [("name", Tstr "taro"); ("age", Tint 10)]);
-      ("rows", Tlist [
-	Tobj [("name", Tstr "jiro"); ("age", Tint 20)];
-	Tobj [("name", Tstr "saburo"); ("age", Tint 25)];
-       ]);
-    ] in
+    Jg_template.from_file !file ~env ~use_compiled:(!compiled) ~models:Test_data.models in
+
   print_endline result_string
 ;;
