@@ -84,6 +84,13 @@ and code_of_expr ctx = function
     ) expr_list in
     spf "(Tobj [%s])" (String.concat ";" nv_list)
 
+  | ApplyExpr(IdentExpr("eval"), expr :: rest) ->
+    lines [
+      let_line "source" @@ spf "string_of_tvalue %s" (code_of_expr ctx expr);
+      ctx_line "{ctx with buffer = Buffer.create 256}";
+      "Tstr (Jg_interp.from_string ~env ~ctx:(Some ctx) ~models source)";
+    ]
+
   | ApplyExpr(expr, args) ->
     let name = apply_name_of expr in
     let nargs = nargs_code_of ctx args in
@@ -343,8 +350,11 @@ and push_macro ctx name macro =
 and statements_from_file ctx file_name =
   let file_path = Jg_utils.get_file_path file_name ~template_dirs:ctx.template_dirs in
   let source = Jg_utils.read_file_as_string file_path in
+  statements_from_string ctx source ~file_name:(Some file_name)
+
+and statements_from_string ?(file_name=None) ctx source =
   let lexbuf = Lexing.from_string source in
-  Jg_lexer.init_lexer_pos (Some file_name) lexbuf;
+  Jg_lexer.init_lexer_pos file_name lexbuf;
   try
     let lexer = Jg_lexer.gen_cached_lexer Jg_lexer.main in
     Jg_parser.input lexer lexbuf

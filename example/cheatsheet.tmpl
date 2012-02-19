@@ -281,3 +281,10 @@ hash.to_md5("hoge") = {{ "hoge"|hash.to_md5() }}
 
 hash.to_md5("hoge", seed="aaa") = {{ hash.to_md5("hoge", seed="aaa") }}
 hash.to_md5("hoge", seed="aaa") = {{ "hoge"|hash.to_md5(seed="aaa") }}
+
+
+eval
+====
+
+{% set source = "{% set evalue = 'from eval!' %}{{evalue}}" %}
+{{ eval(source) }}
