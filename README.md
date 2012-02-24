@@ -39,7 +39,7 @@ Jingoo is OCaml template engine almost compatible with Jinja2(python template en
 
 * convert .tmpl to .ml by jingoo compiler(by default, it's installed in /usr/local/bin/jingoo)
 
-> jingoo -i my_template.tmpl > my_template.ml
+> jingoo -input my_template.tmpl > my_template.ml
 
 * build the template source to shared library
 
