@@ -16,8 +16,8 @@ simple: test_data.ml simple.ml
 advanced: test_data.ml advanced.ml
 	$(CMPL) -o $@ test_data.ml advanced.ml
 
-# benchmark for interp mode: time ./bench
-# benchmark for compiler mode: time ./bench -cmpl
+# benchmark for interp mode: ./bench
+# benchmark for compiler mode: ./bench -cmpl
 bench: bench.ml
 	$(CMPL) -o $@ test_data.ml bench.ml
 
