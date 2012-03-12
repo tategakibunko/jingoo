@@ -170,6 +170,11 @@ and eval_statement env ctx = function
     let _ = List.fold_left (eval_statement env) ctx' statements in
     ctx
 
+  | RawIncludeStatement(path) ->
+    let file_path = get_file_path env ctx path in
+    let source = Jg_utils.read_file_as_string file_path in
+    jg_output ctx (Tstr source) ~safe:true
+
   | WithStatement(binds, statements) ->
     let kwargs = kwargs_of env ctx binds in
     let names = List.map fst kwargs in
@@ -251,8 +256,11 @@ and import_macro ?(namespace=None) ?(select=None) env ctx codes =
       | _ -> ctx
   ) ctx codes
 
+and get_file_path env ctx file_name =
+  Jg_utils.get_file_path file_name ~template_dirs:env.template_dirs
+
 and statements_from_file env ctx file_name =
-  let file_path = Jg_utils.get_file_path file_name ~template_dirs:env.template_dirs in
+  let file_path = get_file_path env ctx file_name in
   let source = Jg_utils.read_file_as_string file_path in
   statements_from_string ctx source ~file_path:(Some file_path)
 

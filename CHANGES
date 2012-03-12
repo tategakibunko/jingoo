@@ -1,0 +1,13 @@
+------------------------------------------------------------
+"o": new feature
+"*": bug fixed
+"!": change that can break compatibility with older version
+------------------------------------------------------------
+
+version: 1.01, 2012-03-13:
+==========================
+o add new syntax "rawinclude"
+
+version: 1.0,  2012-02-18:
+==========================
+o first release

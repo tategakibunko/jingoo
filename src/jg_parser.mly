@@ -44,6 +44,7 @@
 %token CONTEXT
 %token AUTOESCAPE
 %token ENDAUTOESCAPE
+%token RAWINCLUDE
 %token EOF
 
 %token <int> INT
@@ -124,6 +125,8 @@ stmt:
 | FILTER error { raise @@ SyntaxError "filter" }
 | INCLUDE STRING context_part{ pel "include sts"; IncludeStatement($2, $3) }
 | INCLUDE error { raise @@ SyntaxError "include" }
+| RAWINCLUDE STRING { pel "raw include sts"; RawIncludeStatement($2) }
+| RAWINCLUDE error { raise @@ SyntaxError "rawinclude" }
 | IMPORT STRING as_part { pel "import sts"; ImportStatement($2, $3) }
 | IMPORT error{ raise @@ SyntaxError "import error" }
 | FROM STRING IMPORT expr_list { pel "from import sts"; FromImportStatement($2, $4) }

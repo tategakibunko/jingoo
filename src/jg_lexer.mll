@@ -120,6 +120,7 @@
     ("context", CONTEXT);
     ("autoescape", AUTOESCAPE);
     ("endautoescape", ENDAUTOESCAPE);
+    ("rawinclude", RAWINCLUDE);
   ]
 
   let keyword_or_ident word =

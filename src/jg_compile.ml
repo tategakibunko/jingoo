@@ -230,6 +230,10 @@ and code_of_statement ctx = function
       "ctx'";
     ]
 
+  | RawIncludeStatement(path) ->
+    let source = source_from_file ctx path in
+    ctx_line @@ spf "jg_output ctx (Tstr \"%s\") ~safe:true" (escape_text source)
+
   | FilterStatement(IdentExpr(name), statements) ->
     lines @@ [
       ctx_line @@ spf "jg_set_filter ctx \"%s\"" name;
@@ -347,9 +351,15 @@ and find_macro ctx name =
 and push_macro ctx name macro =
   {ctx with macros = (name, macro) :: ctx.macros}
 
+and get_file_path ctx file_name =
+  Jg_utils.get_file_path file_name ~template_dirs:ctx.template_dirs
+
+and source_from_file ctx file_name =
+  let file_path = get_file_path ctx file_name in
+  Jg_utils.read_file_as_string file_path
+
 and statements_from_file ctx file_name =
-  let file_path = Jg_utils.get_file_path file_name ~template_dirs:ctx.template_dirs in
-  let source = Jg_utils.read_file_as_string file_path in
+  let source = source_from_file ctx file_name in
   statements_from_string ctx source ~file_name:(Some file_name)
 
 and statements_from_string ?(file_name=None) ctx source =
