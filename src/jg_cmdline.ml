@@ -29,15 +29,20 @@ let get_template_dirs = function
 let () =
   let usage = "jingoo -input [input_file]" in
   let filename = ref "" in
+  let tmplname = ref "" in
   let dirs = ref "" in
 
   Arg.parse [
     ("-template_dirs", Arg.String (fun str -> dirs := str), "template dirs(split by comma)");
     ("-input", Arg.String (fun str -> filename := str), "input filename");
+    ("-interp", Arg.String (fun str -> tmplname := str), "interp template_file with no models");
   ] ignore usage;
   
   try
-    output_string stdout (Jg_compile.from_file ~template_dirs:(get_template_dirs !dirs) !filename)
+    if !filename <> "" then
+      output_string stdout (Jg_compile.from_file ~template_dirs:(get_template_dirs !dirs) !filename)
+    else if !tmplname <> "" then
+      output_string stdout (Jg_template.from_file !tmplname ~models:[])
   with
     | Jg_types.SyntaxError(msg) ->
       Printf.printf "syntax error:%s\n" msg
