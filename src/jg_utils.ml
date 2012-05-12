@@ -40,7 +40,7 @@ let substring base count str =
 
 let escape_html str =
   let str = Pcre.qreplace ~rex:(Pcre.regexp "&") ~templ:"&amp;" str in
-  let str = Pcre.qreplace ~rex:(Pcre.regexp "\"") ~templ:"&quote;" str in
+  let str = Pcre.qreplace ~rex:(Pcre.regexp "\"") ~templ:"&quot;" str in
   let str = Pcre.qreplace ~rex:(Pcre.regexp "<") ~templ:"&lt;" str in
   let str = Pcre.qreplace ~rex:(Pcre.regexp ">") ~templ:"&gt;" str in
     str
