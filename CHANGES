@@ -4,6 +4,12 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+varsion: 1.1, 2012-06-06
+==========================
+o license changed. now under MIT license.
+o new cmdline tool option "-interp".
+o support eval syntax(see cheatsheet.tmpl).
+
 version: 1.01, 2012-03-13:
 ==========================
 o add new syntax "rawinclude"
