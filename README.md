@@ -1,5 +1,4 @@
-# jingoo 
-
+# jingoo
 
 ## about jingoo
 
@@ -61,3 +60,8 @@ see example directory for detail.
 ## cheatsheet
 
 see "example/cheatsheet.tmpl".
+
+
+## license
+
+MIT License
