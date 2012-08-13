@@ -1,7 +1,7 @@
 name="jingoo"
 version = "1.01"
 description = "ocaml template engine"
-requires = "unix threads dynlink pcre netstring camomile"
+requires = "unix threads dynlink pcre camomile"
 archive(byte) = "jingoo.cma"
 archive(native) = "jingoo.cmxa"
 archive(byte,mt)+="jingoo_mt.cmo"
