@@ -18,12 +18,12 @@ type environment = {
 
 and context = {
   frame_stack : frame list;
-  macro_table : (string * macro) list;
+  macro_table : (string, macro) Hashtbl.t;
   filter_table : string list;
   buffer : Buffer.t;
 }
 
-and frame = (string * tvalue) list
+and frame = (string, tvalue) Hashtbl.t
 and macro = Macro of macro_arg_names * macro_defaults * macro_code
 and macro_arg_names = string list
 and macro_defaults = kwargs

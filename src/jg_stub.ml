@@ -8,7 +8,7 @@
 open Jg_utils
 open Jg_types
 
-type tmpl_func = (?env:environment -> ?models:frame -> string -> string)
+type tmpl_func = (?env:environment -> ?models:(string * tvalue) list -> string -> string)
 
 let func_table : (string, tvalue) Hashtbl.t = Hashtbl.create 20
 let tmpl_func_table : (string, tmpl_func) Hashtbl.t = Hashtbl.create 20

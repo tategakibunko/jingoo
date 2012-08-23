@@ -7,7 +7,7 @@
 *)
 open Jg_types
 
-val from_file : ?env:environment -> ?models:frame -> ?use_compiled:bool -> string -> string
+val from_file : ?env:environment -> ?models:(string * tvalue) list -> ?use_compiled:bool -> string -> string
 (** [from_file env models use_compiled template_filename]
     return result string.
 
@@ -22,7 +22,7 @@ val from_file : ?env:environment -> ?models:frame -> ?use_compiled:bool -> strin
     if not found, [template_filename] is loaded.
 *)
 
-val from_string : ?env:environment -> ?ctx:context option -> ?models:frame -> string -> string
+val from_string : ?env:environment -> ?ctx:context option -> ?models:(string * tvalue) list -> string -> string
 (** [from_string env context models source_string]
     return result string.
 

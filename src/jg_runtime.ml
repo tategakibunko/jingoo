@@ -158,7 +158,7 @@ let jg_funp = function
 ;;
 
 let jg_push_frame ctx =
-  {ctx with frame_stack = [] :: ctx.frame_stack}
+  {ctx with frame_stack = (Hashtbl.create 10) :: ctx.frame_stack}
 ;;
 
 let jg_pop_frame ctx =
@@ -170,8 +170,13 @@ let jg_pop_frame ctx =
 
 let jg_set_value ctx name value =
   match ctx.frame_stack with
-    | [] -> {ctx with frame_stack = [(name, value)] :: []}
-    | frame :: rest -> {ctx with frame_stack = ((name, value) :: frame) :: rest}
+    | [] ->
+      let frame = Hashtbl.create 10 in
+      Hashtbl.add frame name value;
+      {ctx with frame_stack = frame :: []}
+    | frame :: rest ->
+      Hashtbl.add frame name value;
+      {ctx with frame_stack = frame :: rest}
 ;;
 
 let jg_set_values ctx names values =
@@ -194,7 +199,7 @@ let jg_bind_names ctx names values =
 let rec jg_get_value ctx name =
   let rec get_value name = function
     | frame :: rest ->
-      (try List.assoc name frame with Not_found -> get_value name rest)
+      (try Hashtbl.find frame name with Not_found -> get_value name rest)
     | [] -> Tnull in
   get_value name ctx.frame_stack
 ;;
@@ -206,17 +211,17 @@ let jg_get_func ctx name =
 ;;
 
 let jg_set_macro ctx name macro =
-  {ctx with macro_table = (name, macro) :: ctx.macro_table}
+  Hashtbl.add ctx.macro_table name macro;
+  ctx
 ;;
 
 let jg_get_macro ctx name =
-  try Some(List.assoc name @@ ctx.macro_table) with Not_found -> None
+  try Some(Hashtbl.find ctx.macro_table name) with Not_found -> None
 ;;
 
-let jg_pop_macro ctx =
-  match ctx.macro_table with
-    | [] -> ctx
-    | head :: rest -> {ctx with macro_table = rest}
+let jg_remove_macro ctx name =
+  Hashtbl.remove ctx.macro_table name;
+  ctx
 ;;
 
 let jg_set_filter ctx name =
@@ -1063,12 +1068,22 @@ let jg_load_extensions extensions =
 ;;
       
 let jg_init_context ?(models=[]) env =
+  let model_hash = 
+    List.fold_left (fun hash (name, value) ->
+      Hashtbl.add hash name value;
+      hash
+    ) (Hashtbl.create @@ List.length models) models in
   let env_values = [
     ("jg_is_compiled", Tbool env.compiled);
     ("jg_is_autoescape", Tbool env.autoescape);
   ] in
-  { frame_stack = [models; env.filters @ env_values @ top_frame];
-    macro_table = [];
+  let env_hash =
+    List.fold_left (fun hash (name, value) ->
+      Hashtbl.add hash name value;
+      hash
+    ) (Hashtbl.create 50) (env.filters @ env_values @ top_frame) in
+  { frame_stack = [model_hash; env_hash];
+    macro_table = Hashtbl.create 10;
     filter_table = [];
     buffer = Buffer.create 1024;
   }

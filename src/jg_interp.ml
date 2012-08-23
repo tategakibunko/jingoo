@@ -154,7 +154,7 @@ and eval_statement env ctx = function
 	let call_defaults = kwargs_of env ctx call_args_def in
 	let ctx = jg_set_macro ctx "caller" @@ Macro(call_arg_names, call_defaults, call_statements) in
 	let text = string_of_tvalue @@ value_of_expr env ctx @@ ApplyExpr(IdentExpr(name), macro_args) in
-	let ctx = jg_pop_macro ctx in
+	let ctx = jg_remove_macro ctx "caller" in
 	jg_output ctx (Tstr text) ~safe:true
 
       | None -> ctx (* do nothing *)

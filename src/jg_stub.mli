@@ -18,7 +18,7 @@ val get_func : string -> string -> tvalue
     Raise [Not_found] if no entry found.
 *)
 
-type tmpl_func = (?env:environment -> ?models:frame -> string -> string)
+type tmpl_func = (?env:environment -> ?models:(string * tvalue) list -> string -> string)
 (** tmpl_func is type of compiled template renderer *)
 
 val add_tmpl_func : string -> tmpl_func -> unit
