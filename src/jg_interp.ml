@@ -38,6 +38,8 @@ let rec value_of_expr env ctx = function
   | TestOpExpr(DotExpr(IdentExpr(name), IdentExpr(prop)), IdentExpr("undefined")) -> jg_test_obj_undefined ctx name prop
   | TestOpExpr(IdentExpr(name), IdentExpr("none")) -> jg_test_none ctx name
   | TestOpExpr(IdentExpr(name), IdentExpr("escaped")) -> jg_test_escaped ctx
+  | TestOpExpr(IdentExpr(name), IdentExpr("upper")) -> jg_test_upper (jg_get_value ctx name) []
+  | TestOpExpr(IdentExpr(name), IdentExpr("lower")) -> jg_test_lower (jg_get_value ctx name) []
   | TestOpExpr(target, test) -> jg_apply (value_of_expr env ctx test) [value_of_expr env ctx target]
 
   | ObjExpr(expr_list) ->

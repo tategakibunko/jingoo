@@ -15,6 +15,10 @@ test: $(SRCS)
 clean:
 	rm -f *.o *.cmi *.cmx test
 
+rebuild:
+	make clean
+	make all
+
 run:
 	./test
 

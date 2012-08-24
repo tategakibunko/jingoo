@@ -74,6 +74,8 @@ and code_of_expr ctx = function
   | TestOpExpr(DotExpr(IdentExpr(name), IdentExpr(prop)), IdentExpr("undefined")) -> spf "(jg_test_obj_undefined ctx \"%s\" \"%s\")" name prop
   | TestOpExpr(IdentExpr(name), IdentExpr("none")) -> spf "(jg_test_none ctx \"%s\")" name
   | TestOpExpr(IdentExpr(name), IdentExpr("escaped")) -> "(jg_test_escaped ctx)"
+  | TestOpExpr(IdentExpr(name), IdentExpr("upper")) -> spf "(jg_test_upper (jg_get_value ctx \"%s\") [])" name
+  | TestOpExpr(IdentExpr(name), IdentExpr("lower")) -> spf "(jg_test_lower (jg_get_value ctx \"%s\") [])" name
   | TestOpExpr(target, test) -> spf "(jg_apply (%s) [%s])" (code_of_expr ctx test) (nargs_code_of ctx [target])
 
   | ObjExpr(expr_list) ->

@@ -163,9 +163,9 @@ let jg_push_frame ctx =
 
 let jg_pop_frame ctx =
   match ctx.frame_stack with
-    | [] -> ctx
-    | [top_frame] -> ctx
-    | frame :: rest -> {ctx with frame_stack = rest}
+    | [] -> ctx (* never happen *)
+    | [top_frame] -> ctx (* because top frame always remain *)
+    | frame :: rest -> {ctx with frame_stack = rest} (* other case, pop latest *)
 ;;
 
 let jg_set_value ctx name value =
@@ -225,13 +225,13 @@ let jg_remove_macro ctx name =
 ;;
 
 let jg_set_filter ctx name =
-  {ctx with filter_table = name :: ctx.filter_table}
+  {ctx with active_filters = name :: ctx.active_filters}
 ;;
 
 let jg_pop_filter ctx =
-  match ctx.filter_table with
+  match ctx.active_filters with
     | [] -> ctx
-    | head :: rest -> {ctx with filter_table = rest}
+    | head :: rest -> {ctx with active_filters = rest}
 ;;
 
 let jg_escape_html str kwargs =
@@ -259,12 +259,12 @@ let jg_apply_filters ?(autoescape=true) ?(safe=false) ctx text filters =
 ;;
 
 let jg_output ?(autoescape=true) ?(safe=false) ctx value =
-  (match ctx.filter_table, safe, value with
+  (match ctx.active_filters, safe, value with
     | [], true, Tstr text -> Buffer.add_string ctx.buffer text
     | [], true, value -> Buffer.add_string ctx.buffer @@ string_of_tvalue value
     | _ ->
       Buffer.add_string ctx.buffer @@ string_of_tvalue @@
-	jg_apply_filters ctx value ctx.filter_table ~safe ~autoescape
+	jg_apply_filters ctx value ctx.active_filters ~safe ~autoescape
   );
   ctx
 ;;
@@ -363,7 +363,7 @@ let jg_test_obj_undefined ctx obj_name prop_name =
 ;;
 
 let jg_test_escaped ctx = 
-  Tbool(List.mem "safe" @@ ctx.filter_table)
+  Tbool(List.mem "safe" @@ ctx.active_filters)
 ;;
 
 let jg_test_none ctx name =
@@ -1000,7 +1000,7 @@ let func_arg3 f = Tfun (fun args kwargs ->
     | _ -> Tnull
 );;
 
-let top_frame = [
+let std_filters = [
   (** built-in filters *)
   ("abs", func_arg1 jg_abs);
   ("capitalize", func_arg1 jg_capitalize);
@@ -1048,13 +1048,11 @@ let top_frame = [
   ("divisibleby", func_arg2 jg_test_divisibleby);
   ("even", func_arg1 jg_test_even);
   ("iterable", func_arg1 jg_test_iterable);
-  ("lower", func_arg1 jg_test_lower);
   ("number", func_arg1 jg_test_number);
   ("odd", func_arg1 jg_test_odd);
   ("sameas", func_arg2 jg_test_sameas);
   ("sequence", func_arg1 jg_test_sequence);
   ("string", func_arg1 jg_test_string);
-  ("upper", func_arg1 jg_test_upper);
 ]
 ;;
 
@@ -1066,25 +1064,24 @@ let jg_load_extensions extensions =
 	Dynlink.Error e -> failwith @@ Dynlink.error_message e
   ) extensions
 ;;
-      
+
 let jg_init_context ?(models=[]) env =
-  let model_hash = 
-    List.fold_left (fun hash (name, value) ->
-      Hashtbl.add hash name value;
-      hash
-    ) (Hashtbl.create @@ List.length models) models in
-  let env_values = [
+  let model_frame = Hashtbl.create (2 * List.length models) in
+  let top_frame = Hashtbl.create (List.length std_filters + List.length env.filters + 2) in
+  let set_values hash alist =
+    List.iter (fun (name, value) ->
+      Hashtbl.add hash name value
+    ) alist in
+  set_values model_frame models;
+  set_values top_frame std_filters;
+  set_values top_frame env.filters;
+  set_values top_frame [
     ("jg_is_compiled", Tbool env.compiled);
     ("jg_is_autoescape", Tbool env.autoescape);
-  ] in
-  let env_hash =
-    List.fold_left (fun hash (name, value) ->
-      Hashtbl.add hash name value;
-      hash
-    ) (Hashtbl.create 50) (env.filters @ env_values @ top_frame) in
-  { frame_stack = [model_hash; env_hash];
+  ];
+  { frame_stack = [model_frame; top_frame];
     macro_table = Hashtbl.create 10;
-    filter_table = [];
+    active_filters = [];
     buffer = Buffer.create 1024;
   }
 ;;

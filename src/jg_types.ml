@@ -19,7 +19,7 @@ type environment = {
 and context = {
   frame_stack : frame list;
   macro_table : (string, macro) Hashtbl.t;
-  filter_table : string list;
+  active_filters : string list;
   buffer : Buffer.t;
 }
 

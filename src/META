@@ -1,5 +1,5 @@
 name="jingoo"
-version = "1.01"
+version = "1.2.0"
 description = "ocaml template engine"
 requires = "unix threads dynlink pcre camomile"
 archive(byte) = "jingoo.cma"
