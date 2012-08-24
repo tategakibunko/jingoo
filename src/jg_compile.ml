@@ -41,6 +41,7 @@ let rec code_of_tvalue = function
   | Tfloat(x) -> spf "(Tfloat %f)" x
   | Tstr(x) -> spf "(Tstr \"%s\")" x
   | Tobj(x) -> "(Tobj)"
+  | Thash(x) -> "(Thash)"
   | Tlist(x) -> "(Tlist)"
   | Tset(x) -> "(Tset)"
   | Tfun(f) -> "(Tfun)"

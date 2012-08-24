@@ -15,6 +15,7 @@ let box_bool b = Tbool b
 let box_list lst = Tlist lst
 let box_set lst = Tset lst
 let box_obj alist = Tobj alist
+let box_hash hash = Thash hash
 
 let unbox_int = function
   | Tint x -> x
@@ -51,6 +52,11 @@ let unbox_obj = function
   | _ -> failwith "invalid arg:not obj(unbox_obj)"
 ;;
 
+let unbox_hash = function
+  | Thash hash -> hash
+  | _ -> failwith "invalid arg:not hahs(unbox_hash)"
+;;
+
 let merge_defaults defaults kwargs =
   List.map (fun (name, value) ->
     try (name, List.assoc name kwargs) with Not_found -> (name, value)
@@ -74,6 +80,7 @@ let string_of_tvalue = function
   | Tstr x -> x
   | Tbool x -> string_of_bool x
   | Tobj x -> "<obj>"
+  | Thash x -> "<hash>"
   | Tlist x -> "<list>"
   | Tset x -> "<set>"
   | Tfun _ -> "<fun>"
@@ -86,6 +93,7 @@ let type_string_of_tvalue = function
   | Tstr x -> "string"
   | Tbool x -> "bool"
   | Tobj x -> "obj"
+  | Thash x -> "hash"
   | Tlist x -> "list"
   | Tset x -> "set"
   | Tfun _ -> "function"
@@ -149,6 +157,11 @@ let jg_setp = function
 
 let jg_objp = function
   | Tobj _ -> Tbool true
+  | _ -> Tbool false
+;;
+
+let jg_hashp = function
+  | Thash _ -> Tbool true
   | _ -> Tbool false
 ;;
 
@@ -272,6 +285,7 @@ let jg_output ?(autoescape=true) ?(safe=false) ctx value =
 let jg_obj_lookup ctx obj_name prop_name =
   match jg_get_value ctx obj_name with
     | Tobj(alist) -> (try List.assoc prop_name alist with Not_found -> Tnull)
+    | Thash(hash) -> (try Hashtbl.find hash prop_name with Not_found -> Tnull)
     | _ -> (try Jg_stub.get_func obj_name prop_name with Not_found -> Tnull)
 ;;      
 
@@ -386,6 +400,7 @@ let jg_is_true = function
   | Tlist x -> List.length x > 0
   | Tset x -> List.length x > 0
   | Tobj x -> List.length x > 0
+  | Thash x -> Hashtbl.length x > 0
   | Tnull -> false
   | Tfun(f) -> failwith "jg_is_true:type error(function)"
 ;;
@@ -1068,14 +1083,20 @@ let jg_load_extensions extensions =
 let jg_init_context ?(models=[]) env =
   let model_frame = Hashtbl.create (2 * List.length models) in
   let top_frame = Hashtbl.create (List.length std_filters + List.length env.filters + 2) in
-  let set_values hash alist =
-    List.iter (fun (name, value) ->
-      Hashtbl.add hash name value
-    ) alist in
-  set_values model_frame models;
-  set_values top_frame std_filters;
-  set_values top_frame env.filters;
-  set_values top_frame [
+  let rec set_values hash alist =
+    List.fold_left (fun hash (name, value) ->
+      (match value with
+	| Tobj alist ->
+	  let inner_hash = set_values (Hashtbl.create @@ List.length alist) alist in
+	  Hashtbl.add hash name (Thash inner_hash)
+	| _ ->
+	  Hashtbl.add hash name value);
+      hash
+    ) hash alist in
+  ignore @@ set_values model_frame models;
+  ignore @@ set_values top_frame std_filters;
+  ignore @@ set_values top_frame env.filters;
+  ignore @@ set_values top_frame [
     ("jg_is_compiled", Tbool env.compiled);
     ("jg_is_autoescape", Tbool env.autoescape);
   ];
