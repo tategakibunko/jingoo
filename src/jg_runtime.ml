@@ -1083,16 +1083,7 @@ let jg_load_extensions extensions =
 let jg_init_context ?(models=[]) env =
   let model_frame = Hashtbl.create (2 * List.length models) in
   let top_frame = Hashtbl.create (List.length std_filters + List.length env.filters + 2) in
-  let rec set_values hash alist =
-    List.fold_left (fun hash (name, value) ->
-      (match value with
-	| Tobj alist ->
-	  let inner_hash = set_values (Hashtbl.create @@ List.length alist) alist in
-	  Hashtbl.add hash name (Thash inner_hash)
-	| _ ->
-	  Hashtbl.add hash name value);
-      hash
-    ) hash alist in
+  let rec set_values hash alist = List.fold_left (fun h (n, v) -> Hashtbl.add h n v; h) hash alist in
   ignore @@ set_values model_frame models;
   ignore @@ set_values top_frame std_filters;
   ignore @@ set_values top_frame env.filters;
