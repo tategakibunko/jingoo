@@ -4,6 +4,10 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+varsion: 1.2.2, 2012-08-30
+==========================
+* remove some needless funcs.
+
 varsion: 1.2.1, 2012-08-25
 ==========================
 o disable auto convert from Tobj to Thash.

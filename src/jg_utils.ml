@@ -110,13 +110,6 @@ let read_file_as_string filename =
       raise e
 ;;
 
-let chop_dir_suffix dir =
-  if Filename.check_suffix dir "/" then
-    Filename.chop_suffix dir "/"
-  else
-    dir
-;;
-
 let rec get_file_path ?(template_dirs=[]) file_name =
   match template_dirs with
     | [] ->
@@ -126,7 +119,7 @@ let rec get_file_path ?(template_dirs=[]) file_name =
       else
 	failwith @@ spf "file %s not found" file_name
     | dir :: rest ->
-      let file_path = Filename.concat (chop_dir_suffix dir) file_name in
+      let file_path = Filename.concat dir file_name in
       if Sys.file_exists file_path then
 	file_path
       else
