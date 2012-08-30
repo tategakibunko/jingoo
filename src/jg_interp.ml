@@ -283,7 +283,7 @@ and init_context ?(env=std_env) ?(models=[]) () =
 
 and from_file ?(env=std_env) ?(models=[]) file_name =
   let ctx = init_context ~env ~models () in
-  let file_path = Jg_utils.get_file_path file_name ~template_dirs:env.template_dirs in
+  let file_path = get_file_path env ctx file_name in
   let source = Jg_utils.read_file_as_string file_path in
   from_string source ~env ~ctx:(Some ctx) ~models
     
