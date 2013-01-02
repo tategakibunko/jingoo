@@ -114,7 +114,7 @@ let rec get_file_path ?(template_dirs=[]) file_name =
   if file_name = "" then
     raise Not_found
   ;
-  if String.get file_name 0 = '/' && Filename.is_implicit file_name then
+  if not @@ Filename.is_implicit file_name then
     file_name
   else
     match template_dirs with
