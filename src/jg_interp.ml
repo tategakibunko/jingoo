@@ -264,9 +264,9 @@ and get_file_path env ctx file_name =
 and statements_from_file env ctx file_name =
   let file_path = get_file_path env ctx file_name in
   let source = Jg_utils.read_file_as_string file_path in
-  statements_from_string ctx source ~file_path:(Some file_path)
+  statements_from_string ctx source ~file_path
 
-and statements_from_string ?(file_path=None) ctx source =
+and statements_from_string ?file_path ctx source =
   let lexbuf = Lexing.from_string source in
   Jg_lexer.init_lexer_pos file_path lexbuf;
   try
@@ -285,14 +285,14 @@ and from_file ?(env=std_env) ?(models=[]) file_name =
   let ctx = init_context ~env ~models () in
   let file_path = get_file_path env ctx file_name in
   let source = Jg_utils.read_file_as_string file_path in
-  from_string source ~env ~ctx:(Some ctx) ~models
+  from_string source ~file_path ~env ~ctx:(Some ctx) ~models
     
-and from_string ?(env=std_env) ?(ctx=None) ?(models=[]) source =
+and from_string ?(env=std_env) ?(ctx=None) ?(models=[]) ?file_path source =
   try
     let () = lock_unlock.lock () in
     let () = reset_interp () in
     let ctx = match ctx with Some ctx -> ctx | _ -> init_context ~env ~models () in
-    let codes = statements_from_string ctx source +> unfold_extends env ctx +> align_block in
+    let codes = statements_from_string ?file_path ctx source +> unfold_extends env ctx +> align_block in
     let ctx = import_macro env ctx codes in
     let _ = List.fold_left (eval_statement env) ctx codes in
     reset_interp ();
