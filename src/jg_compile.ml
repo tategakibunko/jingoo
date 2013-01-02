@@ -91,7 +91,7 @@ and code_of_expr ctx = function
     lines [
       let_line "source" @@ spf "string_of_tvalue %s" (code_of_expr ctx expr);
       ctx_line "{ctx with buffer = Buffer.create 256}";
-      "Tstr (Jg_interp.from_string ~env ~ctx:(Some ctx) ~models source)";
+      "Tstr (Jg_interp.from_string ~env ~ctx ~models source)";
     ]
 
   | ApplyExpr(expr, args) ->
@@ -321,7 +321,7 @@ and eval_macro ctx name args kwargs macro =
 	spf "let _ = jg_eval_macro env ctx \"%s\" [%s] [%s] (%s) f ~caller:%b in" name args kwargs macro_code caller;
       ]
 
-and import_macro ?(alias=None) ?(select=None) ctx codes =
+and import_macro ?alias ?select ctx codes =
   let macro_name name = match alias with Some alias -> spf "%s.%s" alias name | _ -> name in
   let can_import name =  match select with None -> true | Some lst -> List.exists ((=) name) lst in
 
@@ -333,17 +333,17 @@ and import_macro ?(alias=None) ?(select=None) ctx codes =
 	push_macro ctx (macro_name name) @@ MacroAst(arg_names, defaults, statements)
 
       | BlockStatement(_, stmts) ->
-	import_macro ctx ~alias ~select stmts
+	import_macro ctx ?alias ?select stmts
 	  
       | IncludeStatement(path, _) ->
-	import_macro ctx ~alias ~select @@ statements_from_file ctx path
+	import_macro ctx ?alias ?select @@ statements_from_file ctx path
 
       | ImportStatement(path, alias) ->
-	import_macro ctx ~alias ~select @@ statements_from_file ctx path
+	import_macro ctx ?alias ?select @@ statements_from_file ctx path
 	  
       | FromImportStatement(path, import_macros) ->
 	let names = ident_names_of import_macros in
-	import_macro ctx ~select:(Some names) @@ statements_from_file ctx path
+	import_macro ctx ~select:names @@ statements_from_file ctx path
 	  
       | _ -> ctx
   ) ctx codes
@@ -363,9 +363,9 @@ and source_from_file ctx file_name =
 
 and statements_from_file ctx file_name =
   let source = source_from_file ctx file_name in
-  statements_from_string ctx source ~file_name:(Some file_name)
+  statements_from_string ctx source ~file_name
 
-and statements_from_string ?(file_name=None) ctx source =
+and statements_from_string ?file_name ctx source =
   let lexbuf = Lexing.from_string source in
   Jg_lexer.init_lexer_pos file_name lexbuf;
   try

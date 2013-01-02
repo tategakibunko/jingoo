@@ -231,7 +231,7 @@ and reset_interp () =
   Jg_lexer.reset_lexer ();
   Parsing.clear_parser ()
 
-and import_macro ?(namespace=None) ?(select=None) env ctx codes =
+and import_macro ?namespace ?select env ctx codes =
   let macro_name name = match namespace with Some namespace -> spf "%s.%s" namespace name | _ -> name in
   let alias_name name = match select with None -> name | Some alist -> List.assoc name alist in
   let can_import name = match select with None -> true | Some alist -> List.mem_assoc name alist in
@@ -243,17 +243,17 @@ and import_macro ?(namespace=None) ?(select=None) env ctx codes =
 	jg_set_macro ctx (macro_name @@ alias_name name) @@ Macro(arg_names, kwargs, statements)
 	  
       | BlockStatement(_, stmts) ->
-	import_macro env ctx ~namespace ~select stmts
+	import_macro env ctx ?namespace ?select stmts
 	  
       | IncludeStatement(path, _) ->
-	import_macro env ctx ~namespace ~select @@ statements_from_file env ctx path
+	import_macro env ctx ?namespace ?select @@ statements_from_file env ctx path
 
       | ImportStatement(path, namespace) ->
-	import_macro env ctx ~namespace ~select @@ statements_from_file env ctx path
+	import_macro env ctx ?namespace ?select @@ statements_from_file env ctx path
 	  
       | FromImportStatement(path, select_macros) ->
 	let alias_names = alias_names_of select_macros in
-	import_macro env ctx ~namespace ~select:(Some alias_names) @@ statements_from_file env ctx path
+	import_macro env ctx ?namespace ?select:(Some alias_names) @@ statements_from_file env ctx path
 
       | _ -> ctx
   ) ctx codes
@@ -285,9 +285,9 @@ and from_file ?(env=std_env) ?(models=[]) file_name =
   let ctx = init_context ~env ~models () in
   let file_path = get_file_path env ctx file_name in
   let source = Jg_utils.read_file_as_string file_path in
-  from_string source ~file_path ~env ~ctx:(Some ctx) ~models
+  from_string source ~file_path ~env ~ctx ~models
     
-and from_string ?(env=std_env) ?(ctx=None) ?(models=[]) ?file_path source =
+and from_string ?(env=std_env) ?ctx ?(models=[]) ?file_path source =
   try
     let () = lock_unlock.lock () in
     let () = reset_interp () in

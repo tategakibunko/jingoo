@@ -66,12 +66,12 @@ let is_upper str =
       Not_found -> true
 ;;
 
-let rec take ?(pad=None) n lst =
+let rec take ?pad n lst =
   match n, lst, pad with
     | n, _, _ when n <= 0 -> []
     | n, [], None -> []
-    | n, [], Some value -> value :: (take (n-1) [] ~pad)
-    | n, h :: rest, _ -> h :: (take (n-1) rest ~pad)
+    | n, [], Some value -> value :: (take (n-1) [] ?pad)
+    | n, h :: rest, _ -> h :: (take (n-1) rest ?pad)
 ;;
 
 let after n lst =

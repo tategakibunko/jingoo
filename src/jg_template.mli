@@ -22,7 +22,7 @@ val from_file : ?env:environment -> ?models:(string * tvalue) list -> ?use_compi
     if not found, [template_filename] is loaded.
 *)
 
-val from_string : ?env:environment -> ?ctx:context option -> ?models:(string * tvalue) list -> string -> string
+val from_string : ?env:environment -> ?ctx:context -> ?models:(string * tvalue) list -> string -> string
 (** [from_string env context models source_string]
     return result string.
 

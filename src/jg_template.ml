@@ -32,8 +32,8 @@ let from_file ?(env=std_env) ?(models=[]) ?(use_compiled=false) file_name =
     from_compiled ~env ~models file_name
 ;;
 
-let from_string ?(env=std_env) ?(ctx=None) ?(models=[]) source =
-  Jg_interp.from_string ~env ~ctx ~models source
+let from_string ?(env=std_env) ?ctx ?(models=[]) source =
+  Jg_interp.from_string ~env ?ctx ~models source
 ;;
 
 let compile ?(template_dirs=[]) file_name =
