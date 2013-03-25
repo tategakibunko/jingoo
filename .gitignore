@@ -4,3 +4,8 @@ src/jg_parser.mli
 src/jingoo.a
 src/compiler
 tests/test
+example/simple
+example/bench
+example/advanced
+example/cheatsheet.ml
+
