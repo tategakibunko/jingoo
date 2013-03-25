@@ -195,14 +195,14 @@ let jg_set_value ctx name value =
 let jg_set_values ctx names values =
   List.fold_left (fun ctx (name, value) ->
     jg_set_value ctx name value
-  ) ctx @@ List.combine names @@ take (List.length names) values ~pad:(Some Tnull)
+  ) ctx @@ List.combine names @@ take (List.length names) values ~pad:Tnull
 ;;
 
 let jg_bind_names ctx names values =
   let set_values names values =
     List.fold_left (fun ctx (name, value) ->
       jg_set_value ctx name value
-    ) ctx @@ List.combine names @@ Jg_utils.take (List.length names) values ~pad:(Some Tnull) in
+    ) ctx @@ List.combine names @@ Jg_utils.take (List.length names) values ~pad:Tnull in
   match names, values with
     | [name], value -> jg_set_value ctx name value
     | name :: rest, Tset values -> set_values names values
@@ -340,7 +340,7 @@ let jg_eval_macro ?(caller=false) env ctx macro_name args kwargs macro f =
       ] in
       let ctx = List.fold_left (fun ctx (name, value) ->
 	jg_set_value ctx name value
-      ) ctx @@ List.combine arg_names (Jg_utils.take arg_names_len args ~pad:(Some Tnull)) in
+      ) ctx @@ List.combine arg_names (Jg_utils.take arg_names_len args ~pad:Tnull) in
       let ctx = List.fold_left (fun ctx (name, value) ->
 	jg_set_value ctx name value
       ) ctx @@ merge_defaults defaults kwargs in
@@ -681,7 +681,7 @@ let jg_batch ?(defaults=[
 	if left_count > slice_count then
 	  batch ((box_list @@ take slice_count rest) :: ret) (left_count - slice_count) (after slice_count rest)
 	else if left_count > 0 then
-	  batch ((box_list @@ take slice_count rest ~pad:fill_value) :: ret) 0 []
+	  batch ((box_list @@ take slice_count rest ?pad:fill_value) :: ret) 0 []
 	else
 	  box_list @@ List.rev ret in
       batch [] (List.length lst) lst

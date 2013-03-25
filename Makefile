@@ -13,8 +13,11 @@ install:
 uninstall:
 	cd src && make uninstall
 
+reinstall: uninstall install
+
 clean:
 	cd src && make clean
+	cd tests && make clean
 
 rebuild:
 	cd src && make rebuild

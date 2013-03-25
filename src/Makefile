@@ -47,7 +47,7 @@ jingoo_mt.cmx: jingoo_mt.ml
 compiler: jingoo.cmxa jg_cmdline.ml
 	$(OCAMLOPT) -o $@ -linkpkg -package $(PKG) jingoo.cmxa jg_cmdline.ml
 
-install:
+install: all
 	ocamlfind install jingoo jingoo.a jingoo.cma jingoo.cmxa jingoo_mt.cm[ox] jingoo_mt.o *.cmi jg_types.mli jg_template.mli jg_stub.mli META
 	cp -f $(COMPILER) $(BINDIR)/$(EXE)
 
@@ -61,6 +61,7 @@ reinstall:
 
 clean:
 	rm -f *.cmi *.cmo *.cmx *.cma *.a *.cmxa *.o *.annot *.byte
+	rm -f jg_lexer.ml jg_parser.ml jg_parser.mli
 	rm -f $(COMPILER)
 
 rebuild:

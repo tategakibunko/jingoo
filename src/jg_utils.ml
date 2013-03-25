@@ -66,12 +66,12 @@ let is_upper str =
       Not_found -> true
 ;;
 
-let rec take ?(pad=None) n lst =
+let rec take ?pad n lst =
   match n, lst, pad with
     | n, _, _ when n <= 0 -> []
     | n, [], None -> []
-    | n, [], Some value -> value :: (take (n-1) [] ~pad)
-    | n, h :: rest, _ -> h :: (take (n-1) rest ~pad)
+    | n, [], Some value -> value :: (take (n-1) [] ?pad)
+    | n, h :: rest, _ -> h :: (take (n-1) rest ?pad)
 ;;
 
 let after n lst =
@@ -114,7 +114,7 @@ let rec get_file_path ?(template_dirs=[]) file_name =
   if file_name = "" then
     raise Not_found
   ;
-  if String.get file_name 0 = '/' && Filename.is_implicit file_name then
+  if not @@ Filename.is_implicit file_name then
     file_name
   else
     match template_dirs with

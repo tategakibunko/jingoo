@@ -19,6 +19,6 @@ rebuild:
 	make clean
 	make all
 
-run:
+run: test
 	./test
 
