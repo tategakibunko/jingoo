@@ -700,7 +700,7 @@ let jg_capitalize value kwargs =
     | _ -> failwith "invalid args: not string(capitalize)"
 ;;
 
-let jg_default value default kwargs =
+let jg_default default value kwargs =
   match value with
     | Tnull -> default
     | other -> other
