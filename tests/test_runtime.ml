@@ -78,7 +78,8 @@ let test_capitalize () =
 ;;  
 
 let test_default () =
-  assert_equal (jg_default (Tstr "hello") Tnull kwargs) (Tstr "hello")
+  assert_equal (jg_default (Tstr "hello") Tnull kwargs) (Tstr "hello");
+  assert_equal (jg_default (Tstr "hello") (Tstr "hoge") kwargs) (Tstr "hoge")
 ;;
 
 let test_length () =
