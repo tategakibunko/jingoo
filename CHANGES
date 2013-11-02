@@ -4,7 +4,7 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
-version: 1.2.2, 2012-08-30
+version: 1.2.2, 2013-11-02
 ==========================
 * remove some needless funcs.
 * fix bug about implicit file path.
