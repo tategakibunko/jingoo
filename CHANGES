@@ -8,6 +8,7 @@ version: 1.2.2, 2012-08-30
 ==========================
 * remove some needless funcs.
 * fix bug about implicit file path.
+* fix bug about jg_default(order of argument invalid).
 
 version: 1.2.1, 2012-08-25
 ==========================
@@ -20,7 +21,7 @@ o changed variable table from assoc list to Hashtbl for performance reason.
 o add new type Thash for faster object.
   now template models(Tobj) are automatically converted into Thash.
 
-varsion: 1.1.0, 2012-06-06
+version: 1.1.0, 2012-06-06
 ==========================
 o license changed. now under MIT license.
 o new cmdline tool option "-interp".
