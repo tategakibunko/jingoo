@@ -4,16 +4,16 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
-varsion: 1.2.2, 2012-08-30
+version: 1.2.2, 2012-08-30
 ==========================
 * remove some needless funcs.
 * fix bug about implicit file path.
 
-varsion: 1.2.1, 2012-08-25
+version: 1.2.1, 2012-08-25
 ==========================
 o disable auto convert from Tobj to Thash.
 
-varsion: 1.2.0, 2012-08-24
+version: 1.2.0, 2012-08-24
 ==========================
 * fix trouble of duplicated funcs between std_func and std_test(upper, lower).
 o changed variable table from assoc list to Hashtbl for performance reason.
