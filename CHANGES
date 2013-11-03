@@ -4,6 +4,11 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.2.3, ???
+==========================
+o split package thread enabled or not(jingoo.cm[x]a, jingoo.threads.cm[x]a).
+
+
 version: 1.2.2, 2013-11-02
 ==========================
 * remove some needless funcs.

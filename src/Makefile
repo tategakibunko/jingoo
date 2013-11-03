@@ -6,10 +6,9 @@ YAC:=ocamlyacc
 #YAC:=menhir
 MLY:=jg_parser.mly
 MLL:=jg_lexer.mll
-PKG:=unix,threads,dynlink,pcre,camomile
-#OCAMLC:=ocamlfind ocamlc -g -thread -annot
-OCAMLC:=ocamlfind ocamlc -g -thread
-OCAMLOPT:=ocamlfind ocamlopt -g -thread
+PKG:=unix,dynlink,pcre,camomile
+OCAMLC:=ocamlfind ocamlc -g
+OCAMLOPT:=ocamlfind ocamlopt -g
 LIB_SRCS:=jg_types.mli jg_types.ml jg_utils.ml\
 	  jg_stub.mli jg_stub.ml \
 	  jg_parser.mli jg_parser.ml jg_lexer.ml \
@@ -22,7 +21,7 @@ LIB_CMO:=$(foreach s,$(LIB_ML), $(basename $(notdir $(s))).cmo)
 LIB_CMX:=$(foreach s,$(LIB_ML), $(basename $(notdir $(s))).cmx)
 LIB_CMI:=$(foreach s,$(LIB_ML), $(basename $(notdir $(s))).cmi)
 
-all: jg_parser.ml jg_lexer.ml jingoo.cma jingoo.cmxa jingoo_mt.cmx jingoo_mt.cmo compiler
+all: jg_parser.ml jg_lexer.ml jingoo.cma jingoo.cmxa jingoo_mt.cmx jingoo_mt.cmo jingoo.threads.cmxa jingoo.threads.cma compiler
 
 jg_parser.ml: $(MLY)
 	$(YAC) $(MLY)
@@ -38,17 +37,25 @@ jingoo.cmxa: $(LIB_SRCS)
 	$(OCAMLOPT) -package $(PKG) -c $(LIB_SRCS)
 	$(OCAMLOPT) -package $(PKG) -o $@ -a $(LIB_CMX)
 
+jingoo.threads.cma: $(LIB_SRCS) jingoo_mt.ml
+	$(OCAMLC) -thread -package $(PKG),threads -c $(LIB_SRCS) jingoo_mt.ml
+	$(OCAMLC) -thread -package $(PKG),threads -o $@ -a $(LIB_CMO) jingoo_mt.cmo
+
+jingoo.threads.cmxa: $(LIB_SRCS) jingoo_mt.ml
+	$(OCAMLOPT) -thread -package $(PKG),threads -c $(LIB_SRCS) jingoo_mt.ml
+	$(OCAMLOPT) -thread -package $(PKG),threads -o $@ -a $(LIB_CMX) jingoo_mt.cmx
+
 jingoo_mt.cmo: jingoo_mt.ml
-	$(OCAMLC) -c $<
+	$(OCAMLC) -thread -c $<
 
 jingoo_mt.cmx: jingoo_mt.ml
-	$(OCAMLOPT) -c $<
+	$(OCAMLOPT) -thread -c $<
 
 compiler: jingoo.cmxa jg_cmdline.ml
 	$(OCAMLOPT) -o $@ -linkpkg -package $(PKG) jingoo.cmxa jg_cmdline.ml
 
 install: all
-	ocamlfind install jingoo jingoo.a jingoo.cma jingoo.cmxa jingoo_mt.cm[ox] jingoo_mt.o *.cmi jg_types.mli jg_template.mli jg_stub.mli META
+	ocamlfind install jingoo *.a *.cma *.cmxa *.cmi jg_types.mli jg_template.mli jg_stub.mli META
 	cp -f $(COMPILER) $(BINDIR)/$(EXE)
 
 uninstall:

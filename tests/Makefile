@@ -4,7 +4,7 @@ SRCS:=\
 	test.ml \
 
 PKGS:=dynlink,oUnit,pcre,camomile
-CMPL:=ocamlfind ocamlopt -g -thread
+CMPL:=ocamlfind ocamlopt -g
 
 all: test
 

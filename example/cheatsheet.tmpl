@@ -51,20 +51,26 @@ value of hoge != "ok"
 for test
 ========
 
-{% for item in list %}
-{% set tmp = "hoge" %}
-<p>{{item}}</p>
-<p>{{loop.cycle(1,2,3)}}</p>
-<p>tmp = {{tmp}}</p>
-{% endfor %}
+<ul>
+  {% for item in list %}
+  {% set tmp = "hoge" %}
+  <li>{{item}}</li>
+  <li>{{loop.cycle(1,2,3)}}</li>
+  <li>tmp = {{tmp}}</li>
+  {% endfor %}
+</ul>
 
-{% for (href, title) in [("http://yahoo.co.jp", "yahoo japan"), ("http://google.co.jp", "google japan")] %}
-<a href="{{href}}">{{title}}</a>
-{% endfor %}
+<ol>
+  {% for (href, title) in [("http://yahoo.co.jp", "yahoo japan"), ("http://google.co.jp", "google japan")] %}
+  <li><a href="{{href}}">{{title}}</a></li>
+  {% endfor %}
+</ol>
 
-{% for href, title in [("http://yahoo.co.jp", "yahoo japan"), ("http://google.co.jp", "google japan")] %}
-<a href="{{href}}">{{title}}</a>
-{% endfor %}
+<ul>
+  {% for href, title in [("http://yahoo.co.jp", "yahoo japan"), ("http://google.co.jp", "google japan")] %}
+  <li><a href="{{href}}">{{title}}</a></li>
+  {% endfor %}
+</ul>
 
 obj test
 =========
@@ -285,7 +291,7 @@ hash.to_md5("hoge", seed="aaa") = {{ "hoge"|hash.to_md5(seed="aaa") }}
 eval
 ====
 
-{% set source = "{% set evalue = 'from eval!' %}{{evalue}}" %}
+{% set source = "{% set tmp = 'from eval!' %}{{tmp}}" %}
 {{ eval(source) }}
 
 rawinclude
