@@ -59,6 +59,7 @@
     Buffer.reset text_buf;
     text
 
+  (** if text_buf holds something, output it first, and 'token' is cached and yielded at next parsing. *)
   let get_text_token_with_cache token =
     let text = get_text () in
     if text = "" then
@@ -223,7 +224,16 @@ let float_lit = ['0'-'9']+('.' ['0'-'9']*)? (['e' 'E'] ['+' '-']? ['0'-'9']+)?
 	| _ ->
 	  raise @@ SyntaxError "lexer error"
     }
-	
+
+    | "{%-" {
+      match !cur_mode with
+	| Plain_mode->
+	  cur_mode := Logic_mode;
+	  get_text_token_with_cache @@ TEXT "{%<%}" (** special mark to remove left white-space *)
+	| _ ->
+	  raise @@ SyntaxError "lexer error"
+    }
+
     | "{%" {
       match !cur_mode with
 	| Plain_mode->
@@ -233,6 +243,15 @@ let float_lit = ['0'-'9']+('.' ['0'-'9']*)? (['e' 'E'] ['+' '-']? ['0'-'9']+)?
 	  raise @@ SyntaxError "lexer error"
     }
 	
+    | "-%}" {
+      match !cur_mode with
+	| Logic_mode ->
+	  cur_mode := Plain_mode;
+	  get_text_token_with_cache @@ TEXT "{%>%}" (** special mark to remove right white-space *)
+	| _ ->
+	  raise @@ SyntaxError "lexer error"
+    }
+
     | "%}" {
       match !cur_mode with
 	| Logic_mode ->

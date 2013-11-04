@@ -17,7 +17,7 @@ Jingoo is OCaml template engine almost compatible with Jinja2(python template en
 
 ## difference between Jinja2 and Jingoo
 
-1. syntax {%- %} and trim_blocks(environment value) is not supported yet.
+1. trim_blocks(environment value) is not supported yet. (but syntax {%- and -%} is supported since version 1.2.3)
 2. i18n features are not supported yet.
 3. cause of language difference between ocaml and python,
    some of built-in filters are different from original one,

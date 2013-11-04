@@ -286,7 +286,7 @@ and from_file ?(env=std_env) ?(models=[]) file_name =
   let file_path = get_file_path env ctx file_name in
   let source = Jg_utils.read_file_as_string file_path in
   from_string source ~file_path ~env ~ctx ~models
-    
+
 and from_string ?(env=std_env) ?ctx ?(models=[]) ?file_path source =
   try
     let () = lock_unlock.lock () in
@@ -297,7 +297,7 @@ and from_string ?(env=std_env) ?ctx ?(models=[]) ?file_path source =
     let _ = List.fold_left (eval_statement env) ctx codes in
     reset_interp ();
     lock_unlock.unlock ();
-    Buffer.contents ctx.buffer
+    jg_post_process @@ Buffer.contents ctx.buffer
   with
       exn ->
 	reset_interp ();

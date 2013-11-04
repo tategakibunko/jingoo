@@ -1080,6 +1080,11 @@ let jg_load_extensions extensions =
   ) extensions
 ;;
 
+let jg_post_process text =
+  text
+  +> Pcre.qreplace ~rex:(Pcre.regexp "[\\s]*{%<%}") ~templ:""
+  +> Pcre.qreplace ~rex:(Pcre.regexp "{%>%}[\\s]*") ~templ:""
+
 let jg_init_context ?(models=[]) env =
   let model_frame = Hashtbl.create (2 * List.length models) in
   let top_frame = Hashtbl.create (List.length std_filters + List.length env.filters + 2) in

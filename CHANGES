@@ -7,6 +7,7 @@
 version: 1.2.3, ???
 ==========================
 o split package thread enabled or not(jingoo.cm[x]a, jingoo.threads.cm[x]a).
+o syntax of white space controll('{%-' and '-%}') is supported.
 
 
 version: 1.2.2, 2013-11-02

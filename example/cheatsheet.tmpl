@@ -300,3 +300,23 @@ rawinclude
 contents of base.tmpl
 ---------------------
 {% rawinclude "base.tmpl" %}
+
+
+white-space-controll(1)
+=======================
+
+aaaa
+{% for i in [1,2,3] -%}
+{{ i }}
+{% endfor -%}
+bbbb
+
+white-space-controll(2)
+=======================
+
+aaaa
+{%- for i in [1,2,3] -%}
+{{ i }}
+{%- endfor -%}
+bbbb
+

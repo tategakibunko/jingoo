@@ -388,7 +388,7 @@ and from_file ?(template_dirs=[]) file_name =
     "let () = jg_load_extensions env.extensions in";
     "let ctx = jg_init_context ~models env in";
     lines @@ List.map (code_of_statement ctx) codes;
-    "Buffer.contents ctx.buffer\n;;\n";
+    "jg_post_process (Buffer.contents ctx.buffer)\n;;\n";
     spf "let () = Jg_stub.add_tmpl_func \"%s\" render\n;;\n" stub_key;
   ]
 ;;
