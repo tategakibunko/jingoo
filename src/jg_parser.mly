@@ -112,7 +112,7 @@ stmts:
 ;
 
 stmt:
-| EXPAND expr ENDEXPAND { pel "expand expr"; ExpandStatement($2) }
+  EXPAND expr ENDEXPAND { pel "expand expr"; ExpandStatement($2) }
 | EXPAND error { raise @@ SyntaxError "expand stmt error" }
 | SET ident_list EQ expr { pel "set sts"; SetStatement(SetExpr($2), $4) }
 | SET error { raise @@ SyntaxError "set" }
