@@ -6,8 +6,13 @@ dist
 *.a
 *.cma
 *.cmxa
-src/compiler
 src/jg_lexer.ml
-src/jg_parser.mli
 src/jg_parser.ml
+src/jg_parser.mli
+src/compiler
 tests/test
+example/simple
+example/bench
+example/advanced
+example/cheatsheet.ml
+
