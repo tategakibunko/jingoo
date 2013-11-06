@@ -1,6 +1,6 @@
 name="jingoo"
 version = "1.2.3"
-description = "ocaml template engine"
+description = "ocaml template engine almost compatible with jinja2"
 requires = "unix,dynlink,pcre,camomile"
 requires(mt) = "unix,dynlink,pcre,camomile,threads"
 archive(byte) = "jingoo.cma"
