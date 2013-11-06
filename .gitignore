@@ -1,7 +1,14 @@
+dist
+*.cmx
+*.cmo
+*.cmi
+*.o
+*.a
+*.cma
+*.cmxa
 src/jg_lexer.ml
 src/jg_parser.ml
 src/jg_parser.mli
-src/jingoo.a
 src/compiler
 tests/test
 example/simple
