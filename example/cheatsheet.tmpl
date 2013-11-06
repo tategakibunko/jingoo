@@ -53,10 +53,8 @@ for test
 
 <ul>
   {% for item in list %}
-  {% set tmp = "hoge" %}
   <li>{{item}}</li>
   <li>{{loop.cycle(1,2,3)}}</li>
-  <li>tmp = {{tmp}}</li>
   {% endfor %}
 </ul>
 
@@ -148,7 +146,9 @@ macro test
 {{ delay_macro(10,20) }}
 
 {% macro delay_macro(x,y) %}
-{{x}} {{ caller(1,2) }} {{y}}
+x:{{x}}
+{{ caller(1,2) }}
+y:{{y}}
 {% endmacro %}
 
 {% call(a,b) delay_macro("from", "to") %}
@@ -181,8 +181,6 @@ I love OCaml.
 
 {{ hoge_macro(30,40) }}
 {{ other_macro(50,60) }}
-
-{% endblock %}
 
 {% macro test_caller(x,y,z,age=120) %}
 this is test_caller
@@ -319,4 +317,7 @@ aaaa
 {{ i }}
 {%- endfor -%}
 bbbb
+
+{# end of 'main' block #}
+{% endblock %}
 
