@@ -5,7 +5,7 @@
 Jingoo is OCaml template engine almost compatible with Jinja2(python template engine), and
 
 1. that can interprets template Jinja2 syntax.
-2. that can compile template to Ocaml code.
+2. that can compile template to OCaml code.
 
 
 ## why same syntax?
