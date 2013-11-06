@@ -8,4 +8,5 @@ example/simple
 example/bench
 example/advanced
 example/cheatsheet.ml
-
+tests/*.cache
+tests/*.log
