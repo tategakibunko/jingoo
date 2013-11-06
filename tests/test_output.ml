@@ -140,18 +140,18 @@ let test_defined test_ctxt =
     "true"
 ;;
 
-let from_file file_name =
-  let env = {std_env with template_dirs = ["tmpl"]} in
+let from_file test_ctxt file_name =
+  let env = {std_env with template_dirs = [in_testdata_dir test_ctxt []]} in
   Jg_interp.from_file ~env file_name
 ;;
 
 let test_extends test_ctxt =
-  let output = from_file "extends.tmpl" in
+  let output = from_file test_ctxt "extends.tmpl" in
   assert_equal (Jg_utils.chomp output) "extended"
 ;;
 
 let test_include test_ctxt =
-  let output = from_file "included.tmpl" in
+  let output = from_file test_ctxt "included.tmpl" in
   assert_equal (Jg_utils.chomp output) "this is included"
 ;;
 
