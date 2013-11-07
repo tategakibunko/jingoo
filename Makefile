@@ -1,4 +1,4 @@
-################################################################################
+###############################################################################
 #  jingoo: Template engine inspired by Jinja2.                                 #
 #                                                                              #
 #  Copyright (C) 2011-2013 by Masaki WATANABE                                  #
@@ -51,9 +51,11 @@ clean:
 rebuild:
 	cd src && make rebuild
 
+.PHONY: all test reinstall install uninstall reinstall clean rebuild
 
 # Precommit target
 #  Check style of code.
+
 PRECOMMIT_ARGS= \
 	    --exclude myocamlbuild.ml \
 	    --exclude setup.ml \

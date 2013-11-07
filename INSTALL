@@ -6,6 +6,7 @@ Dependencies
 2. findlib
 3. pcre(pcre-ocaml)
 4. camomile
+5. ounit (>=2.0.0, for test)
 
 Important notice
 ================

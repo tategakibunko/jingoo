@@ -24,21 +24,8 @@
 (* DEALINGS IN THE SOFTWARE.                                                  *)
 (******************************************************************************)
 
-open OUnit
+open OUnit2
 
-let suite = "OUnit Test" >::: [
-  Test_runtime.suite;
-  Test_output.suite;
-]
+let () =
+  run_test_tt_main ("jingoo" >::: [Test_runtime.suite; Test_output.suite])
 ;;
-
-(*
-let _ =
-  run_test_tt_main suite
-;;
-*)
-
-let _ = 
-  run_test_tt suite ~verbose:true
-;;
-
