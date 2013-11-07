@@ -1,10 +1,3 @@
-(*
-  test_output.ml
-
-  Copyright (c) 2012 - by Masaki WATANABE <lambda.watanabe@gmail.com>
-
-  Licence: GPL
-*)
 open OUnit2
 open Jg_utils
 open Jg_types
@@ -189,6 +182,12 @@ let test_set test_ctxt =
   assert_interp ~test_ctxt "{% set x = 'hoge' %}{{x}}" "hoge"
 ;;
 
+let test_white_space_control test_ctxt =
+  assert_interp ~test_ctxt "\n{% set x = 1 %}\n" "\n\n";
+  assert_interp ~test_ctxt "\n{%- set x = 1 %}\n" "\n";
+  assert_interp ~test_ctxt "\n{%- set x = 1 -%}\n" ""
+;;
+
 let suite = "runtime test" >::: [
   "test_expand_escape" >:: test_expand_escape;
   "test_expand_safe" >:: test_expand_safe;
@@ -213,5 +212,6 @@ let suite = "runtime test" >::: [
   "test_defined" >:: test_defined;
   "test_is" >:: test_is;
   "test_with" >:: test_with;
+  "test_white_space_control" >:: test_white_space_control;
 ]
 ;;
