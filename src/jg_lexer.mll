@@ -4,7 +4,7 @@
 
     Copyright (c) 2011- by Masaki WATANABE
 
-    Licence: see LICENCE
+    License: see LICENSE
   *)
   open Jg_types
   open Jg_parser

@@ -1,10 +1,3 @@
-(*
-  my_ext.ml
-
-  Copyright (c) 2012 - by Masaki WATANABE <lambda.watanabe@gmail.com>
-
-  Licence: GPL
-*)
 open Jg_types
 
 let to_md5 ?(defaults=[

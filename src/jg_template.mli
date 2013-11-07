@@ -3,7 +3,7 @@
 
   Copyright (c) 2012 - by Masaki WATANABE
 
-  Licence: see LICENCE
+  License: see LICENSE
 *)
 open Jg_types
 
