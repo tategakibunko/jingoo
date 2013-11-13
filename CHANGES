@@ -4,9 +4,11 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
-version: 1.2.3, ???
+version: 1.2.3, 2013-11-14
 ==========================
-o syntax of white space controll('{%-' and '-%}') is supported.
+o support syntax of white space control('{%-' and '-%}').
+o port test to oUnit2.
+* fix META(switch link target whether '-thread' is anotated or not).
 
 
 version: 1.2.2, 2013-11-02
