@@ -22,12 +22,14 @@ module Sub = SubText.Make(UTF8)
 let strlen = UTF8.length
 let strcmp = UTF8.compare
 
-let substring base count str =
+let rec substring base count str =
   let len = UTF8.length str in
-  if base >= len then
+  if base >= len || count = 0 then
     ""
-  else if base = 0 && count >= len then
+  else if base <= 0 && count >= len then
     str
+  else if base < 0 then
+    substring (len + base) count str
   else if base + count >= len then
     let lp = UTF8.nth str base in
     let rp = UTF8.next str (UTF8.last str) in

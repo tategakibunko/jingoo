@@ -122,6 +122,18 @@ let test_substring test_ctxt =
   assert_equal (jg_substring (Tint 0) (Tint 2) (Tstr "hoge") kwargs) (Tstr "ho");
   assert_equal (jg_substring (Tint 0) (Tint 4) (Tstr "hoge") kwargs) (Tstr "hoge");
   assert_equal (jg_substring (Tint 0) (Tint 5) (Tstr "hoge") kwargs) (Tstr "hoge");
+
+  (** negative base *)
+  assert_equal (jg_substring (Tint (-1)) (Tint 1) (Tstr "hoge") kwargs) (Tstr "e");
+  assert_equal (jg_substring (Tint (-2)) (Tint 1) (Tstr "hoge") kwargs) (Tstr "g");
+  assert_equal (jg_substring (Tint (-3)) (Tint 1) (Tstr "hoge") kwargs) (Tstr "o");
+  assert_equal (jg_substring (Tint (-4)) (Tint 1) (Tstr "hoge") kwargs) (Tstr "h");
+  assert_equal (jg_substring (Tint (-4)) (Tint 2) (Tstr "hoge") kwargs) (Tstr "ho");
+  assert_equal (jg_substring (Tint (-4)) (Tint 3) (Tstr "hoge") kwargs) (Tstr "hog");
+  assert_equal (jg_substring (Tint (-4)) (Tint 4) (Tstr "hoge") kwargs) (Tstr "hoge");
+  assert_equal (jg_substring (Tint (-4)) (Tint 5) (Tstr "hoge") kwargs) (Tstr "hoge");
+  assert_equal (jg_substring (Tint (-5)) (Tint 1) (Tstr "hoge") kwargs) (Tstr "e");
+
   assert_equal (jg_substring (Tint 0) (Tint 1) (Tstr "日本語") kwargs) (Tstr "日");
   assert_equal (jg_substring (Tint 0) (Tint 2) (Tstr "日本語") kwargs) (Tstr "日本");
   assert_equal (jg_substring (Tint 0) (Tint 3) (Tstr "日本語") kwargs) (Tstr "日本語");
