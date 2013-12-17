@@ -4,6 +4,10 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.2.4, 2013-12-17
+==========================
+o replace UTF8 module from camomile to extlib.
+
 version: 1.2.3, 2013-?-?
 ==========================
 o support negative base for substring
