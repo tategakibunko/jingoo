@@ -3,7 +3,7 @@ SRCS:=\
 	test_output.ml \
 	test.ml \
 
-PKGS:=dynlink,oUnit,pcre,camomile
+PKGS:=dynlink,oUnit,pcre,extlib
 CMPL:=ocamlfind ocamlopt -g
 
 all: test

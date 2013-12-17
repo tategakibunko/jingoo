@@ -5,7 +5,7 @@
 
   License: see LICENSE
 *)
-open CamomileLibrary
+open ExtLib
 
 let spf = Printf.sprintf
 
@@ -17,27 +17,26 @@ let (+>) f g = g f
 
 let (>>=) x f = f x
 
-module Sub = SubText.Make(UTF8)
-
 let strlen = UTF8.length
 let strcmp = UTF8.compare
 
+(** application friendly substring *)
 let rec substring base count str =
   let len = UTF8.length str in
   if base >= len || count = 0 then
     ""
-  else if base <= 0 && count >= len then
+  else if base = 0 && count >= len then
     str
   else if base < 0 then
     substring (len + base) count str
   else if base + count >= len then
     let lp = UTF8.nth str base in
     let rp = UTF8.next str (UTF8.last str) in
-    Sub.excerpt (Sub.refer str lp rp)
+    String.sub str lp (rp - lp)
   else
     let lp = UTF8.nth str base in
     let rp = UTF8.nth str (base + count) in
-    Sub.excerpt (Sub.refer str lp rp)
+    String.sub str lp (rp - lp)
 ;;
 
 let escape_html str =
