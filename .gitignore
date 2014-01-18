@@ -1,4 +1,6 @@
 dist
+.gitignore
+*.sh
 *.cmx
 *.cmo
 *.cmi
