@@ -31,23 +31,30 @@ Jingoo is OCaml template engine almost compatible with Jinja2(python template en
 
 ## simple usage 1 (via file)
 
-> Jg_template.from_file "hello.tmpl" ~models:[("msg", Tstr "hello, world!")]
+```ocaml
+Jg_template.from_file "hello.tmpl" ~models:[("msg", Tstr "hello, world!")]
+```
 
 
 ## simple usage 2 (via compiled template)
 
 * convert .tmpl to .ml by jingoo compiler(by default, it's installed in /usr/local/bin/jingoo)
 
-> jingoo -input my_template.tmpl > my_template.ml
+```bash
+jingoo -input my_template.tmpl > my_template.ml
+```
 
 * build the template source to shared library
 
-> ocamlfind ocamlopt -o my_template.cmxs -shared -package dynlink,jingoo -linkpkg my_template.ml
+```bash
+ocamlfind ocamlopt -o my_template.cmxs -shared -package dynlink,jingoo -linkpkg my_template.ml
+```
 
 * then following code will call the renderer in shared library (not from file).
 
-> Jg_template.from_file "my_template.tmpl" ~use_compiled:true ~models:[("msg", Tstr "hey, shared library")]
-
+```ocaml
+Jg_template.from_file "my_template.tmpl" ~use_compiled:true ~models:[("msg", Tstr "hey, shared library")]
+```
 
 ## advanced usage
 
