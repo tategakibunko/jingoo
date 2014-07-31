@@ -4,6 +4,10 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.2.5, 2014-08-01
+==========================
+o fix bug about recursive object lookup like {{ obj1.obj2.name }}
+
 version: 1.2.4, 2013-12-17
 ==========================
 o replace UTF8 module from camomile to extlib.
