@@ -282,12 +282,19 @@ let jg_output ?(autoescape=true) ?(safe=false) ctx value =
   ctx
 ;;
 
-let jg_obj_lookup ctx obj_name prop_name =
-  match jg_get_value ctx obj_name with
+let jg_obj_lookup ctx obj prop_name =
+  match obj with
     | Tobj(alist) -> (try List.assoc prop_name alist with Not_found -> Tnull)
     | Thash(hash) -> (try Hashtbl.find hash prop_name with Not_found -> Tnull)
-    | _ -> (try Jg_stub.get_func obj_name prop_name with Not_found -> Tnull)
+    | _ -> failwith "jg_obj_lookup:not object"
 ;;      
+
+let jg_obj_lookup_by_name ctx obj_name prop_name =
+  match jg_get_value ctx obj_name with
+    | Tobj(alist) as obj -> jg_obj_lookup ctx obj prop_name
+    | Thash(hash) as hobj -> jg_obj_lookup ctx hobj prop_name
+    | _ -> (try Jg_stub.get_func obj_name prop_name with Not_found -> Tnull)
+;;
 
 let jg_iter ctx iterator f iterable =
   let lst =

@@ -31,7 +31,8 @@ let rec value_of_expr env ctx = function
   | InOpExpr(left, right) -> jg_inop (value_of_expr env ctx left) (value_of_expr env ctx right)
   | ListExpr(expr_list) -> Tlist (List.map (value_of_expr env ctx) expr_list)
   | SetExpr(expr_list) -> Tset (List.map (value_of_expr env ctx) expr_list)
-  | DotExpr(IdentExpr(name), IdentExpr(prop)) -> jg_obj_lookup ctx name prop
+  | DotExpr(IdentExpr(name), IdentExpr(prop)) -> jg_obj_lookup_by_name ctx name prop
+  | DotExpr(left, IdentExpr(prop)) -> jg_obj_lookup ctx (value_of_expr env ctx left) prop
   | TestOpExpr(IdentExpr(name), IdentExpr("defined")) -> jg_test_defined ctx name
   | TestOpExpr(IdentExpr(name), IdentExpr("undefined")) -> jg_test_undefined ctx name
   | TestOpExpr(DotExpr(IdentExpr(name), IdentExpr(prop)), IdentExpr("defined")) -> jg_test_obj_defined ctx name prop
