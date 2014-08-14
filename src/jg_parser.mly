@@ -123,9 +123,9 @@ stmt:
 | BLOCK error { raise @@ SyntaxError "block" }
 | FILTER ident stmts ENDFILTER { pel "filter sts"; FilterStatement($2, $3) }
 | FILTER error { raise @@ SyntaxError "filter" }
-| INCLUDE STRING context_part{ pel "include sts"; IncludeStatement($2, $3) }
+| INCLUDE expr context_part{ pel "include sts"; IncludeStatement($2, $3) }
 | INCLUDE error { raise @@ SyntaxError "include" }
-| RAWINCLUDE STRING { pel "raw include sts"; RawIncludeStatement($2) }
+| RAWINCLUDE expr { pel "raw include sts"; RawIncludeStatement($2) }
 | RAWINCLUDE error { raise @@ SyntaxError "rawinclude" }
 | IMPORT STRING as_part { pel "import sts"; ImportStatement($2, $3) }
 | IMPORT error{ raise @@ SyntaxError "import error" }

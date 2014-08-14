@@ -163,17 +163,23 @@ and eval_statement env ctx = function
       | None -> ctx (* do nothing *)
     )
 
-  | IncludeStatement(path, true) ->
+  | IncludeStatement(IdentExpr(name), with_context) ->
+    eval_statement env ctx @@ IncludeStatement(LiteralExpr(jg_get_value ctx name), with_context)
+
+  | IncludeStatement(LiteralExpr(Tstr path), true) ->
     let statements = statements_from_file env ctx path in
     List.fold_left (eval_statement env) ctx statements
 
-  | IncludeStatement(path, false) ->
+  | IncludeStatement(LiteralExpr(Tstr path), false) ->
     let ctx' = jg_init_context env in
     let statements = statements_from_file env ctx' path in
     let _ = List.fold_left (eval_statement env) ctx' statements in
     ctx
 
-  | RawIncludeStatement(path) ->
+  | RawIncludeStatement(IdentExpr(name)) ->
+    eval_statement env ctx @@ RawIncludeStatement(LiteralExpr(jg_get_value ctx name))
+
+  | RawIncludeStatement(LiteralExpr(Tstr path)) ->
     let file_path = get_file_path env ctx path in
     let source = Jg_utils.read_file_as_string file_path in
     jg_output ctx (Tstr source) ~safe:true
@@ -246,7 +252,7 @@ and import_macro ?namespace ?select env ctx codes =
       | BlockStatement(_, stmts) ->
 	import_macro env ctx ?namespace ?select stmts
 	  
-      | IncludeStatement(path, _) ->
+      | IncludeStatement(LiteralExpr(Tstr path), _) ->
 	import_macro env ctx ?namespace ?select @@ statements_from_file env ctx path
 
       | ImportStatement(path, namespace) ->

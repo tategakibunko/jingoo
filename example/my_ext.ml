@@ -8,8 +8,6 @@ let to_md5 ?(defaults=[
     | Tstr str, Tstr seed ->
       Tstr (Digest.to_hex (Digest.string (str ^ seed)))
     | _ -> Tnull
-;;
 
 let () =
   Jg_stub.add_func "hash" "to_md5" (Jg_runtime.func_arg1 to_md5)
-;;

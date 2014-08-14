@@ -24,7 +24,6 @@ let get_template_dirs = function
   | dirs ->
     let dirs = Pcre.qreplace ~rex:(Pcre.regexp "[\\s\\t]+") ~templ:"" dirs in
     Pcre.split ~rex:(Pcre.regexp ",") dirs
-;;
 
 let () =
   let usage = "jingoo -input [input_file]" in
@@ -39,14 +38,10 @@ let () =
   ] ignore usage;
   
   try
-    if !filename <> "" then
-      output_string stdout (Jg_compile.from_file ~template_dirs:(get_template_dirs !dirs) !filename)
-    else if !tmplname <> "" then
-      output_string stdout (Jg_template.from_file !tmplname ~models:[])
+    output_string stdout (Jg_template.from_file !tmplname ~models:[])
   with
     | Jg_types.SyntaxError(msg) ->
       Printf.printf "syntax error:%s\n" msg
 	
     | exn ->
       print_endline (Printexc.to_string exn)
-;;

@@ -37,7 +37,6 @@ let rec substring base count str =
     let lp = UTF8.nth str base in
     let rp = UTF8.nth str (base + count) in
     String.sub str lp (rp - lp)
-;;
 
 let escape_html str =
   let str = Pcre.qreplace ~rex:(Pcre.regexp "&") ~templ:"&amp;" str in
@@ -45,11 +44,9 @@ let escape_html str =
   let str = Pcre.qreplace ~rex:(Pcre.regexp "<") ~templ:"&lt;" str in
   let str = Pcre.qreplace ~rex:(Pcre.regexp ">") ~templ:"&gt;" str in
     str
-;;
 
 let chomp str =
   Pcre.qreplace ~rex:(Pcre.regexp "\\n+$") ~templ:"" str
-;;
 
 let is_lower str =
   try
@@ -57,7 +54,6 @@ let is_lower str =
     false
   with
       Not_found -> true
-;;
 
 let is_upper str =
   try
@@ -65,7 +61,6 @@ let is_upper str =
     false
   with
       Not_found -> true
-;;
 
 let rec take ?pad n lst =
   match n, lst, pad with
@@ -73,7 +68,6 @@ let rec take ?pad n lst =
     | n, [], None -> []
     | n, [], Some value -> value :: (take (n-1) [] ?pad)
     | n, h :: rest, _ -> h :: (take (n-1) rest ?pad)
-;;
 
 let after n lst =
   if n >= List.length lst then
@@ -87,7 +81,6 @@ let after n lst =
 	  | h :: tl -> iter (count + 1) tl
 	  | [] -> []) in
     iter 0 lst
-;;
 
 let get_parser_error exn lexbuf =
   let curr = lexbuf.Lexing.lex_curr_p in
@@ -96,7 +89,6 @@ let get_parser_error exn lexbuf =
   let tok = Lexing.lexeme lexbuf in
   let msg = match exn with Jg_types.SyntaxError msg -> msg | _ -> Printexc.to_string exn in
   Printf.sprintf "%s: '%s' at line %d in file %s" msg tok line fname
-;;
 
 let read_file_as_string filename =
   let file = open_in_bin filename in
@@ -109,7 +101,6 @@ let read_file_as_string filename =
     with e ->
       (try close_in file with _ -> ());
       raise e
-;;
 
 let rec get_file_path ?(template_dirs=[]) file_name =
   if file_name = "" then
@@ -131,7 +122,6 @@ let rec get_file_path ?(template_dirs=[]) file_name =
 	  file_path
 	else
 	  get_file_path file_name ~template_dirs:rest
-;;
 
 type mutex_pair = {
   mutable lock: unit -> unit;

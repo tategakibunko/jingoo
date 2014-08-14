@@ -40,12 +40,6 @@ type environment = {
 
       ["/path/to/a.cmxs"; "/path/to/b.cmxs"]
   *)
-
-  compiled : bool;
-  (** [default: false]
-      this value can't be set from user.
-      true only when template is called from compiled module.
-  *)
 }
 
 and context = {
@@ -114,8 +108,8 @@ and statement =
   | ExpandStatement of expression
   | IfStatement of (cond_branch list) * else_statements
   | ForStatement of expression * expression * ast
-  | IncludeStatement of string * with_context
-  | RawIncludeStatement of string
+  | IncludeStatement of expression * with_context
+  | RawIncludeStatement of expression
   | ExtendsStatement of string
   | ImportStatement of string * string option
   | FromImportStatement of string * expression list

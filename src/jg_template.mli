@@ -7,7 +7,7 @@
 *)
 open Jg_types
 
-val from_file : ?env:environment -> ?models:(string * tvalue) list -> ?use_compiled:bool -> string -> string
+val from_file : ?env:environment -> ?models:(string * tvalue) list -> string -> string
 (** [from_file env models use_compiled template_filename]
     return result string.
 
@@ -32,9 +32,3 @@ val from_string : ?env:environment -> ?ctx:context -> ?models:(string * tvalue) 
     nomally, this context is used internal parsing.
 *)
 
-val compile : ?template_dirs:string list -> string -> string
-(** [compile template_dirs template_filename] return compiled ocaml code.
-
-    [template_dirs] is source path list of template files.
-    default value is empty list, that means current directory.
-*)

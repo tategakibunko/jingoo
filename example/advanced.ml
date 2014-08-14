@@ -9,7 +9,6 @@ let to_gmail ?(defaults=[
 ]) value kwargs =
   let id = Jg_runtime.string_of_tvalue value in
   Tstr (spf "%s@gmail.com" id)
-;;
 
 (* define custom filter to_mail more complex *)
 let to_mail ?(defaults=[
@@ -18,7 +17,6 @@ let to_mail ?(defaults=[
   let id = Jg_runtime.string_of_tvalue value in
   let domain = Jg_runtime.string_of_tvalue (Jg_runtime.jg_get_kvalue "domain" kwargs ~defaults) in
   Tstr (spf "%s@%s" id domain)
-;;    
 
 let () =
   Arg.parse [
@@ -34,7 +32,7 @@ let () =
 	("to_gmail", Jg_runtime.func_arg1 to_gmail);
 	("to_mail", Jg_runtime.func_arg1 to_mail);
       ];
-      
+
       (* load own extension *)
       extensions = [
 	"my_ext.cmxs";
@@ -42,7 +40,6 @@ let () =
     } in
 
   let result_string = 
-    Jg_template.from_file !file ~env ~use_compiled:(!compiled) ~models:Test_data.models in
+    Jg_template.from_file !file ~env ~models:Test_data.models in
 
   print_endline result_string
-;;

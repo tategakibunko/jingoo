@@ -4,6 +4,11 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.2.6, 2014-08-14
+==========================
+! deplicated compiled mode.
+o support symbol include like {% include some_var %}, {% rawinclude some_var %}.
+
 version: 1.2.5, 2014-08-01
 ==========================
 o fix bug about recursive object lookup like {{ obj1.obj2.name }}

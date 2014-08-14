@@ -20,48 +20,39 @@ let box_hash hash = Thash hash
 let unbox_int = function
   | Tint x -> x
   | _ -> failwith "invalid arg:not int(unbox_int)"
-;;
 
 let unbox_float = function
   | Tfloat f -> f
   | _ -> failwith "invalid arg:not float(unbox_float)"
-;;
 
 let unbox_string = function
   | Tstr s -> s
   | _ -> failwith "invalid arg:not string(unbox_string)"
-;;
 
 let unbox_bool = function
   | Tbool b -> b
   | _ -> failwith "invalid arg:not bool(unbox_bool)"
-;;
 
 let unbox_list = function
   | Tlist lst -> lst
   | _ -> failwith "invalid arg:not list(unbox_list)"
-;;
 
 let unbox_set = function
   | Tset lst -> lst
   | _ -> failwith "invalid arg:not set(unbox_set)"
-;;
 
 let unbox_obj = function
   | Tobj alist -> alist
   | _ -> failwith "invalid arg:not obj(unbox_obj)"
-;;
 
 let unbox_hash = function
   | Thash hash -> hash
   | _ -> failwith "invalid arg:not hahs(unbox_hash)"
-;;
 
 let merge_defaults defaults kwargs =
   List.map (fun (name, value) ->
     try (name, List.assoc name kwargs) with Not_found -> (name, value)
   ) defaults
-;;
 
 let union_defaults defaults kwargs =
   let rec append alist = function
@@ -72,7 +63,6 @@ let union_defaults defaults kwargs =
 	append ((name,value) :: alist) rest
     | [] -> alist in
   append (merge_defaults defaults kwargs) kwargs
-;;
 
 let string_of_tvalue = function
   | Tint x -> string_of_int x
@@ -85,7 +75,6 @@ let string_of_tvalue = function
   | Tset x -> "<set>"
   | Tfun _ -> "<fun>"
   | Tnull -> ""
-;;
 
 let type_string_of_tvalue = function
   | Tint x -> "int"
@@ -98,7 +87,6 @@ let type_string_of_tvalue = function
   | Tset x -> "set"
   | Tfun _ -> "function"
   | Tnull -> "null"
-;;
 
 let dump_expr = function
   | IdentExpr(str) -> spf "IdentExpr(%s)" str
@@ -128,58 +116,47 @@ let dump_expr = function
   | AliasExpr(_,_) -> "AliasExpr"
   | ApplyExpr(_,_) -> "ApplyExpr"
   | TestOpExpr(_,_) -> "TestOpExpr"
-;;
 
 let jg_strp = function
   | Tstr _ -> Tbool true
   | _ -> Tbool false
-;;
 
 let jg_intp = function
   | Tint _ -> Tbool true
   | _ -> Tbool false
-;;
     
 let jg_floatp = function
   | Tfloat _ -> Tbool true
   | _ -> Tbool false
-;;
 
 let jg_listp = function
   | Tlist _ -> Tbool true
   | _ -> Tbool false
-;;
 
 let jg_setp = function
   | Tset _ -> Tbool true
   | _ -> Tbool false
-;;
 
 let jg_objp = function
   | Tobj _ -> Tbool true
   | _ -> Tbool false
-;;
 
 let jg_hashp = function
   | Thash _ -> Tbool true
   | _ -> Tbool false
-;;
 
 let jg_funp = function
   | Tfun _ -> Tbool true
   | _ -> Tbool false
-;;
 
 let jg_push_frame ctx =
   {ctx with frame_stack = (Hashtbl.create 10) :: ctx.frame_stack}
-;;
 
 let jg_pop_frame ctx =
   match ctx.frame_stack with
     | [] -> ctx (* never happen *)
     | [top_frame] -> ctx (* because top frame always remain *)
     | frame :: rest -> {ctx with frame_stack = rest} (* other case, pop latest *)
-;;
 
 let jg_set_value ctx name value =
   match ctx.frame_stack with
@@ -190,13 +167,11 @@ let jg_set_value ctx name value =
     | frame :: rest ->
       Hashtbl.add frame name value;
       {ctx with frame_stack = frame :: rest}
-;;
 
 let jg_set_values ctx names values =
   List.fold_left (fun ctx (name, value) ->
     jg_set_value ctx name value
   ) ctx @@ List.combine names @@ take (List.length names) values ~pad:Tnull
-;;
 
 let jg_bind_names ctx names values =
   let set_values names values =
@@ -207,7 +182,6 @@ let jg_bind_names ctx names values =
     | [name], value -> jg_set_value ctx name value
     | name :: rest, Tset values -> set_values names values
     | _ -> ctx
-;;
 
 let rec jg_get_value ctx name =
   let rec get_value name = function
@@ -215,49 +189,40 @@ let rec jg_get_value ctx name =
       (try Hashtbl.find frame name with Not_found -> get_value name rest)
     | [] -> Tnull in
   get_value name ctx.frame_stack
-;;
 
 let jg_get_func ctx name = 
   match jg_get_value ctx name with
     | Tfun f -> Tfun f
     | _ -> failwith @@ spf "undefined function %s" name
-;;
 
 let jg_set_macro ctx name macro =
   Hashtbl.add ctx.macro_table name macro;
   ctx
-;;
 
 let jg_get_macro ctx name =
   try Some(Hashtbl.find ctx.macro_table name) with Not_found -> None
-;;
 
 let jg_remove_macro ctx name =
   Hashtbl.remove ctx.macro_table name;
   ctx
-;;
 
 let jg_set_filter ctx name =
   {ctx with active_filters = name :: ctx.active_filters}
-;;
 
 let jg_pop_filter ctx =
   match ctx.active_filters with
     | [] -> ctx
     | head :: rest -> {ctx with active_filters = rest}
-;;
 
 let jg_escape_html str kwargs =
   match str with
     | Tstr str -> Tstr(Jg_utils.escape_html str)
     | other -> Tstr(Jg_utils.escape_html @@ string_of_tvalue other)
-;;
 
 let jg_apply ?(name="<lambda>") ?(kwargs=[]) f args =
   match f with
     | Tfun fn -> fn args kwargs
     | _ -> failwith @@ spf "invalid apply: %s(%s) is not function(%s)" name (string_of_tvalue f) (type_string_of_tvalue f)
-;;
 
 let jg_apply_filters ?(autoescape=true) ?(safe=false) ctx text filters =
   let (safe, text) = List.fold_left (fun (safe, text) name ->
@@ -269,7 +234,6 @@ let jg_apply_filters ?(autoescape=true) ?(safe=false) ctx text filters =
       (safe, jg_apply (jg_get_func ctx name) [text] ~name)
   ) (safe, text) filters in
   if safe || not autoescape then text else jg_escape_html text []
-;;
 
 let jg_output ?(autoescape=true) ?(safe=false) ctx value =
   (match ctx.active_filters, safe, value with
@@ -280,21 +244,18 @@ let jg_output ?(autoescape=true) ?(safe=false) ctx value =
 	jg_apply_filters ctx value ctx.active_filters ~safe ~autoescape
   );
   ctx
-;;
 
 let jg_obj_lookup ctx obj prop_name =
   match obj with
     | Tobj(alist) -> (try List.assoc prop_name alist with Not_found -> Tnull)
     | Thash(hash) -> (try Hashtbl.find hash prop_name with Not_found -> Tnull)
     | _ -> failwith "jg_obj_lookup:not object"
-;;      
 
 let jg_obj_lookup_by_name ctx obj_name prop_name =
   match jg_get_value ctx obj_name with
     | Tobj(alist) as obj -> jg_obj_lookup ctx obj prop_name
     | Thash(hash) as hobj -> jg_obj_lookup ctx hobj prop_name
     | _ -> (try Jg_stub.get_func obj_name prop_name with Not_found -> Tnull)
-;;
 
 let jg_iter ctx iterator f iterable =
   let lst =
@@ -327,7 +288,6 @@ let jg_iter ctx iterator f iterable =
       let ctx = jg_pop_frame ctx in
       iter ctx (i+1) rest in
   iter ctx 0 lst
-;;
 
 let jg_eval_macro ?(caller=false) env ctx macro_name args kwargs macro f =
   match macro with
@@ -357,47 +317,39 @@ let jg_eval_macro ?(caller=false) env ctx macro_name args kwargs macro f =
       ) ctx defaults in
       let ctx = f ctx code in
       jg_pop_frame ctx
-;;
 
 let jg_test_defined ctx name =
   match jg_get_value ctx name with
     | Tnull -> Tbool(false)
     | _ -> Tbool(true)
-;;
 
 let jg_test_undefined ctx name =
   match jg_test_defined ctx name with
     | Tbool status -> Tbool (not status)
     | _ -> failwith "invalid test:jg_test_defined"
-;;
 
 let jg_test_obj_defined ctx obj_name prop_name =
   match jg_get_value ctx obj_name with
     | Tobj(alist) -> Tbool (List.mem_assoc prop_name alist)
     | _ -> Tbool(false)
-;;
 
 let jg_test_obj_undefined ctx obj_name prop_name =
   match jg_test_obj_defined ctx obj_name prop_name with
     | Tbool status -> Tbool (not status)
     | _ -> failwith "invalid test:jg_test_obj_defined"
-;;
 
 let jg_test_escaped ctx = 
   Tbool(List.mem "safe" @@ ctx.active_filters)
-;;
 
 let jg_test_none ctx name =
   match jg_get_value ctx name with
     | Tnull -> Tbool(true)
     | _ -> Tbool(false)
-;;
 
 let jg_negative = function
   | Tint x -> Tint(-x)
   | Tfloat x -> Tfloat(-.x)
   | _ -> failwith "jg_negative:type error"
-;;
 
 let jg_is_true = function
   | Tbool x -> x
@@ -410,11 +362,9 @@ let jg_is_true = function
   | Thash x -> Hashtbl.length x > 0
   | Tnull -> false
   | Tfun(f) -> failwith "jg_is_true:type error(function)"
-;;
 
 let jg_not x = 
   Tbool (not (jg_is_true x))
-;;
 
 let jg_plus left right =
   match left, right with
@@ -431,7 +381,6 @@ let jg_plus left right =
     | Tstr x1, Tfloat x2 -> Tstr (String.concat "" [x1; string_of_float x2])
 
     | _, _ -> failwith "jg_plus:type error"
-;;
 
 let jg_minus left right =
   match left, right with
@@ -440,7 +389,6 @@ let jg_minus left right =
     | Tint x1, Tfloat x2 -> Tfloat(float_of_int x1-.x2)
     | Tfloat x1, Tint x2 -> Tfloat(x1-.float_of_int x2)
     | _, _ -> failwith "jg_minus:type error"
-;;
 
 let jg_times left right =
   match left, right with
@@ -449,7 +397,6 @@ let jg_times left right =
     | Tint x1, Tfloat x2 -> Tfloat(float_of_int x1*.x2)
     | Tfloat x1, Tint x2 -> Tfloat(x1*.float_of_int x2)
     | _, _ -> failwith "jg_times:type error"
-;;
 
 let jg_power left right =
   let rec power m n a =
@@ -459,7 +406,6 @@ let jg_power left right =
   match left, right with
     | Tint x1, Tint x2 -> Tfloat (power (float_of_int x1) x2 1.0)
     | _, _ -> failwith "jg_powew:type error"
-;;
 
 let jg_div left right =
   match left, right with
@@ -470,22 +416,18 @@ let jg_div left right =
     | Tint x1, Tfloat x2-> Tfloat(float_of_int x1/.x2)
     | Tfloat x1, Tint x2 -> Tfloat(x1/.float_of_int x2)
     | _, _ -> failwith "jg_div:type error"
-;;
 
 let jg_mod left right =
   match left, right with
     | _, Tint 0 -> failwith "jg_mod:zero division error"
     | Tint x1, Tint x2 -> Tint(x1 mod x2)
     | _, _ -> failwith "jg_mod:type error"
-;;
 
 let jg_and left right =
   Tbool(jg_is_true left && jg_is_true right)
-;;
 
 let jg_or left right =
   Tbool(jg_is_true left || jg_is_true right)
-;;
 
 let rec jg_eq_eq left right =
   match left, right with
@@ -528,7 +470,6 @@ and jg_obj_same obj1 obj2 =
       with
 	  Not_found -> false in
     Tbool result
-;;
 
 let jg_not_eq left right =
   match left, right with
@@ -536,76 +477,64 @@ let jg_not_eq left right =
     | Tfloat x1, Tfloat x2 -> Tbool(x1!=x2)
     | Tstr x1, Tstr x2 -> Tbool(x1<>x2)
     | _, _ -> Tbool(true)
-;;
 
 let jg_lt left right = 
   match left, right with
     | Tint x1, Tint x2 -> Tbool(x1<x2)
     | Tfloat x1, Tfloat x2 -> Tbool(x1<x2)
     | _, _ -> failwith "jg_lt:type error"
-;;
 
 let jg_gt left right = 
   match left, right with
     | Tint x1, Tint x2 -> Tbool(x1>x2)
     | Tfloat x1, Tfloat x2 -> Tbool(x1>x2)
     | _, _ -> failwith "jg_gt:type error"
-;;
 
 let jg_lteq left right = 
   match left, right with
     | Tint x1, Tint x2 -> Tbool(x1<=x2)
     | Tfloat x1, Tfloat x2 -> Tbool(x1<=x2)
     | _, _ -> failwith "jg_lt:type error"
-;;
 
 let jg_gteq left right = 
   match left, right with
     | Tint x1, Tint x2 -> Tbool(x1>=x2)
     | Tfloat x1, Tfloat x2 -> Tbool(x1>=x2)
     | _, _ -> failwith "jg_gt:type error"
-;;
 
 let jg_inop left right =
   match left, right with
     | value, Tlist lst -> Tbool (List.exists (unbox_bool $ jg_eq_eq value) lst)
     | _ -> Tbool false
-;;
 
 let jg_get_kvalue ?(defaults=[]) name kwargs =
   try List.assoc name kwargs with Not_found ->
     (try List.assoc name defaults with Not_found -> Tnull)
-;;
 
 let jg_safe value kwargs =
   value
-;;
 
 let jg_upper x kwargs =
   match x with
     | Tstr str -> Tstr (String.uppercase str)
     | other -> Tstr (string_of_tvalue other)
-;;
 
 let jg_lower x kwargs =
   match x with
     | Tstr str -> Tstr (String.lowercase str)
     | other -> Tstr (string_of_tvalue other)
-;;
 
 let jg_int x kwargs =
   match x with
     | Tint x -> Tint x
     | Tfloat x -> Tint (int_of_float  x)
     | _ -> failwith "invalid arg:not number(jg_int)"
-;;
 
 let jg_float x kwargs =
   match x with
     | Tfloat x -> Tfloat x
     | Tint x -> Tfloat (float_of_int x)
     | _ -> failwith "invalid arg:not number(jg_float)"
-;;
 
 let jg_join join_str lst kwargs =
   match join_str, lst with
@@ -614,7 +543,6 @@ let jg_join join_str lst kwargs =
     | Tstr str, Tset lst ->
       Tstr (String.concat str (List.map string_of_tvalue lst))
     | _ -> failwith "invalid arg:jg_join"
-;;
 
 let jg_split pat text kwargs =
   match pat, text with
@@ -625,7 +553,6 @@ let jg_split pat text kwargs =
       Tlist lst
 
   | _ -> failwith "invalid args: split"
-;;
 
 let jg_substring base count str kwargs =
   match base, count, str with
@@ -634,7 +561,6 @@ let jg_substring base count str kwargs =
     | Tint _, Tint _, Tnull ->
       Tstr ""
     | _ -> failwith "invalid args: substring"
-;;
 
 let jg_truncate len str kwargs =
   match len, str with
@@ -642,13 +568,11 @@ let jg_truncate len str kwargs =
       Tstr (substring 0 len str)
 
     | _ -> failwith "invalid args: truncate"
-;;
 
 let jg_strlen x kwargs =
   match x with
     | Tstr str -> Tint (Jg_utils.strlen str)
     | _ -> failwith "invalid args: strlen"
-;;
 
 let jg_length x kwargs =
   match x with
@@ -656,27 +580,23 @@ let jg_length x kwargs =
     | Tset lst -> Tint (List.length lst)
     | Tstr str -> Tint (Jg_utils.strlen str)
     | _ -> failwith "invalid args: not list(length)"
-;;
 
 let jg_md5 x kwargs =
   match x with
     | Tstr str ->
       Tstr(str +> String.lowercase +> Digest.string +> Digest.to_hex)
     | _ -> failwith "invalid arg: not string(jg_md5)"
-;;
 
 let jg_abs value kwargs =
   match value with
     | Tint x -> Tint (abs x)
     | _ -> failwith "type error: not integer(abs)"
-;;
 
 let jg_attr obj prop kwargs =
   match obj, prop with
     | Tobj alist, Tstr prop ->
       (try List.assoc prop alist with Not_found -> Tnull)
     | _ -> Tnull
-;;
 
 let jg_batch ?(defaults=[
   ("fill_with", Tnull)
@@ -693,25 +613,21 @@ let jg_batch ?(defaults=[
 	  box_list @@ List.rev ret in
       batch [] (List.length lst) lst
     | _ -> failwith "invalid args: batch"
-;;
 
 let jg_center ?(defaults=[
   ("width", Tint 80)
 ]) value kwargs =
   value (* TODO *)
-;;
 
 let jg_capitalize value kwargs =
   match value with
     | Tstr str -> Tstr (String.capitalize str)
     | _ -> failwith "invalid args: not string(capitalize)"
-;;
 
 let jg_default default value kwargs =
   match value with
     | Tnull -> default
     | other -> other
-;;
 
 let jg_dictsort ?(defaults=[
   (* these optional arguments are ignored yet *)
@@ -722,20 +638,17 @@ let jg_dictsort ?(defaults=[
     | Tobj alist ->
       Tobj (List.sort (fun a b -> String.compare (fst a) (fst b)) alist)
     | _ -> value
-;;
 
 let jg_reverse lst kwargs =
   match lst with
     | Tlist lst -> Tlist (List.rev lst)
     | _ -> failwith "invalid args: not list(jg_reverse)"
-;;
 
 let jg_last lst kwargs =
   match lst with
     | Tlist lst -> List.hd (List.rev lst)
     | Tset lst -> List.hd (List.rev lst)
     | _ -> failwith "invalid args: not list(jg_last)"
-;;
 
 let jg_random lst kwargs =
   match lst with
@@ -750,14 +663,12 @@ let jg_random lst kwargs =
       shuffle array;
       Tlist (Array.to_list array)
     | _ -> failwith "invalid args: not list(jg_random)"
-;;
 
 let jg_replace src dst str kwargs =
   match src, dst, str with
     | Tstr src, Tstr dst, Tstr str ->
       Tstr (Pcre.replace ~rex:(Pcre.regexp src ~flags:[`UTF8]) ~templ:dst str)
     | _ -> failwith "invalid arg:not string(jg_replace)"
-;;
 
 let jg_sum lst kwargs =
   let rec iter sum lst =
@@ -779,7 +690,6 @@ let jg_sum lst kwargs =
   match lst with
     | Tlist lst -> iter (Tint 0) lst
     | _ -> failwith "invalid args: not list(jg_sum)"
-;;
 
 let jg_trim str kwargs =
   match str with
@@ -790,7 +700,6 @@ let jg_trim str kwargs =
       let str = Pcre.replace ~rex:tail_white ~templ:"" str in
       Tstr str
     | _ -> failwith "invalid args: not string(jg_trim)"
-;;
 
 let jg_list value kwargs =
   match value with
@@ -806,20 +715,17 @@ let jg_list value kwargs =
 	  iter (s1 :: ret) (i+1) in
       Tlist (iter [] 0)
     | _ -> failwith "invalid_arg:can't make sequence(jg_list)"
-;;
 
 let jg_slice ?(defaults=[
   ("fill_with", Tnull);
 ]) len value kwargs =
   jg_batch len (jg_list value []) kwargs
-;;
 
 let jg_sublist base count lst kwargs =
   match base, count, lst with
     | Tint base, Tint count, Tlist lst -> Tlist (after base lst +> take count)
     | Tint base, Tnull, Tlist lst -> Tlist (after base lst)
     | _ -> failwith "lnvalid args:jg_sublist"
-;;
 
 let jg_wordcount str kwargs =
   match str with
@@ -827,7 +733,6 @@ let jg_wordcount str kwargs =
       Pcre.split ~rex:(Pcre.regexp "[\\s\\t　]+" ~flags:[`UTF8]) str +>
 	List.length +> fun count -> Tint count
     | _ -> failwith "invalid arg: not string(jg_word_count)"
-;;
 
 let jg_round how value kwargs =
   match how, value with
@@ -836,7 +741,6 @@ let jg_round how value kwargs =
     | Tstr "ceil", Tfloat x -> Tfloat (ceil x)
     | Tstr other, Tfloat x -> failwith @@ spf "invalid args:round method %s not supported(jg_round)" other
     | _ -> failwith "invalid args:jg_round"
-;;
 
 let jg_fmt_float digit_count value kwargs =
   match digit_count, value with
@@ -844,7 +748,6 @@ let jg_fmt_float digit_count value kwargs =
       let fmt = Scanf.format_from_string (spf "%%.%df" digit_count) "%f" in
       Tfloat (float_of_string @@ spf fmt value)
     | _, _ -> failwith "invalid args:fmt_float(digit_count, float_value)"
-;;
 
 let jg_range start stop kwargs =
   match start, stop with
@@ -857,7 +760,6 @@ let jg_range start stop kwargs =
 	let rec iter ret i = if is_end i then List.rev ret else iter ((Tint i) :: ret) (next i) in
 	Tlist (iter [] start)
     | _ -> failwith "invalid args: not int(jg_range)"
-;;
 
 let jg_urlize text kwargs =
   match text with
@@ -865,7 +767,6 @@ let jg_urlize text kwargs =
       let reg = Pcre.regexp "((http|ftp|https):\\/\\/[\\w\\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\.,@?^=%&amp;:/~\\+#]*[\\w\\-\\@?^=%&amp;/~\\+#])?)" in
       Tstr (Pcre.replace ~rex:reg ~templ:"<a href='$1'>$1</a>" text)
     | _ -> failwith "invalid arg: not string(jg_urlize)"
-;;
 
 let jg_title text kwargs =
   match text with
@@ -875,7 +776,6 @@ let jg_title text kwargs =
 	  ((String.capitalize head) :: rest) +> String.concat " " +> fun text' -> Tstr text'
 	| _ -> Tstr text)
     | _ -> failwith "invalid arg: not string(jg_title)"
-;;
 
 let jg_striptags text kwargs =
   match text with
@@ -884,7 +784,6 @@ let jg_striptags text kwargs =
       let text' = Pcre.replace ~rex:reg ~templ:"" text in
       Tstr text'
     | _ -> failwith "invalid arg: not string(jg_striptags)"
-;;
 
 let jg_sort lst kwargs =
   match lst with
@@ -896,7 +795,6 @@ let jg_sort lst kwargs =
 	  if a > b then 1 else if a = b then 0 else -1) +> List.map box_float +> box_list
 	| _ -> failwith "invalid_arg:can't sort(jg_sort)")
     | _ -> failwith "invalid_arg:can't sort(jg_sort)"
-;;
 
 let jg_xmlattr obj kwargs =
   match obj with
@@ -904,7 +802,6 @@ let jg_xmlattr obj kwargs =
       List.map (fun (name, value) -> spf "%s='%s'" name (string_of_tvalue value)) alist +>
 	String.concat " " +> box_string
     | _ -> failwith "invalid_arg:not obj(jg_xmlattr)"
-;;
 
 let jg_wordwrap width break_long_words text kwargs =
   match width, break_long_words, text with
@@ -929,52 +826,44 @@ let jg_wordwrap width break_long_words text kwargs =
       let words = Pcre.split ~rex:(Pcre.regexp "[\\s\\t　]+" ~flags:[`UTF8]) text in
       Tstr (iter "" "" 0 words)
     | _ -> failwith "invalid args:jg_wordwrap"
-;;
 
 let jg_test_divisibleby num target kwargs =
   match num, target with
     | Tint 0, _ -> Tbool(false)
     | Tint n, Tint t ->  Tbool(t mod n = 0)
     | _ -> Tbool(false)
-;;
 
 let jg_test_even x kwargs =
   match x with
     | Tint x -> Tbool(x mod 2 = 0)
     | _ -> Tbool(false)
-;;
 
 let jg_test_odd x kwargs =
   match x with
     | Tint x -> Tbool(x mod 2 = 1)
     | _ -> Tbool(false)
-;;
 
 let jg_test_iterable x kwargs =
   match x with
     | Tlist _ -> Tbool(true)
     | Tset _ -> Tbool(true)
     | _ -> Tbool(false)
-;;
 
 let jg_test_lower x kwargs =
   match x with
     | Tstr str -> Tbool(Jg_utils.is_lower str)
     | _ -> Tbool(false)
-;;
 
 let jg_test_upper x kwargs =
   match x with
     | Tstr str -> Tbool(Jg_utils.is_upper str)
     | _ -> Tbool(false)
-;;
 
 let jg_test_number x kwargs =
   match x with
     | Tint _ -> Tbool(true)
     | Tfloat _ -> Tbool(true)
     | _ -> Tbool(false)
-;;
 
 let jg_test_sameas value target kwargs =
   match value, target with
@@ -987,32 +876,29 @@ let jg_test_sameas value target kwargs =
     | Tlist x, Tlist y -> Tbool(x == y)
     | Tset x, Tset y -> Tbool(x == y)
     | _ -> Tbool(false)
-;;
 
 let jg_test_sequence target kwargs =
   jg_test_iterable target kwargs
-;;
 
 let jg_test_string target kwargs =
   jg_strp target
-;;
 
 let func_arg0 f = Tfun (fun args kwargs ->
   f kwargs ()
-);;
+)
 
 let func_arg1 f = Tfun (fun args kwargs ->
   match args with
     | a1 :: rest -> f a1 kwargs
     | _ -> Tnull
-);;
+)
 
 let func_arg2 f = Tfun (fun args kwargs ->
   match args with
     | a1 :: a2 :: rest -> f a1 a2 kwargs
     | a1 :: rest -> func_arg1 (f a1)
     | _ -> Tnull
-);;
+)
 
 let func_arg3 f = Tfun (fun args kwargs ->
   match args with
@@ -1020,7 +906,7 @@ let func_arg3 f = Tfun (fun args kwargs ->
     | a1 :: a2 :: rest -> func_arg1 (f a1 a2)
     | a1 :: rest -> func_arg2 (f a1)
     | _ -> Tnull
-);;
+)
 
 let std_filters = [
   (** built-in filters *)
@@ -1076,7 +962,6 @@ let std_filters = [
   ("sequence", func_arg1 jg_test_sequence);
   ("string", func_arg1 jg_test_string);
 ]
-;;
 
 let jg_load_extensions extensions =
   List.iter (fun ext ->
@@ -1085,7 +970,6 @@ let jg_load_extensions extensions =
     with
 	Dynlink.Error e -> failwith @@ Dynlink.error_message e
   ) extensions
-;;
 
 let jg_post_process text =
   text
@@ -1100,7 +984,6 @@ let jg_init_context ?(models=[]) env =
   ignore @@ set_values top_frame std_filters;
   ignore @@ set_values top_frame env.filters;
   ignore @@ set_values top_frame [
-    ("jg_is_compiled", Tbool env.compiled);
     ("jg_is_autoescape", Tbool env.autoescape);
   ];
   { frame_stack = [model_frame; top_frame];
@@ -1108,4 +991,3 @@ let jg_init_context ?(models=[]) env =
     active_filters = [];
     buffer = Buffer.create 1024;
   }
-;;

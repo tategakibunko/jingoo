@@ -326,4 +326,12 @@ dot expr many
 
 obj2.child.name = {{obj2.child.name}}
 
+{% set tmpl_file = "header.tmpl" %}
 
+include by symbol
+=================
+{% include tmpl_file %}
+
+rawinclude by symbol
+====================
+{% rawinclude tmpl_file %}

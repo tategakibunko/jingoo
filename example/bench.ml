@@ -1,19 +1,17 @@
 open Jg_types
 open Jg_utils
 
-let compiled = ref false
 let file = ref "cheatsheet.tmpl"
 let count = ref 1000
   
 let () =
   Arg.parse [
-    ("-cmpl", Arg.Unit (fun () -> compiled := true), "use compiled template");
     ("-tmpl", Arg.String (fun f -> file := f), "template name");
     ("-count", Arg.Int (fun i -> count := max 5 i), "loop count");
   ] ignore "";
 
   let output () = 
-    ignore @@ Jg_template.from_file !file ~use_compiled:(!compiled) ~models:Test_data.models in
+    ignore @@ Jg_template.from_file !file ~models:Test_data.models in
 
   let t0 = Unix.gettimeofday () in
   for i = 1 to 5 do
@@ -24,4 +22,3 @@ let () =
   done;
   let t1 = Unix.gettimeofday () in
   Printf.printf "time: %f\n" (t1 -. t0)
-;;
