@@ -5,8 +5,6 @@
 
   License: see LICENSE
 *)
-open Batteries
-
 let spf = Printf.sprintf
 
 let (@@) f g = f g
@@ -17,12 +15,12 @@ let (+>) f g = g f
 
 let (>>=) x f = f x
 
-let strlen = UTF8.length
-let strcmp = UTF8.compare
+let strlen = BatUTF8.length
+let strcmp = BatUTF8.compare
 
 (** application friendly substring *)
 let rec substring base count str =
-  let len = UTF8.length str in
+  let len = BatUTF8.length str in
   if base >= len || count = 0 then
     ""
   else if base = 0 && count >= len then
@@ -30,12 +28,12 @@ let rec substring base count str =
   else if base < 0 then
     substring (len + base) count str
   else if base + count >= len then
-    let lp = UTF8.nth str base in
-    let rp = UTF8.next str (UTF8.last str) in
+    let lp = BatUTF8.nth str base in
+    let rp = BatUTF8.next str (BatUTF8.last str) in
     String.sub str lp (rp - lp)
   else
-    let lp = UTF8.nth str base in
-    let rp = UTF8.nth str (base + count) in
+    let lp = BatUTF8.nth str base in
+    let rp = BatUTF8.nth str (base + count) in
     String.sub str lp (rp - lp)
 
 let escape_html str =
@@ -90,7 +88,17 @@ let get_parser_error exn lexbuf =
   let msg = match exn with Jg_types.SyntaxError msg -> msg | _ -> Printexc.to_string exn in
   Printf.sprintf "%s: '%s' at line %d in file %s" msg tok line fname
 
-let read_file_as_string = input_file ~bin:true
+let read_file_as_string filename =
+  let file = open_in_bin filename in
+  let size = in_channel_length file in
+  try
+    let buf = String.create size in
+    really_input file buf 0 size;
+    close_in file;
+    buf
+  with e ->
+    (try close_in file with _ -> ());
+    raise e
 
 let rec get_file_path ?(template_dirs=[]) file_name =
   if file_name = "" then
