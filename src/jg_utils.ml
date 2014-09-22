@@ -5,7 +5,7 @@
 
   License: see LICENSE
 *)
-open ExtLib
+open Batteries
 
 let spf = Printf.sprintf
 
@@ -90,17 +90,7 @@ let get_parser_error exn lexbuf =
   let msg = match exn with Jg_types.SyntaxError msg -> msg | _ -> Printexc.to_string exn in
   Printf.sprintf "%s: '%s' at line %d in file %s" msg tok line fname
 
-let read_file_as_string filename =
-  let file = open_in_bin filename in
-  let size = in_channel_length file in
-    try
-      let buf = String.create size in
-        really_input file buf 0 size;
-        close_in file;
-        buf
-    with e ->
-      (try close_in file with _ -> ());
-      raise e
+let read_file_as_string = input_file ~bin:true
 
 let rec get_file_path ?(template_dirs=[]) file_name =
   if file_name = "" then
