@@ -75,7 +75,7 @@ and kwargs = (string * tvalue) list
    And it's important to know that the filtered target is the LAST argument of filter function.
    For example, consider following expansion of "x" with filter function "foo" (with no keyword arguments)
    
-   {{x|foo(10,20)}}
+   {{ x|foo(10,20) }}
 
    The filter function "foo" takes 3 arguments, and internally, this is evaluated like this.
 
