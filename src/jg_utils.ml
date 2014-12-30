@@ -92,7 +92,8 @@ let read_file_as_string filename =
   let file = open_in_bin filename in
   let size = in_channel_length file in
   try
-    let buf = String.create size in
+    let buf = String.create size in (* for compatibility of OCaml <= 3 *)
+    (* let buf = Bytes.create size in *)
     really_input file buf 0 size;
     close_in file;
     buf
