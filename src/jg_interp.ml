@@ -50,9 +50,10 @@ let rec value_of_expr env ctx = function
       | other, expr -> failwith "invalid object syntax"
     ) expr_list)
 
-  | ApplyExpr(IdentExpr("eval"), expr :: rest) ->
+  | ApplyExpr(IdentExpr("eval"), [expr]) ->
     let ctx = {ctx with buffer = Buffer.create 256} in
-    let statements = statements_from_string ctx @@ string_of_tvalue @@ value_of_expr env ctx expr in
+    let str = string_of_tvalue @@ value_of_expr env ctx expr in
+    let statements = statements_from_string ctx str in
     let ctx = List.fold_left (eval_statement env) ctx statements in
     Tstr (Buffer.contents ctx.buffer)
 
@@ -235,7 +236,6 @@ and align_block stmts =
   iter [] stmts
 
 and reset_interp () = 
-  Jg_lexer.reset_lexer ();
   Parsing.clear_parser ()
 
 and import_macro ?namespace ?select env ctx codes =
@@ -275,10 +275,10 @@ and statements_from_file env ctx file_name =
 
 and statements_from_string ?file_path ctx source =
   let lexbuf = Lexing.from_string source in
+  Jg_lexer.reset_context ();
   Jg_lexer.init_lexer_pos file_path lexbuf;
   try
-    let lexer = Jg_lexer.gen_cached_lexer Jg_lexer.main in
-    Jg_parser.input lexer lexbuf
+    Jg_parser.input Jg_lexer.main lexbuf
   with
       exn ->
 	raise @@ SyntaxError(Jg_utils.get_parser_error exn lexbuf)

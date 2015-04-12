@@ -528,12 +528,14 @@ let jg_int x kwargs =
   match x with
     | Tint x -> Tint x
     | Tfloat x -> Tint (int_of_float  x)
+    | Tstr s -> Tint (int_of_string s)
     | _ -> failwith "invalid arg:not number(jg_int)"
 
 let jg_float x kwargs =
   match x with
     | Tfloat x -> Tfloat x
     | Tint x -> Tfloat (float_of_int x)
+    | Tstr s -> Tfloat (float_of_string s)
     | _ -> failwith "invalid arg:not number(jg_float)"
 
 let jg_join join_str lst kwargs =

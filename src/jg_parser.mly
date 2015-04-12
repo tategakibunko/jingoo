@@ -52,8 +52,6 @@
 %token <string> STRING
 %token <string> TEXT
 %token <string> IDENT
-%token EXPAND
-%token ENDEXPAND
 %token TRUE
 %token FALSE
 %token NULL
@@ -112,12 +110,12 @@ stmts:
 ;
 
 stmt:
-  EXPAND expr ENDEXPAND { pel "expand expr"; ExpandStatement($2) }
-| EXPAND error { raise @@ SyntaxError "expand stmt error" }
+  expr { pel "expand expr"; ExpandStatement($1) }
+| error { raise @@ SyntaxError "expand stmt error" }
 | SET ident_list EQ expr { pel "set sts"; SetStatement(SetExpr($2), $4) }
 | SET error { raise @@ SyntaxError "set" }
 | EXTENDS STRING { pel "extends sts"; ExtendsStatement($2) }
-| EXTENDS error { raise @@ SyntaxError "extend" }
+| EXTENDS error { raise @@ SyntaxError "extends" }
 | BLOCK ident ENDBLOCK { pel "block sts"; BlockStatement($2, []) }
 | BLOCK ident stmts ENDBLOCK { pel "block sts2"; BlockStatement($2, $3) }
 | BLOCK error { raise @@ SyntaxError "block" }
@@ -173,19 +171,19 @@ context_part:
 ;
 
 ident:
-  IDENT { pelspf "ident_expr(%s)" $1; IdentExpr($1) }
+  IDENT { pelspf "ident(%s)" $1; IdentExpr($1) }
 | IDENT error { raise @@ SyntaxError "ident" }
 ;
 
 ident_list:
-  ident { pel "ident list found"; [$1] }
+  ident { pel "ident list"; [$1] }
 | ident COMMA ident_list { pel "iden list commna"; $1 :: $3 }
 | ident COMMA error { raise @@ SyntaxError "ident_list" }
 ;
 
 expr_list:
 /* empty */ { pel "empty expr list"; [] }
-| expr { pel "expr list found"; [$1] }
+| expr { pel "expr list"; [$1] }
 | expr COMMA expr_list { pel "expr list comma"; $1 :: $3 }
 | expr COMMA error { raise @@ SyntaxError "expr_list" }
 ;
@@ -194,13 +192,14 @@ expr:
   ident { pel "ident"; $1 }
 | ident EQ expr { pel "keyword"; KeywordExpr($1, $3) }
 | ident AS ident { pel "alias"; AliasExpr($1, $3) }
+| ident LPAREN expr_list RPAREN { pel "apply(expr_list)"; ApplyExpr($1, $3) }
+| expr LPAREN expr_list RPAREN { pel "apply(expr_list)"; ApplyExpr($1, $3) }
 | INT { pel "int"; LiteralExpr (Tint $1) }
 | FLOAT { pel "float"; LiteralExpr (Tfloat $1) }
 | TRUE { pel "true"; LiteralExpr (Tbool true) }
 | FALSE { pel "false"; LiteralExpr (Tbool false) }
 | STRING { pel "string"; LiteralExpr (Tstr $1) }
 | NULL { pel "null"; LiteralExpr Tnull }
-| expr LPAREN expr_list RPAREN { pel "apply"; ApplyExpr($1, $3) }
 | expr DOT ident { pel "dot_lookup"; DotExpr($1, $3) }
 | expr LBRACKET STRING RBRACKET { pel "dot_lookup(dict)"; DotExpr($1, IdentExpr($3)) }
 | NOT expr { pel "not expr"; NotOpExpr($2) }
@@ -223,9 +222,14 @@ expr:
 | expr GT_EQ expr { pel "gteq"; GtEqOpExpr($1, $3) }
 | expr IN expr { pel "inop"; InOpExpr($1, $3) }
 | expr VLINE expr { pel "expr|expr -> ApplyExpr"; ApplyExpr($3, [$1]) }
-| expr IS expr expr{ pel "test"; TestOpExpr($1, ApplyExpr($3, [$4])) }
+| expr IS expr expr{
+  (** when expr1 is fun and expr2 is args with out LPAREN and RPAREN. *)
+  (** for example, 'a is divisableby 2' *)
+  pel "test(apply)";
+  TestOpExpr($1, ApplyExpr($3, [$4]))
+}
 | expr IS expr { pel "test"; TestOpExpr($1,$3) }
-| LPAREN expr RPAREN { pel "parented expr"; $2 }
+| LPAREN expr RPAREN { pel "(expr)"; $2 }
 | LPAREN expr_list RPAREN { pel "set expr"; SetExpr($2) }
 | LPAREN error { raise @@ SyntaxError "expr" }
 ;
