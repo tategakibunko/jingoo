@@ -4,7 +4,7 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
-version: 1.2.7, ???
+version: 1.2.7, 2015-04-12
 ==========================
 ! switch lib(extlib -> batteries).
 
