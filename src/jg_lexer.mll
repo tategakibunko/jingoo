@@ -58,21 +58,23 @@
   let add_str str =
     Buffer.add_string buf str
 
-  let token_or_str (str, token) next =
+  let token_or_str (str, token) lexer lexb =
     match ctx.mode with
       | `Logic ->
 	(* print_endline @@ spf "logical token:%s" str; *)
 	token
       | `Html ->
-	add_str str; next ()
+	add_str str;
+	lexer lexb
 
-  let token_or_char (chr, token) next =
+  let token_or_char (chr, token) lexer lexb =
     match ctx.mode with
       | `Logic ->
 	(* print_endline @@ spf "logical token:%c" chr; *)
 	token
       | `Html ->
-	add_char chr; next ()
+	add_char chr;
+	lexer lexb
 }
 
 let blank = [ ' ' '\t' ]
@@ -167,65 +169,65 @@ rule main = parse
       | `Html -> add_str str; main lexbuf
       | _ -> FLOAT (float_of_string str)
   }
-  | "if" as s { token_or_str (s, IF) (fun () -> main lexbuf) }
-  | "else" as s { token_or_str (s, ELSE) (fun () -> main lexbuf) }
-  | "elseif" as s { token_or_str (s, ELSEIF) (fun () -> main lexbuf) }
-  | "endif" as s { token_or_str (s, ENDIF) (fun () -> main lexbuf) }
-  | "for" as s { token_or_str (s, FOR) (fun () -> main lexbuf) }
-  | "endfor" as s { token_or_str (s, ENDFOR) (fun () -> main lexbuf) }
-  | "include" as s { token_or_str (s, INCLUDE) (fun () -> main lexbuf) }
-  | "extends" as s { token_or_str (s, EXTENDS) (fun () -> main lexbuf) }
-  | "block" as s { token_or_str (s, BLOCK) (fun () -> main lexbuf) }
-  | "endblock" as s { token_or_str (s, ENDBLOCK) (fun () -> main lexbuf) }
-  | "filter" as s { token_or_str (s, FILTER) (fun () -> main lexbuf) }
-  | "endfilter" as s { token_or_str (s, ENDFILTER) (fun () -> main lexbuf) }
-  | "macro" as s { token_or_str (s, MACRO) (fun () -> main lexbuf) }
-  | "endmacro" as s { token_or_str (s, ENDMACRO) (fun () -> main lexbuf) }
-  | "call" as s { token_or_str (s, CALL) (fun () -> main lexbuf) }
-  | "endcall" as s { token_or_str (s, ENDCALL) (fun () -> main lexbuf) }
-  | "import" as s { token_or_str (s, IMPORT) (fun () -> main lexbuf) }
-  | "as" as s { token_or_str (s, AS) (fun () -> main lexbuf) }
-  | "from" as s { token_or_str (s, FROM) (fun () -> main lexbuf) }
-  | "in" as s { token_or_str (s, IN) (fun () -> main lexbuf) }
-  | "set" as s { token_or_str (s, SET) (fun () -> main lexbuf) }
-  | "not" as s { token_or_str (s, NOT) (fun () -> main lexbuf) }
-  | "is" as s { token_or_str (s, IS) (fun () -> main lexbuf) }
-  | "with" as s { token_or_str (s, WITH) (fun () -> main lexbuf) }
-  | "endwith" as s { token_or_str (s, ENDWITH) (fun () -> main lexbuf) }
-  | "without" as s { token_or_str (s, WITHOUT) (fun () -> main lexbuf) }
-  | "context" as s { token_or_str (s, CONTEXT) (fun () -> main lexbuf) }
-  | "autoescape" as s { token_or_str (s, AUTOESCAPE) (fun () -> main lexbuf) }
-  | "endautoescape" as s { token_or_str (s, ENDAUTOESCAPE) (fun () -> main lexbuf) }
-  | "rawinclude" as s { token_or_str (s, RAWINCLUDE) (fun () -> main lexbuf) }
-  | "true" as s { token_or_str (s, TRUE) (fun () -> main lexbuf) }
-  | "false" as s { token_or_str (s, FALSE) (fun () -> main lexbuf) }
-  | "null" as s { token_or_str (s, NULL) (fun () -> main lexbuf) }
-  | "==" as s { token_or_str (s, EQ_EQ) (fun () -> main lexbuf) }
-  | "!=" as s { token_or_str (s, NEQ) (fun () -> main lexbuf) }
-  | "<=" as s { token_or_str (s, LT_EQ) (fun () -> main lexbuf) }
-  | ">=" as s { token_or_str (s, GT_EQ) (fun () -> main lexbuf) }
-  | "&&" as s { token_or_str (s, AND) (fun () -> main lexbuf) }
-  | "||" as s { token_or_str (s, OR) (fun () -> main lexbuf) }
-  | "**" as s { token_or_str (s, POWER) (fun () -> main lexbuf) }
-  | ","  as c { token_or_char (c, COMMA) (fun () -> main lexbuf) }
-  | "=" as c { token_or_char (c, EQ) (fun () -> main lexbuf) }
-  | "<" as c { token_or_char (c, LT) (fun () -> main lexbuf) }
-  | ">" as c { token_or_char (c, GT) (fun () -> main lexbuf) }
-  | "!" as c { token_or_char (c, NOT) (fun () -> main lexbuf) }
-  | "." as c { token_or_char (c, DOT) (fun () -> main lexbuf) }
-  | "+" as c { token_or_char (c, PLUS) (fun () -> main lexbuf) }
-  | "-" as c { token_or_char (c, MINUS) (fun () -> main lexbuf) }
-  | "*" as c { token_or_char (c, TIMES) (fun () -> main lexbuf) }
-  | "/" as c { token_or_char (c, DIV) (fun () -> main lexbuf) }
-  | "%" as c { token_or_char (c, MOD) (fun () -> main lexbuf) }
-  | "(" as c { token_or_char (c, LPAREN) (fun () -> main lexbuf) }
-  | ")" as c { token_or_char (c, RPAREN) (fun () -> main lexbuf) }
-  | "[" as c { token_or_char (c, LBRACKET) (fun () -> main lexbuf) }
-  | "]" as c { token_or_char (c, RBRACKET) (fun () -> main lexbuf) }
-  | "{" as c { token_or_char (c, LBRACE) (fun () -> main lexbuf) }
-  | "}" as c { token_or_char (c, RBRACE) (fun () -> main lexbuf) }
-  | ":" as c { token_or_char (c, COLON) (fun () -> main lexbuf) }
-  | "|" as c { token_or_char (c, VLINE) (fun () -> main lexbuf) }
+  | "if" as s { token_or_str (s, IF) main lexbuf }
+  | "else" as s { token_or_str (s, ELSE) main lexbuf }
+  | "elseif" as s { token_or_str (s, ELSEIF) main lexbuf }
+  | "endif" as s { token_or_str (s, ENDIF) main lexbuf }
+  | "for" as s { token_or_str (s, FOR) main lexbuf }
+  | "endfor" as s { token_or_str (s, ENDFOR) main lexbuf }
+  | "include" as s { token_or_str (s, INCLUDE) main lexbuf }
+  | "extends" as s { token_or_str (s, EXTENDS) main lexbuf }
+  | "block" as s { token_or_str (s, BLOCK) main lexbuf }
+  | "endblock" as s { token_or_str (s, ENDBLOCK) main lexbuf }
+  | "filter" as s { token_or_str (s, FILTER) main lexbuf }
+  | "endfilter" as s { token_or_str (s, ENDFILTER) main lexbuf }
+  | "macro" as s { token_or_str (s, MACRO) main lexbuf }
+  | "endmacro" as s { token_or_str (s, ENDMACRO) main lexbuf }
+  | "call" as s { token_or_str (s, CALL) main lexbuf }
+  | "endcall" as s { token_or_str (s, ENDCALL) main lexbuf }
+  | "import" as s { token_or_str (s, IMPORT) main lexbuf }
+  | "as" as s { token_or_str (s, AS) main lexbuf }
+  | "from" as s { token_or_str (s, FROM) main lexbuf }
+  | "in" as s { token_or_str (s, IN) main lexbuf }
+  | "set" as s { token_or_str (s, SET) main lexbuf }
+  | "not" as s { token_or_str (s, NOT) main lexbuf }
+  | "is" as s { token_or_str (s, IS) main lexbuf }
+  | "with" as s { token_or_str (s, WITH) main lexbuf }
+  | "endwith" as s { token_or_str (s, ENDWITH) main lexbuf }
+  | "without" as s { token_or_str (s, WITHOUT) main lexbuf }
+  | "context" as s { token_or_str (s, CONTEXT) main lexbuf }
+  | "autoescape" as s { token_or_str (s, AUTOESCAPE) main lexbuf }
+  | "endautoescape" as s { token_or_str (s, ENDAUTOESCAPE) main lexbuf }
+  | "rawinclude" as s { token_or_str (s, RAWINCLUDE) main lexbuf }
+  | "true" as s { token_or_str (s, TRUE) main lexbuf }
+  | "false" as s { token_or_str (s, FALSE) main lexbuf }
+  | "null" as s { token_or_str (s, NULL) main lexbuf }
+  | "==" as s { token_or_str (s, EQ_EQ) main lexbuf }
+  | "!=" as s { token_or_str (s, NEQ) main lexbuf }
+  | "<=" as s { token_or_str (s, LT_EQ) main lexbuf }
+  | ">=" as s { token_or_str (s, GT_EQ) main lexbuf }
+  | "&&" as s { token_or_str (s, AND) main lexbuf }
+  | "||" as s { token_or_str (s, OR) main lexbuf }
+  | "**" as s { token_or_str (s, POWER) main lexbuf }
+  | ","  as c { token_or_char (c, COMMA) main lexbuf }
+  | "=" as c { token_or_char (c, EQ) main lexbuf }
+  | "<" as c { token_or_char (c, LT) main lexbuf }
+  | ">" as c { token_or_char (c, GT) main lexbuf }
+  | "!" as c { token_or_char (c, NOT) main lexbuf }
+  | "." as c { token_or_char (c, DOT) main lexbuf }
+  | "+" as c { token_or_char (c, PLUS) main lexbuf }
+  | "-" as c { token_or_char (c, MINUS) main lexbuf }
+  | "*" as c { token_or_char (c, TIMES) main lexbuf }
+  | "/" as c { token_or_char (c, DIV) main lexbuf }
+  | "%" as c { token_or_char (c, MOD) main lexbuf }
+  | "(" as c { token_or_char (c, LPAREN) main lexbuf }
+  | ")" as c { token_or_char (c, RPAREN) main lexbuf }
+  | "[" as c { token_or_char (c, LBRACKET) main lexbuf }
+  | "]" as c { token_or_char (c, RBRACKET) main lexbuf }
+  | "{" as c { token_or_char (c, LBRACE) main lexbuf }
+  | "}" as c { token_or_char (c, RBRACE) main lexbuf }
+  | ":" as c { token_or_char (c, COLON) main lexbuf }
+  | "|" as c { token_or_char (c, VLINE) main lexbuf }
   | ident_first_char ident_char* as str {
     match ctx.mode with
       | `Html ->
