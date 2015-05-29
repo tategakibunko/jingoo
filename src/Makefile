@@ -1,6 +1,5 @@
 EXE:=jingoo
 COMPILER:=compiler
-BINDIR:=/usr/local/bin
 LEX:=ocamllex
 YAC:=ocamlyacc
 #YAC:=menhir
@@ -48,11 +47,9 @@ compiler: jingoo.cmxa jg_cmdline.ml
 
 install: all
 	ocamlfind install jingoo *.a *.cma *.cmxa *.cmi jingoo_mt.cm[ox] jingoo_mt.o jg_types.mli jg_template.mli jg_stub.mli META
-	cp -f $(COMPILER) $(BINDIR)/$(EXE)
 
 uninstall:
 	ocamlfind remove jingoo
-	rm -f $(BINDIR)/$(EXE)
 
 reinstall:
 	make uninstall
