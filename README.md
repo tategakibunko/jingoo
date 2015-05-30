@@ -4,6 +4,20 @@
 
 Jingoo is OCaml template engine almost compatible with Jinja2(python template engine).
 
+## install
+
+### manual
+
+```bash
+make
+sudo make install
+```
+### opam
+
+```bash
+opam install jingoo
+```
+
 ## difference between Jinja2 and Jingoo
 
 1. i18n features are not supported yet.
