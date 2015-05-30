@@ -16,11 +16,11 @@ pcre library(http://www.pcre.org/) must be build with configuration "--enable-ut
 Installing
 ==========
 
-Install in manual way.
+(1) Install in manual way.
 
-1. make
-2. sudo make install
+ make
+sudo make install
 
-Or you can install via opam.
+(2) Install by opam.
 
 opam install jingoo
