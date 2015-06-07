@@ -8,7 +8,7 @@
 open Jg_types
 
 val from_file : ?env:environment -> ?models:(string * tvalue) list -> string -> string
-(** [from_file env models use_compiled template_filename]
+(** [from_file env models template_filename]
     return result string.
 
     [env] is environment parametors defined in Jg_types.environment.
