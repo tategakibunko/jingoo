@@ -16,10 +16,6 @@ val from_file : ?env:environment -> ?models:(string * tvalue) list -> string -> 
 
     [models] is variable table for template. for example,
     [("msg", Tstr "hello, world!"); ("count", Tint 100); ]
-
-    if [use_compiled] is set true, jingoo will search template module(shared library) first,
-    and if found, it's linked and call it dynamically.
-    if not found, [template_filename] is loaded.
 *)
 
 val from_string : ?env:environment -> ?ctx:context -> ?models:(string * tvalue) list -> string -> string
