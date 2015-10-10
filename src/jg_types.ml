@@ -80,7 +80,7 @@ and expression =
   | GtOpExpr of expression * expression
   | LtEqOpExpr of expression * expression
   | GtEqOpExpr of expression * expression
-  | DotExpr of expression * expression
+  | DotExpr of expression * string
   | ApplyExpr of expression * arguments
   | ListExpr of expression list
   | SetExpr of expression list
