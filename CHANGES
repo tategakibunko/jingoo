@@ -4,6 +4,10 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.2.10, 2015-10-11
+===========================
+o Allow arbitrary expressions in object lookups(PR#15).
+
 version: 1.2.7, 2015-04-12
 ==========================
 ! switch lib(extlib -> batteries).
