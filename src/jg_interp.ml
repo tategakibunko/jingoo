@@ -31,12 +31,24 @@ let rec value_of_expr env ctx = function
   | InOpExpr(left, right) -> jg_inop (value_of_expr env ctx left) (value_of_expr env ctx right)
   | ListExpr(expr_list) -> Tlist (List.map (value_of_expr env ctx) expr_list)
   | SetExpr(expr_list) -> Tset (List.map (value_of_expr env ctx) expr_list)
-  | DotExpr(IdentExpr(name), IdentExpr(prop)) -> jg_obj_lookup_by_name ctx name prop
-  | DotExpr(left, IdentExpr(prop)) -> jg_obj_lookup ctx (value_of_expr env ctx left) prop
+  | DotExpr(IdentExpr(name), prop) -> jg_obj_lookup_by_name ctx name prop
+  | DotExpr(left, prop) -> jg_obj_lookup ctx (value_of_expr env ctx left) prop
+  | BracketExpr(left, expr) ->
+    (match value_of_expr env ctx expr with
+     | Tstr prop -> jg_obj_lookup ctx (value_of_expr env ctx left) prop
+     | _ -> Tnull)
   | TestOpExpr(IdentExpr(name), IdentExpr("defined")) -> jg_test_defined ctx name
   | TestOpExpr(IdentExpr(name), IdentExpr("undefined")) -> jg_test_undefined ctx name
-  | TestOpExpr(DotExpr(IdentExpr(name), IdentExpr(prop)), IdentExpr("defined")) -> jg_test_obj_defined ctx name prop
-  | TestOpExpr(DotExpr(IdentExpr(name), IdentExpr(prop)), IdentExpr("undefined")) -> jg_test_obj_undefined ctx name prop
+  | TestOpExpr(DotExpr(IdentExpr(name), prop), IdentExpr("defined")) -> jg_test_obj_defined ctx name prop
+  | TestOpExpr(DotExpr(IdentExpr(name), prop), IdentExpr("undefined")) -> jg_test_obj_undefined ctx name prop
+  | TestOpExpr(BracketExpr(IdentExpr(name), expr), IdentExpr("defined")) ->
+    (match value_of_expr env ctx expr with
+     | Tstr prop -> jg_test_obj_defined ctx name prop
+     | _ -> Tbool false)
+  | TestOpExpr(BracketExpr(IdentExpr(name), expr), IdentExpr("undefined")) ->
+    (match value_of_expr env ctx expr with
+     | Tstr prop -> jg_test_obj_undefined ctx name prop
+     | _ -> Tbool true)
   | TestOpExpr(IdentExpr(name), IdentExpr("none")) -> jg_test_none ctx name
   | TestOpExpr(IdentExpr(name), IdentExpr("escaped")) -> jg_test_escaped ctx
   | TestOpExpr(IdentExpr(name), IdentExpr("upper")) -> jg_test_upper (jg_get_value ctx name) []
@@ -76,7 +88,7 @@ let rec value_of_expr env ctx = function
 
 and apply_name_of = function
   | IdentExpr(name) -> name
-  | DotExpr(IdentExpr(name), IdentExpr(prop)) -> spf "%s.%s" name prop
+  | DotExpr(IdentExpr(name), prop) -> spf "%s.%s" name prop
   | ApplyExpr(expr, args) -> apply_name_of expr
   | _ -> "<lambda>"
 

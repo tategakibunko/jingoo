@@ -108,6 +108,7 @@ let dump_expr = function
   | LtEqOpExpr(_,_) -> "LtEqOpExpr"
   | GtEqOpExpr(_,_) -> "GtEqOpExpr"
   | DotExpr(_,_) -> "DotExpr"
+  | BracketExpr(_,_) -> "BracketExpr"
   | ListExpr(_) -> "ListExpr"
   | SetExpr(_) -> "SetExpr"
   | ObjExpr(_) -> "ObjExpr"
