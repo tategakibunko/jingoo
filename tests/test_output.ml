@@ -130,7 +130,13 @@ let test_defined test_ctxt =
   assert_interp ~test_ctxt
     "{% set obj = {age:10, name:'taro'} %}\
      {{ obj['name'] is defined }}"
-    "true"
+    "true";
+
+  assert_interp ~test_ctxt
+    "{% set ids = {Taro: 'taro'} %}\
+     {% set ages = {taro: 10} %}\
+     {{ ages[ids['Taro']] is defined }}"
+    "true";
 ;;
 
 let from_file test_ctxt file_name =

@@ -201,7 +201,7 @@ expr:
 | STRING { pel "string"; LiteralExpr (Tstr $1) }
 | NULL { pel "null"; LiteralExpr Tnull }
 | expr DOT ident { pel "dot_lookup"; DotExpr($1, ident_name($3)) }
-| expr LBRACKET STRING RBRACKET { pel "dot_lookup(dict)"; DotExpr($1, $3) }
+| expr LBRACKET expr RBRACKET { pel "bracket_lookup"; BracketExpr($1, $3) }
 | NOT expr { pel "not expr"; NotOpExpr($2) }
 | MINUS expr %prec UMINUS { pel "negative"; NegativeOpExpr($2) }
 | LBRACKET expr_list RBRACKET { pel "list expr"; ListExpr($2) }
