@@ -6,7 +6,8 @@ bug-reports: "https://github.com/tategakibunko/jingoo/issues"
 dev-repo: "git@github.com:tategakibunko/jingoo.git"
 license: "BSD-3"
 build: [
-  [make]
+  [make] {ocaml-native}
+  [make "byte"] {!ocaml-native}
 ]
 install: [make "install"]
 remove: ["ocamlfind" "remove" "jingoo"]
