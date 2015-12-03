@@ -1,6 +1,9 @@
 all:
 	cd src && make
 
+byte:
+	cd src && make byte
+
 test:
 	cd tests && make run
 
