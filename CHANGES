@@ -4,6 +4,10 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.2.11, 2015-12-03
+===========================
+* If native compiler is not supported, bytecode library is automatically selected by opam(Issues#16, PR#17).
+
 version: 1.2.10, 2015-10-11
 ===========================
 o Allow arbitrary expressions in object lookups(PR#15).
