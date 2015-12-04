@@ -14,9 +14,7 @@ test: $(SRCS)
 clean:
 	rm -f *.o *.cmi *.cmx test *.log *.cache
 
-rebuild:
-	make clean
-	make all
+rebuild: clean all
 
 run: test
 	./test
