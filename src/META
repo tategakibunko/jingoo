@@ -1,5 +1,5 @@
 name="jingoo"
-version = "1.2.11"
+version = "1.2.12"
 description = "ocaml template engine almost compatible with jinja2"
 requires = "unix,dynlink,pcre,batteries"
 requires(mt) = "unix,dynlink,pcre,batteries,threads"
