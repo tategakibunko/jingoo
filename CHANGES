@@ -4,9 +4,9 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
-version: 1.2.12, ???
+version: 1.2.12, 2015-12-05
 ===========================
-* use $(MAKE) instead of hard-coded make(PR#18)
+* Use $(MAKE) instead of hard-coded make(PR#18) to support OSX and BSD via opam.
 
 version: 1.2.11, 2015-12-03
 ===========================
