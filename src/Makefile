@@ -55,15 +55,13 @@ install: all
 uninstall:
 	ocamlfind remove jingoo
 
-reinstall:
-	make uninstall
-	make install
+reinstall: uninstall install
 
 clean:
 	rm -f *.cmi *.cmo *.cmx *.cma *.a *.cmxa *.o *.annot *.byte
 	rm -f jg_lexer.ml jg_parser.ml jg_parser.mli
 	rm -f $(COMPILER)
 
-rebuild:
-	make clean
-	make all
+rebuild: clean all
+
+.PHONY: rebuild clean reinstall uninstall install compiler

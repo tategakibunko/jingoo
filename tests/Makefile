@@ -8,7 +8,6 @@ CMPL:=ocamlfind ocamlopt -g
 
 all: test
 
-.PHONY:test
 test: $(SRCS)
 	$(CMPL) -o $@ -package $(PKGS) -linkpkg -I ../src ../src/jingoo.cmxa $(SRCS)
 
@@ -22,3 +21,4 @@ rebuild:
 run: test
 	./test
 
+.PHONY: run rebuild clean all

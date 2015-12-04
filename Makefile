@@ -1,26 +1,25 @@
 all:
-	cd src && make
+	$(MAKE) -C src
 
 byte:
 	cd src && make byte
 
 test:
-	cd tests && make run
+	$(MAKE) -C tests run
 
-reinstall:
-	cd src && make uninstall && make install
+reinstall: uninstall install
 
 install:
-	cd src && make install
+	$(MAKE) -C src install
 
 uninstall:
-	cd src && make uninstall
+	$(MAKE) -C src uninstall
 
 clean:
-	cd src && make clean
-	cd tests && make clean
+	$(MAKE) -C src clean
+	$(MAKE) -C tests clean
 
 rebuild:
-	cd src && make rebuild
+	$(MAKE) -C src rebuild
 
 .PHONY: all test reinstall install uninstall reinstall clean rebuild
