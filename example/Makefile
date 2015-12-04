@@ -25,6 +25,6 @@ clean:
 	rm -f *.cmi *.cmo *.cmx *.o *.cmxs
 	rm -f $(TARGET)
 
-rebuild:
-	make clean
-	make all
+rebuild: clean all
+
+.PHONY: rebuild clean all
