@@ -2,7 +2,7 @@ all:
 	$(MAKE) -C src
 
 byte:
-	$(MAKE) -C byte
+	$(MAKE) -C src byte
 
 test:
 	$(MAKE) -C tests run
