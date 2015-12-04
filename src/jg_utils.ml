@@ -7,6 +7,8 @@
 *)
 let spf = Printf.sprintf
 
+module UTF8 = CamomileLibrary.UTF8
+
 let (@@) f g = f g
 
 let ($) f g x = f (g x)
@@ -15,12 +17,12 @@ let (+>) f g = g f
 
 let (>>=) x f = f x
 
-let strlen = BatUTF8.length
-let strcmp = BatUTF8.compare
+let strlen = UTF8.length
+let strcmp = UTF8.compare
 
 (** application friendly substring *)
 let rec substring base count str =
-  let len = BatUTF8.length str in
+  let len = strlen str in
   if base >= len || count = 0 then
     ""
   else if base = 0 && count >= len then
@@ -28,12 +30,12 @@ let rec substring base count str =
   else if base < 0 then
     substring (len + base) count str
   else if base + count >= len then
-    let lp = BatUTF8.nth str base in
-    let rp = BatUTF8.next str (BatUTF8.last str) in
+    let lp = UTF8.nth str base in
+    let rp = UTF8.next str (UTF8.last str) in
     String.sub str lp (rp - lp)
   else
-    let lp = BatUTF8.nth str base in
-    let rp = BatUTF8.nth str (base + count) in
+    let lp = UTF8.nth str base in
+    let rp = UTF8.nth str (base + count) in
     String.sub str lp (rp - lp)
 
 let escape_html str =
