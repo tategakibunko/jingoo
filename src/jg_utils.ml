@@ -15,12 +15,34 @@ let (+>) f g = g f
 
 let (>>=) x f = f x
 
-let strlen = BatUTF8.length
-let strcmp = BatUTF8.compare
+module UTF8 = struct
+  let string_to_list s =
+    Uutf.String.fold_utf_8 (fun acc _ c -> c :: acc) [] s
+    |> List.rev
+
+  let length s = Uutf.String.fold_utf_8 (fun acc _ _ -> acc + 1) 0 s
+
+  let compare = String.compare
+
+  let sub s off len =
+    let buf = Buffer.create 0 in
+    let encoder = Uutf.encoder `UTF_8 (`Buffer buf) in
+    let uchar_array = string_to_list s |> Array.of_list in
+    let sub_array = Array.sub uchar_array off len in
+    Array.iter (function
+        | `Malformed s -> Buffer.add_string buf s
+        | `Uchar _ as u -> ignore @@ Uutf.encode encoder u
+      ) sub_array;
+    ignore @@ Uutf.encode encoder `End;
+    Buffer.contents buf
+end
+
+let strlen = UTF8.length
+let strcmp = UTF8.compare
 
 (** application friendly substring *)
 let rec substring base count str =
-  let len = BatUTF8.length str in
+  let len = UTF8.length str in
   if base >= len || count = 0 then
     ""
   else if base = 0 && count >= len then
@@ -28,13 +50,9 @@ let rec substring base count str =
   else if base < 0 then
     substring (len + base) count str
   else if base + count >= len then
-    let lp = BatUTF8.nth str base in
-    let rp = BatUTF8.next str (BatUTF8.last str) in
-    String.sub str lp (rp - lp)
+    UTF8.sub str base (len - base)
   else
-    let lp = BatUTF8.nth str base in
-    let rp = BatUTF8.nth str (base + count) in
-    String.sub str lp (rp - lp)
+    UTF8.sub str base count
 
 let escape_html str =
   let str = Pcre.qreplace ~rex:(Pcre.regexp "&") ~templ:"&amp;" str in
