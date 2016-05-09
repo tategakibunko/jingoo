@@ -4,6 +4,10 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.2.13, 2016-05-10
+===========================
+! [PR#20] Replace batteries to uutf.
+
 version: 1.2.12, 2015-12-05
 ===========================
 * Use $(MAKE) instead of hard-coded make(PR#18) to support OSX and BSD via opam.
