@@ -5,7 +5,7 @@ Dependencies
 1. ocaml(>=3.12)
 2. findlib
 3. pcre(pcre-ocaml)
-4. batteries(>=2.2)
+4. uutf(>=0.9.4)
 5. ounit (>=2.0.0, for test)
 
 Important notice
