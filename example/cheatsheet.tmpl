@@ -1,5 +1,17 @@
 {% extends "base.tmpl" %}
 
+{% block header %}
+this is header!
+{% endblock %}
+
+{% block nav %}
+this is nav!
+{% endblock %}
+
+{% block footer %}
+this is footer!
+{% endblock %}
+
 {% block main %}
 
 include test
@@ -317,9 +329,6 @@ aaaa
 {%- endfor -%}
 bbbb
 
-{# end of 'main' block #}
-{% endblock %}
-
 dot expr many
 =============
 
@@ -334,3 +343,6 @@ include by symbol
 rawinclude by symbol
 ====================
 {% rawinclude tmpl_file %}
+
+{# end of 'main' block #}
+{% endblock %}
