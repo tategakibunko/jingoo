@@ -278,8 +278,8 @@ autoescape = {{jg_is_autoescape}}
 here is extended functions test(advanced.ml)
 =============================================
 
-if to_gmail and to_mail is not defined in filters field of environment, 
-this fieled will be empty.
+if 'to_gmail' and 'to_mail' is not defined in 'filters' field of environment, 
+this field will be empty.
 
 to_gmail:{{ "hoge"|to_gmail }}
 to_mail:{{"hoge"|to_mail(domain="exicite.com")|to_mail(domain="yahoo.com")|to_mail}}
@@ -287,7 +287,7 @@ to_mail:{{"hoge"|to_mail(domain="exicite.com")|to_mail(domain="yahoo.com")|to_ma
 here is extension functions test(advanced.ml)
 ==============================================
 
-if my_ext.cmxs is not defined in extensions field of environment,
+if 'my_ext.cmxs' is not defined in 'extensions' field of environment,
 this field will be empty.
 
 hash.to_md5("hoge") = {{ hash.to_md5("hoge") }}
