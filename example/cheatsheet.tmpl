@@ -1,17 +1,22 @@
+{# you can extend base structur of template like this #}
 {% extends "base.tmpl" %}
 
+{# header content #}
 {% block header %}
 <h1>this is header!</h1>
 {% endblock %}
 
+{# navigation content #}
 {% block nav %}
 this is nav!
 {% endblock %}
 
+{# footer content #}
 {% block footer %}
 this is footer!
 {% endblock %}
 
+{# main content #}
 {% block main %}
 
 include test
