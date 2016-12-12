@@ -4,6 +4,10 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.2.14
+===========================
+* [PR#21] Install .cmx files.
+
 version: 1.2.13, 2016-05-10
 ===========================
 ! [PR#20] Replace batteries to uutf.
