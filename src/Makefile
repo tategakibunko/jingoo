@@ -50,7 +50,7 @@ compiler: jingoo.cmxa jg_cmdline.ml
 	$(OCAMLOPT) -o $@ -linkpkg -package $(PKG) jingoo.cmxa jg_cmdline.ml
 
 install: all
-	ocamlfind install jingoo *.a *.cma *.cmi jingoo_mt.cmo jingoo_mt.o jg_types.mli jg_template.mli jg_stub.mli META -optional *.cmxa jingoo_mt.cmx
+	ocamlfind install jingoo *.a *.cma *.cmi *.cmx jingoo_mt.cmo jingoo_mt.o jg_types.mli jg_template.mli jg_stub.mli META -optional *.cmxa jingoo_mt.cmx
 
 uninstall:
 	ocamlfind remove jingoo
