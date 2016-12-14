@@ -264,8 +264,8 @@ let jg_iter ctx iterator f iterable =
       | Tlist lst -> lst
       | Tset lst -> lst
       | Tobj lst -> List.map (fun (n, v) -> Tset [ box_string n; v ]) lst
-      | Thash hash -> Hashtbl.fold (fun k v a -> (k,v)::a) hash []
-        |> List.map (fun (n, v) -> Tset [ box_string n; v ])
+      | Thash hash -> List.map (fun (n, v) -> Tset [ box_string n; v ]) @@
+          Hashtbl.fold (fun k v a -> (k,v)::a) hash []
       | _ -> failwith "jg_iter:not iterable object"
   in
   let len = List.length lst in
