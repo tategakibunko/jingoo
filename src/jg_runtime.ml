@@ -263,8 +263,11 @@ let jg_iter ctx iterator f iterable =
     match iterable with
       | Tlist lst -> lst
       | Tset lst -> lst
-      | Tobj lst -> List.map (fun v -> Tset [ box_string @@ fst v; snd v ]) lst
-      | _ -> failwith "jg_iter:not iterable object" in
+      | Tobj lst -> List.map (fun (n, v) -> Tset [ box_string n; v ]) lst
+      | Thash hash -> Hashtbl.fold (fun k v a -> (k,v)::a) hash []
+        |> List.map (fun (n, v) -> Tset [ box_string n; v ])
+      | _ -> failwith "jg_iter:not iterable object"
+  in
   let len = List.length lst in
   let rec iter ctx i = function
     | [] -> ctx
