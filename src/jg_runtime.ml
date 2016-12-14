@@ -250,7 +250,7 @@ let jg_obj_lookup ctx obj prop_name =
   match obj with
     | Tobj(alist) -> (try List.assoc prop_name alist with Not_found -> Tnull)
     | Thash(hash) -> (try Hashtbl.find hash prop_name with Not_found -> Tnull)
-    | _ -> failwith "jg_obj_lookup:not object"
+    | _ -> failwith ("jg_obj_lookup:not object when looking for '"  ^ prop_name ^ "'")
 
 let jg_obj_lookup_by_name ctx obj_name prop_name =
   match jg_get_value ctx obj_name with
@@ -263,6 +263,7 @@ let jg_iter ctx iterator f iterable =
     match iterable with
       | Tlist lst -> lst
       | Tset lst -> lst
+      | Tobj lst -> List.map (fun v -> Tset [ box_string @@ fst v; snd v ]) lst
       | _ -> failwith "jg_iter:not iterable object" in
   let len = List.length lst in
   let rec iter ctx i = function
