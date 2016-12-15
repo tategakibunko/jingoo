@@ -2,6 +2,7 @@ dist
 .gitignore
 *.sh
 *.cmx
+*.cmxs
 *.cmo
 *.cmi
 *.o
