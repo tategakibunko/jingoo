@@ -1,5 +1,11 @@
 open Jg_types
 
+let build_ht () =
+  let ht = Hashtbl.create 10 in
+  Hashtbl.add ht "a" (Tint 1);
+  Hashtbl.add ht "b" (Tint 2);
+  Thash ht
+
 let models = [
   ("msg", Tstr "hello world");
   ("list1", Tlist [Tint 1]);
@@ -15,5 +21,6 @@ let models = [
     Tobj [("name", Tstr "bob"); ("age", Tint 20)];
     Tobj [("name", Tstr "ken"); ("age", Tint 25)];
   ]);
+  ("hash", build_ht ());
 ] 
 ;;

@@ -87,6 +87,18 @@ for test
   {% endfor %}
 </ul>
 
+<ul>
+  {% for name, value in obj %}
+  <li>{{ name }} - {{ value }}</li>
+  {% endfor %}
+</ul>
+
+<ul>
+  {% for name, value in hash %}
+  <li>{{ name }} - {{ value }}</li>
+  {% endfor %}
+</ul>
+
 obj test
 =========
 
@@ -295,12 +307,12 @@ here is extension functions test(advanced.ml)
 if 'my_ext.cmxs' is not defined in 'extensions' field of environment,
 this field will be empty.
 
-hash.to_md5("hoge") = {{ hash.to_md5("hoge") }}
-hash.to_md5("hoge") = {{ "hoge"|hash.to_md5 }}
-hash.to_md5("hoge") = {{ "hoge"|hash.to_md5() }}
+my_ext.to_md5("hoge") = {{ my_ext.to_md5("hoge") }}
+my_ext.to_md5("hoge") = {{ "hoge"|my_ext.to_md5 }}
+my_ext.to_md5("hoge") = {{ "hoge"|my_ext.to_md5() }}
 
-hash.to_md5("hoge", seed="aaa") = {{ hash.to_md5("hoge", seed="aaa") }}
-hash.to_md5("hoge", seed="aaa") = {{ "hoge"|hash.to_md5(seed="aaa") }}
+my_ext.to_md5("hoge", seed="aaa") = {{ my_ext.to_md5("hoge", seed="aaa") }}
+my_ext.to_md5("hoge", seed="aaa") = {{ "hoge"|my_ext.to_md5(seed="aaa") }}
 
 eval
 ====
