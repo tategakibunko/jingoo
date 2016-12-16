@@ -6,7 +6,9 @@
 
 version: 1.2.14, 2016-12-16
 ===========================
+o Update cheatsheet.tmpl(Add more '{% block %} ~ {% endblock %}' example code).
 ! Use labeled arguments for Jg_stub.add_func, Jg_stub.get_func.
+* Remove unused func and types.
 * [PR#21] Install .cmx files.
 * [PR#22] Add support for iterating over Tobj and Thash data.
 
