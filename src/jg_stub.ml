@@ -6,9 +6,8 @@
   License: see LICENSE
 *)
 open Jg_utils
-open Jg_types
 
-let func_table : (string, tvalue) Hashtbl.t = Hashtbl.create 20
+let func_table : (string, Jg_types.tvalue) Hashtbl.t = Hashtbl.create 20
 
 let func_path ~namespace ~func_name =
   spf "%s.%s" namespace func_name
