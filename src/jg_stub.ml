@@ -11,24 +11,15 @@ open Jg_types
 type tmpl_func = (?env:environment -> ?models:(string * tvalue) list -> string -> string)
 
 let func_table : (string, tvalue) Hashtbl.t = Hashtbl.create 20
-let tmpl_func_table : (string, tmpl_func) Hashtbl.t = Hashtbl.create 20
 
-let func_name namespace name =
-  spf "%s.%s" namespace name
+let func_path ~namespace ~func_name =
+  spf "%s.%s" namespace func_name
 ;;
 
-let add_func namespace name value =
-  Hashtbl.add func_table (func_name namespace name) value
+let add_func ~namespace ~func_name func_value =
+  Hashtbl.add func_table (func_path ~namespace ~func_name) func_value
 ;;
 
-let get_func namespace name =
-  Hashtbl.find func_table (func_name namespace name)
-;;
-
-let add_tmpl_func path value =
-  Hashtbl.add tmpl_func_table path value
-;;
-
-let get_tmpl_func path =
-  Hashtbl.find tmpl_func_table path
+let get_func ~namespace ~func_name =
+  Hashtbl.find func_table (func_path ~namespace ~func_name)
 ;;

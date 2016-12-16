@@ -10,4 +10,4 @@ let to_md5 ?(defaults=[
     | _ -> Tnull
 
 let () =
-  Jg_stub.add_func "my_ext" "to_md5" (Jg_runtime.func_arg1 to_md5)
+  Jg_stub.add_func ~namespace:"my_ext" ~func_name:"to_md5" (Jg_runtime.func_arg1 to_md5)

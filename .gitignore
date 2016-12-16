@@ -18,5 +18,6 @@ example/simple
 example/bench
 example/advanced
 example/cheatsheet.ml
+example/tmp.tmpl
 tests/*.cache
 tests/*.log
