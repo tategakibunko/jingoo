@@ -4,8 +4,9 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
-version: 1.2.14
+version: 1.2.14, 2016-12-16
 ===========================
+! Use labeled arguments for Jg_stub.add_func, Jg_stub.get_func.
 * [PR#21] Install .cmx files.
 * [PR#22] Add support for iterating over Tobj and Thash data.
 
