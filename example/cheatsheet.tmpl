@@ -99,6 +99,11 @@ for test
   {% endfor %}
 </ul>
 
+{# obj2.child2 is not exists, but just ignored #}
+{% for (n, v) in obj2.child2 %}
+  <p>{{ n }} - {{ v }}</p>
+{% endfor %}
+
 obj test
 =========
 

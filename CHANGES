@@ -4,6 +4,10 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.2.15
+===========================
+* [ISSUE#23] Treat invalid iterable object as empty list.
+
 version: 1.2.14, 2016-12-16
 ===========================
 o Update cheatsheet.tmpl(Add more '{% block %} ~ {% endblock %}' example code).
