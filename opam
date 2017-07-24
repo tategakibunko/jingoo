@@ -1,6 +1,6 @@
 opam-version: "1.2"
-maintainer: "Masaki WATANABE <lambda.watanabe[at]gmail.com>"
-authors: "Masaki WATANABE <lambda.watanabe[at]gmail.com>"
+maintainer: "Masaki WATANABE <lambda.watanabe@gmail.com>"
+authors: "Masaki WATANABE <lambda.watanabe@gmail.com>"
 homepage: "https://github.com/tategakibunko/jingoo"
 bug-reports: "https://github.com/tategakibunko/jingoo/issues"
 dev-repo: "git@github.com:tategakibunko/jingoo.git"
