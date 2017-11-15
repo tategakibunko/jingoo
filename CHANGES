@@ -4,6 +4,10 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.2.16, 2017-11-15
+===========================
+! [PR#24] Drop support for 3.x because -safe-string(compiler option) is used by default since OCaml>=4.06.0.
+
 version: 1.2.15, 2017-07-24
 ===========================
 * [ISSUE#23] Treat invalid iterable object as empty list.
