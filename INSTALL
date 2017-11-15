@@ -2,7 +2,7 @@
 Dependencies
 ============
 
-1. ocaml(>=3.12)
+1. ocaml(>=4.02.0)
 2. findlib
 3. pcre(pcre-ocaml)
 4. uutf(>=0.9.4)
@@ -18,7 +18,7 @@ Installing
 
 (1) Install in manual way.
 
- make
+make
 sudo make install
 
 (2) Install by opam.
