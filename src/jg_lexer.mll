@@ -206,8 +206,8 @@ rule main = parse
   | "!=" as s { token_or_str (s, NEQ) main lexbuf }
   | "<=" as s { token_or_str (s, LT_EQ) main lexbuf }
   | ">=" as s { token_or_str (s, GT_EQ) main lexbuf }
-  | "&&" as s { token_or_str (s, AND) main lexbuf }
-  | "||" as s { token_or_str (s, OR) main lexbuf }
+  | ("&&" | "and") as s { token_or_str (s, AND) main lexbuf }
+  | ("||" | "or") as s { token_or_str (s, OR) main lexbuf }
   | "**" as s { token_or_str (s, POWER) main lexbuf }
   | ","  as c { token_or_char (c, COMMA) main lexbuf }
   | "=" as c { token_or_char (c, EQ) main lexbuf }
