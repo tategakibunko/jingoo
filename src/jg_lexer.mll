@@ -41,8 +41,9 @@
 
   let update_context mode terminator =
     let token_required =
-      match terminator with Some ("%}" | "-%}") -> true | _ -> false
-    in
+      match terminator with
+        Some ("%}" | "-%}") -> true
+      | _ -> false in
     ctx.mode <- mode;
     ctx.terminator <- terminator;
     ctx.token_required <- token_required
@@ -238,8 +239,9 @@ rule main = parse
   | ":" as c { token_or_char (c, COLON) main lexbuf }
   | "|" as c { token_or_char (c, VLINE) main lexbuf }
   | ident_first_char ident_char* as str {
-    if ctx.token_required
-    then failwith @@ spf "syntax error: expected token, got '%s'" str ;
+    if ctx.token_required then
+      failwith @@ spf "syntax error: expected token, got '%s'" str
+    ;
     match ctx.mode with
       | `Html ->
 	(* print_endline @@ spf "html ident:%s" str; *)
