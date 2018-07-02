@@ -14,12 +14,14 @@
     mutable mode : lexer_mode;
     mutable terminator : string option;
     mutable eof : bool;
+    mutable token_required : bool ;
   }
 
   let ctx = {
     mode = `Html;
     terminator = None;
-    eof = false
+    eof = false;
+    token_required = false
   }
 
   let (@@) f g = f g
@@ -38,13 +40,19 @@
     lexbuf.Lexing.lex_curr_p <- pos
 
   let update_context mode terminator =
+    let token_required =
+      match terminator with
+        Some ("%}" | "-%}") -> true
+      | _ -> false in
     ctx.mode <- mode;
-    ctx.terminator <- terminator
+    ctx.terminator <- terminator;
+    ctx.token_required <- token_required
 
   let reset_context () =
     ctx.eof <- false;
     ctx.mode <- `Html;
     ctx.terminator <- None;
+    ctx.token_required <- false;
     Buffer.reset buf
 
   let get_buf () =
@@ -62,6 +70,7 @@
     match ctx.mode with
       | `Logic ->
 	(* print_endline @@ spf "logical token:%s" str; *)
+        ctx.token_required <- false ;
 	token
       | `Html ->
 	add_str str;
@@ -71,6 +80,7 @@
     match ctx.mode with
       | `Logic ->
 	(* print_endline @@ spf "logical token:%c" chr; *)
+        ctx.token_required <- false ;
 	token
       | `Html ->
 	add_char chr;
@@ -229,6 +239,9 @@ rule main = parse
   | ":" as c { token_or_char (c, COLON) main lexbuf }
   | "|" as c { token_or_char (c, VLINE) main lexbuf }
   | ident_first_char ident_char* as str {
+    if ctx.token_required then
+      failwith @@ spf "syntax error: expected token, got '%s'" str
+    ;
     match ctx.mode with
       | `Html ->
 	(* print_endline @@ spf "html ident:%s" str; *)
