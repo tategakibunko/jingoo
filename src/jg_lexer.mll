@@ -171,7 +171,7 @@ rule main = parse
   }
   | "if" as s { token_or_str (s, IF) main lexbuf }
   | "else" as s { token_or_str (s, ELSE) main lexbuf }
-  | "elseif" as s { token_or_str (s, ELSEIF) main lexbuf }
+  | ("elseif" | "elif") as s { token_or_str (s, ELSEIF) main lexbuf }
   | "endif" as s { token_or_str (s, ENDIF) main lexbuf }
   | "for" as s { token_or_str (s, FOR) main lexbuf }
   | "endfor" as s { token_or_str (s, ENDFOR) main lexbuf }
