@@ -4,7 +4,7 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
-version: 1.2.17
+version: 1.2.17, 2018-07-03
 ===========================
 o [PR#25] Add keywords 'and', 'or', 'elif'.
 * [PR#26] Make the lexer reject input when a keyword is expected but not found.
