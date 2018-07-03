@@ -95,7 +95,7 @@ and apply_name_of = function
 and ident_names_of lst =
   List.filter (function
     | IdentExpr(_) -> true
-    | _ -> false) lst +>
+    | _ -> false) lst |>
     List.map (function
       | IdentExpr(name) -> name
       | _ -> failwith "ident_names_of"
@@ -108,11 +108,11 @@ and alias_names_of lst =
     | _ -> failwith "invalid argument:alias_names_of") lst
 
 and nargs_of env ctx args =
-  List.filter (function KeywordExpr(_,_) -> false | _ -> true) args +>
+  List.filter (function KeywordExpr(_,_) -> false | _ -> true) args |>
     List.map (value_of_expr env ctx)
 
 and kwargs_of env ctx args =
-  List.filter (function KeywordExpr(_,_) -> true | _ -> false) args +>
+  List.filter (function KeywordExpr(_,_) -> true | _ -> false) args |>
     List.map (function
       | KeywordExpr(IdentExpr(name), expr) -> (name, value_of_expr env ctx expr)
       | _ -> failwith "invalid keyword args found")
@@ -311,7 +311,7 @@ and from_string ?(env=std_env) ?ctx ?(models=[]) ?file_path source =
     let () = lock_unlock.lock () in
     let () = reset_interp () in
     let ctx = match ctx with Some ctx -> ctx | _ -> init_context ~env ~models () in
-    let codes = statements_from_string ?file_path ctx source +> unfold_extends env ctx +> align_block in
+    let codes = statements_from_string ?file_path ctx source |> unfold_extends env ctx |> align_block in
     let ctx = import_macro env ctx codes in
     let _ = List.fold_left (eval_statement env) ctx codes in
     reset_interp ();

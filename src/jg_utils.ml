@@ -7,18 +7,12 @@
 *)
 let spf = Printf.sprintf
 
-let (@@) f g = f g
-
 let ($) f g x = f (g x)
-
-let (+>) f g = g f
-
-let (>>=) x f = f x
 
 module UTF8 = struct
   let string_to_list s =
     Uutf.String.fold_utf_8 (fun acc _ c -> c :: acc) [] s
-    +> List.rev
+    |> List.rev
 
   let length s = Uutf.String.fold_utf_8 (fun acc _ _ -> acc + 1) 0 s
 
@@ -27,7 +21,7 @@ module UTF8 = struct
   let sub s off len =
     let buf = Buffer.create 0 in
     let encoder = Uutf.encoder `UTF_8 (`Buffer buf) in
-    let uchar_array = string_to_list s +> Array.of_list in
+    let uchar_array = string_to_list s |> Array.of_list in
     let sub_array = Array.sub uchar_array off len in
     Array.iter (function
         | `Malformed s -> Buffer.add_string buf s

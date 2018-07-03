@@ -553,8 +553,8 @@ let jg_join join_str lst kwargs =
 let jg_split pat text kwargs =
   match pat, text with
     | Tstr pat, Tstr text ->
-      let lst = 
-	Pcre.split ~rex:(Pcre.regexp pat) text +>
+      let lst =
+	Pcre.split ~rex:(Pcre.regexp pat) text |>
 	  List.map (fun str -> Tstr str) in
       Tlist lst
 
@@ -590,7 +590,7 @@ let jg_length x kwargs =
 let jg_md5 x kwargs =
   match x with
     | Tstr str ->
-      Tstr(str +> String.lowercase +> Digest.string +> Digest.to_hex)
+      Tstr(str |> String.lowercase |> Digest.string |> Digest.to_hex)
     | _ -> failwith "invalid arg: not string(jg_md5)"
 
 let jg_abs value kwargs =
@@ -729,15 +729,15 @@ let jg_slice ?(defaults=[
 
 let jg_sublist base count lst kwargs =
   match base, count, lst with
-    | Tint base, Tint count, Tlist lst -> Tlist (after base lst +> take count)
+    | Tint base, Tint count, Tlist lst -> Tlist (after base lst |> take count)
     | Tint base, Tnull, Tlist lst -> Tlist (after base lst)
     | _ -> failwith "lnvalid args:jg_sublist"
 
 let jg_wordcount str kwargs =
   match str with
     | Tstr str ->
-      Pcre.split ~rex:(Pcre.regexp "[\\s\\t　]+" ~flags:[`UTF8]) str +>
-	List.length +> fun count -> Tint count
+      Pcre.split ~rex:(Pcre.regexp "[\\s\\t　]+" ~flags:[`UTF8]) str |>
+	List.length |> fun count -> Tint count
     | _ -> failwith "invalid arg: not string(jg_word_count)"
 
 let jg_round how value kwargs =
@@ -779,14 +779,14 @@ let jg_title text kwargs =
     | Tstr text ->
       (match Pcre.split ~rex:(Pcre.regexp "[\\s\\t　]+" ~flags:[`UTF8]) text with
 	| head :: rest ->
-	  ((String.capitalize head) :: rest) +> String.concat " " +> fun text' -> Tstr text'
+	  ((String.capitalize head) :: rest) |> String.concat " " |> fun text' -> Tstr text'
 	| _ -> Tstr text)
     | _ -> failwith "invalid arg: not string(jg_title)"
 
 let jg_striptags text kwargs =
   match text with
     | Tstr text ->
-      let reg = Pcre.regexp "<\\/?[^>]+>" ~flags:[`UTF8] in
+      let reg = Pcre.regexp "<\\/?[^>]|>" ~flags:[`UTF8] in
       let text' = Pcre.replace ~rex:reg ~templ:"" text in
       Tstr text'
     | _ -> failwith "invalid arg: not string(jg_striptags)"
@@ -795,18 +795,18 @@ let jg_sort lst kwargs =
   match lst with
     | Tlist lst ->
       (match lst with
-	| (Tstr s) :: rest -> List.map unbox_string lst +> List.sort strcmp +> List.map box_string +> box_list
-	| (Tint i) :: rest -> List.map unbox_int lst +> List.sort (-) +> List.map box_int +> box_list
-	| (Tfloat f) :: rest -> List.map unbox_float lst +> List.sort (fun a b ->
-	  if a > b then 1 else if a = b then 0 else -1) +> List.map box_float +> box_list
+	| (Tstr s) :: rest -> List.map unbox_string lst |> List.sort strcmp |> List.map box_string |> box_list
+	| (Tint i) :: rest -> List.map unbox_int lst |> List.sort (-) |> List.map box_int |> box_list
+	| (Tfloat f) :: rest -> List.map unbox_float lst |> List.sort (fun a b ->
+	  if a > b then 1 else if a = b then 0 else -1) |> List.map box_float |> box_list
 	| _ -> failwith "invalid_arg:can't sort(jg_sort)")
     | _ -> failwith "invalid_arg:can't sort(jg_sort)"
 
 let jg_xmlattr obj kwargs =
   match obj with
     | Tobj alist ->
-      List.map (fun (name, value) -> spf "%s='%s'" name (string_of_tvalue value)) alist +>
-	String.concat " " +> box_string
+      List.map (fun (name, value) -> spf "%s='%s'" name (string_of_tvalue value)) alist |>
+	String.concat " " |> box_string
     | _ -> failwith "invalid_arg:not obj(jg_xmlattr)"
 
 let jg_wordwrap width break_long_words text kwargs =
@@ -979,8 +979,8 @@ let jg_load_extensions extensions =
 
 let jg_post_process text =
   text
-  +> Pcre.qreplace ~rex:(Pcre.regexp "[\\s]*{%<%}") ~templ:""
-  +> Pcre.qreplace ~rex:(Pcre.regexp "{%>%}[\\s]*") ~templ:""
+  |> Pcre.qreplace ~rex:(Pcre.regexp "[\\s]*{%<%}") ~templ:""
+  |> Pcre.qreplace ~rex:(Pcre.regexp "{%>%}[\\s]*") ~templ:""
 
 let jg_init_context ?(models=[]) env =
   let model_frame = Hashtbl.create (2 * List.length models) in
