@@ -366,5 +366,37 @@ rawinclude by symbol
 ====================
 {% rawinclude tmpl_file %}
 
+[PR#25] elseif, elif
+====================
+{% set hoge = "ok" %}
+{% if hoge == "ok1" %}
+value of hoge == "ok1"
+{% elseif hoge == "ok2" %}
+value of hoge == "ok2"
+{% elif hoge == "ok3" %}
+value of hoge == "ok3"
+{% else %}
+value of hoge is not "ok1" and "ok2" and "ok3"!
+{% endif %}
+
+[PR#25] ||, &&, or, and
+========================
+{% set hage = "ng" %}
+{% if hoge == "ok" || hage == "ok" %}
+hoge or hage == "ok"
+{% endif %}
+
+{% if hoge == "ok" or hage == "ok" %}
+hoge or hage == "ok"
+{% endif %}
+
+{% if hoge == "ok" && hage == "ng" %}
+hoge == "ok" and hage == "ng"
+{% endif %}
+
+{% if hoge == "ok" and hage == "ng" %}
+hoge == "ok" and hage == "ng"
+{% endif %}
+
 {# end of 'main' block #}
 {% endblock %}

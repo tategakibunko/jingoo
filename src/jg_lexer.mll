@@ -181,7 +181,7 @@ rule main = parse
   }
   | "if" as s { token_or_str (s, IF) main lexbuf }
   | "else" as s { token_or_str (s, ELSE) main lexbuf }
-  | "elseif" as s { token_or_str (s, ELSEIF) main lexbuf }
+  | ("elseif" | "elif") as s { token_or_str (s, ELSEIF) main lexbuf }
   | "endif" as s { token_or_str (s, ENDIF) main lexbuf }
   | "for" as s { token_or_str (s, FOR) main lexbuf }
   | "endfor" as s { token_or_str (s, ENDFOR) main lexbuf }
@@ -216,8 +216,8 @@ rule main = parse
   | "!=" as s { token_or_str (s, NEQ) main lexbuf }
   | "<=" as s { token_or_str (s, LT_EQ) main lexbuf }
   | ">=" as s { token_or_str (s, GT_EQ) main lexbuf }
-  | "&&" as s { token_or_str (s, AND) main lexbuf }
-  | "||" as s { token_or_str (s, OR) main lexbuf }
+  | ("&&" | "and") as s { token_or_str (s, AND) main lexbuf }
+  | ("||" | "or") as s { token_or_str (s, OR) main lexbuf }
   | "**" as s { token_or_str (s, POWER) main lexbuf }
   | ","  as c { token_or_char (c, COMMA) main lexbuf }
   | "=" as c { token_or_char (c, EQ) main lexbuf }
