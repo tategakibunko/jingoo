@@ -17,6 +17,7 @@ let box_set lst = Tset lst
 let box_obj alist = Tobj alist
 let box_hash hash = Thash hash
 let box_array a = Tarray a
+let box_pat fn = Tpat fn
 
 let unbox_int = function
   | Tint x -> x
@@ -54,6 +55,10 @@ let unbox_hash = function
   | Thash hash -> hash
   | _ -> failwith "invalid arg:not hahs(unbox_hash)"
 
+let unbox_pat = function
+  | Tpat pat -> pat
+  | _ -> failwith "invalid arg:not hahs(unbox_pat)"
+
 let merge_defaults defaults kwargs =
   List.map (fun (name, value) ->
     try (name, List.assoc name kwargs) with Not_found -> (name, value)
@@ -76,6 +81,7 @@ let string_of_tvalue = function
   | Tbool x -> string_of_bool x
   | Tobj x -> "<obj>"
   | Thash x -> "<hash>"
+  | Tpat _ -> "<pat>"
   | Tlist x -> "<list>"
   | Tset x -> "<set>"
   | Tfun _ -> "<fun>"
@@ -90,6 +96,7 @@ let type_string_of_tvalue = function
   | Tobj x -> "obj"
   | Thash x -> "hash"
   | Tlist x -> "list"
+  | Tpat x -> "pat"
   | Tset x -> "set"
   | Tfun _ -> "function"
   | Tnull -> "null"
@@ -151,6 +158,10 @@ let jg_objp = function
 
 let jg_hashp = function
   | Thash _ -> Tbool true
+  | _ -> Tbool false
+
+let jg_patp = function
+  | Tpat _ -> Tbool true
   | _ -> Tbool false
 
 let jg_funp = function
@@ -261,12 +272,12 @@ let jg_obj_lookup ctx obj prop_name =
   match obj with
     | Tobj(alist) -> (try List.assoc prop_name alist with Not_found -> Tnull)
     | Thash(hash) -> (try Hashtbl.find hash prop_name with Not_found -> Tnull)
+    | Tpat(fn) -> (try fn prop_name with Not_found -> Tnull)
     | _ -> failwith ("jg_obj_lookup:not object when looking for '"  ^ prop_name ^ "'")
 
 let jg_obj_lookup_by_name ctx obj_name prop_name =
   match jg_get_value ctx obj_name with
-    | Tobj(alist) as obj -> jg_obj_lookup ctx obj prop_name
-    | Thash(hash) as hobj -> jg_obj_lookup ctx hobj prop_name
+    | (Tobj _ | Thash _ | Tpat _) as obj -> jg_obj_lookup ctx obj prop_name
     | _ -> (try Jg_stub.get_func obj_name prop_name with Not_found -> Tnull)
 
 let jg_iter_mk_ctx ctx iterator itm len i =
@@ -278,16 +289,17 @@ let jg_iter_mk_ctx ctx iterator itm len i =
   let ctx = jg_bind_names ctx iterator itm in
   let ctx =
     jg_set_value ctx "loop" @@
-    Tobj [
-      ("index0", Tint i);
-      ("index", Tint (i+1));
-      ("revindex0", Tint (len - i - 1));
-      ("revindex", Tint (len - i));
-      ("first", Tbool (i=0));
-      ("last", Tbool (i=len-1));
-      ("length", Tint len);
-      ("cycle", cycle);
-    ] in
+    Tpat (function
+        | "index0" -> Tint i
+        | "index" -> Tint (i+1)
+        | "revindex0" -> Tint (len - i - 1)
+        | "revindex" -> Tint (len - i)
+        | "first" -> Tbool (i=0)
+        | "last" -> Tbool (i=len-1)
+        | "length" -> Tint len
+        | "cycle" -> cycle
+        | _ -> raise Not_found
+      ) in
   ctx
 
 let jg_iter_hash ctx iterator f h =
@@ -337,14 +349,15 @@ let jg_eval_macro ?(caller=false) env ctx macro_name args kwargs macro f =
       let ctx = jg_push_frame ctx in
       let ctx = jg_set_value ctx "varargs" @@ Tlist (Jg_utils.after arg_names_len args) in
       let ctx = jg_set_value ctx "kwargs" @@ Tobj kwargs in
-      let ctx = jg_set_value ctx macro_name @@ Tobj [
-	("name", Tstr macro_name);
-	("arguments", Tlist (List.map box_string arg_names));
-	("defaults", Tobj defaults);
-	("catch_kwargs", Tbool (kwargs <> []));
-	("catch_vargs", Tbool (args_len > arg_names_len));
-	("caller", Tbool caller);
-      ] in
+      let ctx = jg_set_value ctx macro_name @@ Tpat (function
+          | "name" -> Tstr macro_name
+          | "arguments" -> Tlist (List.map box_string arg_names)
+          | "defaults" -> Tobj defaults
+          | "catch_kwargs" -> Tbool (kwargs <> [])
+          | "catch_vargs" -> Tbool (args_len > arg_names_len)
+          | "caller" -> Tbool caller
+          | _ -> raise Not_found
+        ) in
       let ctx = List.fold_left (fun ctx (name, value) ->
 	jg_set_value ctx name value
       ) ctx @@ List.combine arg_names (Jg_utils.take arg_names_len args ~pad:Tnull) in
@@ -400,6 +413,7 @@ let jg_is_true = function
   | Tset x -> List.length x > 0
   | Tobj x -> List.length x > 0
   | Thash x -> Hashtbl.length x > 0
+  | Tpat _ -> failwith "jg_is_true:type error(pattern)"
   | Tnull -> false
   | Tfun(f) -> failwith "jg_is_true:type error(function)"
   | Tarray a -> Array.length a > 0
@@ -669,6 +683,10 @@ let jg_attr obj prop kwargs =
   match obj, prop with
     | Tobj alist, Tstr prop ->
       (try List.assoc prop alist with Not_found -> Tnull)
+    | Thash htbl, Tstr prop ->
+      (try Hashtbl.find htbl prop with Not_found -> Tnull)
+    | Tpat fn, Tstr prop ->
+      (try fn prop with Not_found -> Tnull)
     | _ -> Tnull
 
 let jg_batch ?(defaults=[
