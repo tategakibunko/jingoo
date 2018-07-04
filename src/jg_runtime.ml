@@ -238,10 +238,10 @@ let jg_apply_filters ?(autoescape=true) ?(safe=false) ctx text filters =
 
 let jg_output ?(autoescape=true) ?(safe=false) ctx value =
   (match ctx.active_filters, safe, value with
-    | [], true, Tstr text -> Buffer.add_string ctx.buffer text
-    | [], true, value -> Buffer.add_string ctx.buffer @@ string_of_tvalue value
+    | [], true, Tstr text -> ctx.output text
+    | [], true, value -> ctx.output @@ string_of_tvalue value
     | _ ->
-      Buffer.add_string ctx.buffer @@ string_of_tvalue @@
+      ctx.output @@ string_of_tvalue @@
 	jg_apply_filters ctx value ctx.active_filters ~safe ~autoescape
   );
   ctx
@@ -982,7 +982,7 @@ let jg_post_process text =
   |> Pcre.qreplace ~rex:(Pcre.regexp "[\\s]*{%<%}") ~templ:""
   |> Pcre.qreplace ~rex:(Pcre.regexp "{%>%}[\\s]*") ~templ:""
 
-let jg_init_context ?(models=[]) env =
+let jg_init_context ?(models=[]) output env =
   let model_frame = Hashtbl.create (2 * List.length models) in
   let top_frame = Hashtbl.create (List.length std_filters + List.length env.filters + 2) in
   let rec set_values hash alist = List.fold_left (fun h (n, v) -> Hashtbl.add h n v; h) hash alist in
@@ -995,5 +995,5 @@ let jg_init_context ?(models=[]) env =
   { frame_stack = [model_frame; top_frame];
     macro_table = Hashtbl.create 10;
     active_filters = [];
-    buffer = Buffer.create 1024;
+    output
   }

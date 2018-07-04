@@ -63,11 +63,12 @@ let rec value_of_expr env ctx = function
     ) expr_list)
 
   | ApplyExpr(IdentExpr("eval"), [expr]) ->
-    let ctx = {ctx with buffer = Buffer.create 256} in
+    let buffer = Buffer.create 256 in
+    let ctx = {ctx with output = Buffer.add_string buffer } in
     let str = string_of_tvalue @@ value_of_expr env ctx expr in
     let statements = statements_from_string ctx str in
-    let ctx = List.fold_left (eval_statement env) ctx statements in
-    Tstr (Buffer.contents ctx.buffer)
+    let _ = List.fold_left (eval_statement env) ctx statements in
+    Tstr (Buffer.contents buffer)
 
   | ApplyExpr(expr, args) ->
     let name = apply_name_of expr in
@@ -184,7 +185,7 @@ and eval_statement env ctx = function
     List.fold_left (eval_statement env) ctx statements
 
   | IncludeStatement(LiteralExpr(Tstr path), false) ->
-    let ctx' = jg_init_context env in
+    let ctx' = jg_init_context ctx.output env in
     let statements = statements_from_file env ctx' path in
     let _ = List.fold_left (eval_statement env) ctx' statements in
     ctx
@@ -295,28 +296,34 @@ and statements_from_string ?file_path ctx source =
       exn ->
 	raise @@ SyntaxError(Jg_utils.get_parser_error exn lexbuf)
 
-and init_context ?(env=std_env) ?(models=[]) () =
+and init_context ?(env=std_env) ?(models=[]) ~output () =
   let extensions = env.extensions in
   jg_load_extensions extensions;
-  jg_init_context ~models env
+  jg_init_context ~models output env
 
-and from_file ?(env=std_env) ?(models=[]) file_name =
-  let ctx = init_context ~env ~models () in
+and from_file
+    ?(env=std_env) ?(models=[]) ~output
+    ?(ctx = init_context ~env ~models ~output ())
+    file_name =
   let file_path = get_file_path env ctx file_name in
   let source = Jg_utils.read_file_as_string file_path in
-  from_string source ~file_path ~env ~ctx ~models
+  from_string source ~file_path ~env ~ctx ~models ~output
 
-and from_string ?(env=std_env) ?ctx ?(models=[]) ?file_path source =
+and from_string ?(env=std_env) ?(models=[]) ?file_path ~output
+    ?(ctx = init_context ~env ~models ~output ())
+    source =
   try
     let () = lock_unlock.lock () in
     let () = reset_interp () in
-    let ctx = match ctx with Some ctx -> ctx | _ -> init_context ~env ~models () in
-    let codes = statements_from_string ?file_path ctx source |> unfold_extends env ctx |> align_block in
+    let codes =
+      statements_from_string ?file_path ctx source
+      |> unfold_extends env ctx
+      |> align_block
+    in
     let ctx = import_macro env ctx codes in
     let _ = List.fold_left (eval_statement env) ctx codes in
     reset_interp ();
     lock_unlock.unlock ();
-    jg_post_process @@ Buffer.contents ctx.buffer
   with
       exn ->
 	reset_interp ();
