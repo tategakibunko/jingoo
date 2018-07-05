@@ -143,16 +143,6 @@ rule main = parse
 	main lexbuf
       | _ -> failwith @@ spf "syntax error '%s'" str
   }
-  | "-%}" as str {
-    match ctx.terminator with
-      | None ->
-	add_str str; main lexbuf
-      | Some "%}" ->
-	update_context `Html None;
-	add_str "{%>%}";
-	main lexbuf
-      | _ -> failwith @@ spf "syntax error '%s'" str
-  }
   | '\"' as c {
     match ctx.mode with
       | `Html -> add_char c; main lexbuf
