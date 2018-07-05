@@ -92,6 +92,7 @@ let ident_first_char = [ 'A'-'Z' 'a'-'z' ]
 let ident_char =  [ 'A'-'Z' 'a'-'z' '_' '0'-'9' ]
 let int_literal = ['0'-'9'] ['0'-'9']*
 let float_literal = ['0'-'9']+('.' ['0'-'9']*)? (['e' 'E'] ['+' '-']? ['0'-'9']+)?
+let newline = [ '\n' ]
 
 rule main = parse
   | '\\' '{' {
@@ -103,18 +104,11 @@ rule main = parse
     main lexbuf
   }
   | "{%" blank+ "raw" blank+ "%}" { raw lexbuf }
-  | "{%" {
+  | "{%" | (blank | newline)* "{%-" {
     update_context `Logic (Some "%}");
-    (* print_endline @@ spf "text:%s" (Buffer.contents buf); *)
     match get_buf () with
       | "" -> main lexbuf
       | content -> TEXT content
-  }
-  | "{%-" {
-    update_context `Logic (Some "%}");
-    (* print_endline @@ spf "text:%s" (Buffer.contents buf); *)
-    add_str "{%<%}";
-    TEXT (get_buf ())
   }
   | "{{" {
     update_context `Logic (Some "}}");
@@ -140,22 +134,12 @@ rule main = parse
 	main lexbuf
       | _ -> failwith @@ spf "syntax error '%s'" str
   }
-  | "%}" as str {
+  | ("%}" | "-%}" (blank | newline)*) as str {
     match ctx.terminator with
       | None ->
 	add_str str; main lexbuf
       | Some "%}" ->
 	update_context `Html None;
-	main lexbuf
-      | _ -> failwith @@ spf "syntax error '%s'" str
-  }
-  | "-%}" as str {
-    match ctx.terminator with
-      | None ->
-	add_str str; main lexbuf
-      | Some "%}" ->
-	update_context `Html None;
-	add_str "{%>%}";
 	main lexbuf
       | _ -> failwith @@ spf "syntax error '%s'" str
   }

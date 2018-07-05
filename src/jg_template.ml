@@ -23,7 +23,7 @@ let content : 'a .
   = fun fn ?(env=std_env) ?ctx ?(models = []) arg ->
   let buffer = Buffer.create 1024 in
   let () = fn ~env ~models ~output:(Buffer.add_string buffer) ?ctx arg in
-  Jg_runtime.jg_post_process @@ Buffer.contents buffer
+  Buffer.contents buffer
 
 let from_file = content Jg_interp.from_file
 
