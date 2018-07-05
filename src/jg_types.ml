@@ -19,7 +19,7 @@ and context = {
   frame_stack : frame list;
   macro_table : (string, macro) Hashtbl.t;
   active_filters : string list;
-  buffer : Buffer.t;
+  output : string -> unit
 }
 
 and frame = (string, tvalue) Hashtbl.t

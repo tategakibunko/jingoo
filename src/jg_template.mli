@@ -7,12 +7,14 @@
 *)
 open Jg_types
 
-val from_file : ?env:environment -> ?models:(string * tvalue) list -> string -> string
+val from_file : ?env:environment -> ?ctx:context -> ?models:(string * tvalue) list -> string -> string
 (** [from_file env models template_filename]
     return result string.
 
     [env] is environment parametors defined in Jg_types.environment.
     enviroment parametors consist of template_dirs, autoescape_flag etc.
+
+    default of [ctx] is None.
 
     [models] is variable table for template. for example,
     [("msg", Tstr "hello, world!"); ("count", Tint 100); ]
@@ -24,7 +26,6 @@ val from_string : ?env:environment -> ?ctx:context -> ?models:(string * tvalue) 
 
     same as from_file but read template from source string.
 
-    default of [ctx] is None.
     nomally, this context is used internal parsing.
 *)
 

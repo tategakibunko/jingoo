@@ -8,9 +8,24 @@
 open Jg_types
 open Jg_utils
 
-let from_file ?(env=std_env) ?(models=[]) file_name =
-  Jg_interp.from_file ~env ~models file_name
+let content : 'a .
+    (?env:Jg_types.environment
+     -> ?models:(string * Jg_types.tvalue) list
+     -> output:(string -> unit)
+     -> ?ctx:Jg_types.context
+     -> 'a
+     -> unit)
+    -> ?env:Jg_types.environment
+    -> ?ctx:Jg_types.context
+    -> ?models:(string * Jg_types.tvalue) list
+    -> 'a
+    -> string
+  = fun fn ?(env=std_env) ?ctx ?(models = []) arg ->
+  let buffer = Buffer.create 1024 in
+  let () = fn ~env ~models ~output:(Buffer.add_string buffer) ?ctx arg in
+  Jg_runtime.jg_post_process @@ Buffer.contents buffer
 
-let from_string ?(env=std_env) ?ctx ?(models=[]) source =
-  Jg_interp.from_string ~env ?ctx ~models source
+let from_file = content Jg_interp.from_file
+
+let from_string = content (Jg_interp.from_string ?file_path:None)
 

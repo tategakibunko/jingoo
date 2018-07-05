@@ -148,7 +148,7 @@ let test_truncate test_ctxt =
 
 let test_md5 test_ctxt =
   let src = "hoge" in
-  let md5 = String.lowercase src +> Digest.string +> Digest.to_hex in
+  let md5 = String.lowercase src |> Digest.string |> Digest.to_hex in
   assert_equal (jg_md5 (Tstr src) kwargs) (Tstr md5)
 ;;
 
