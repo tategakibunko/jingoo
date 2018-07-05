@@ -786,7 +786,7 @@ let jg_title text kwargs =
 let jg_striptags text kwargs =
   match text with
     | Tstr text ->
-      let reg = Pcre.regexp "<\\/?[^>]|>" ~flags:[`UTF8] in
+      let reg = Pcre.regexp "<\\/?[^>]+>" ~flags:[`UTF8] in
       let text' = Pcre.replace ~rex:reg ~templ:"" text in
       Tstr text'
     | _ -> failwith "invalid arg: not string(jg_striptags)"
