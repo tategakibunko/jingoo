@@ -4,7 +4,7 @@ open Jg_types
 open Jg_runtime
 
 let assert_interp ~test_ctxt ?(models=[]) source exp_output =
-  let output = Jg_interp.from_string source ~models in
+  let output = Jg_template.from_string source ~models in
   logf test_ctxt `Info "Source: %S" source;
   logf test_ctxt `Info "Output: %S" output;
   assert_equal output exp_output
@@ -141,7 +141,7 @@ let test_defined test_ctxt =
 
 let from_file test_ctxt file_name =
   let env = {std_env with template_dirs = [in_testdata_dir test_ctxt []]} in
-  Jg_interp.from_file ~env file_name
+  Jg_template.from_file ~env file_name
 ;;
 
 let test_extends test_ctxt =
@@ -161,14 +161,14 @@ let macro_three_words =
 ;;
 
 let test_macro test_ctxt =
-  let output = Jg_interp.from_string
+  let output = Jg_template.from_string
     (macro_three_words^"{{ three_words(\"this\", \"is\", \"it!\") }}")
   in
   assert_equal (Jg_utils.chomp output) "this is it!"
 ;;
 
 let test_caller test_ctxt =
-  let output = Jg_interp.from_string
+  let output = Jg_template.from_string
     (macro_three_words^
     "{% call(a,b,c) three_words('this', 'is', 'it!') %}\
      {{a}} {{b}} {{c}}\
