@@ -158,8 +158,9 @@ and eval_statement env ctx = function
 	| SetExpr(lst) -> ident_names_of lst
 	| _ -> failwith "invalid iterator" in
     jg_iter ctx iterator (fun ctx ->
-      List.fold_left (eval_statement env) ctx statements
-    ) @@ (value_of_expr env ctx list_expr)
+      ignore @@ List.fold_left (eval_statement env) ctx statements
+    ) @@ (value_of_expr env ctx list_expr) ;
+    ctx
 
   | BlockStatement(IdentExpr(name), statements) ->
     List.fold_left (eval_statement env) ctx statements
