@@ -313,11 +313,18 @@ let jg_iter_array ctx iterator f a =
   let len = Array.length a in
   Array.iteri (fun i itm -> f @@ jg_iter_mk_ctx ctx iterator itm len i) a
 
+let jg_iter_str ctx iterator f s =
+  let len = String.length s in
+  String.iteri (fun i itm ->
+      let itm = Tstr (String.make 1 itm) in
+      f @@ jg_iter_mk_ctx ctx iterator itm len i) s
+
 let jg_iter ctx iterator f iterable =
   match iterable with
   | Thash h -> jg_iter_hash ctx iterator f h
   | Tobj l -> jg_iter_obj ctx iterator f l
   | Tarray a -> jg_iter_array ctx iterator f a
+  | Tstr s -> jg_iter_str ctx iterator f s
   | Tlist l | Tset l ->
     let len = List.length l in
     List.iteri (fun i itm -> f @@ jg_iter_mk_ctx ctx iterator itm len i) l
@@ -903,8 +910,8 @@ let jg_test_odd x kwargs =
     | _ -> Tbool(false)
 
 let jg_test_iterable x kwargs =
-  match  x with
-    | Tlist _ | Tset _ | Thash _ | Tobj _ | Tarray _ -> Tbool(true)
+  match x with
+    | Tlist _ | Tset _ | Thash _ | Tobj _ | Tarray _ | Tstr _ -> Tbool(true)
     | _ -> Tbool(false)
 
 let jg_test_lower x kwargs =

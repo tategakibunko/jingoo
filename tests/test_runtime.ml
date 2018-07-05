@@ -435,8 +435,8 @@ let test_odd test_ctxt =
 let test_iterable test_ctxt =
   assert_equal (jg_test_iterable (Tint 0) kwargs) (Tbool false);
   assert_equal (jg_test_iterable (Tfloat 1.0) kwargs) (Tbool false);
-  assert_equal (jg_test_iterable (Tstr "hoge") kwargs) (Tbool false); (* in python manner, it's true *)
-  assert_equal (jg_test_iterable (Tobj []) kwargs) (Tbool false);
+  assert_equal (jg_test_iterable (Tstr "hoge") kwargs) (Tbool true);
+  assert_equal (jg_test_iterable (Tobj []) kwargs) (Tbool true);
   assert_equal (jg_test_iterable (Tlist []) kwargs) (Tbool true);
   assert_equal (jg_test_iterable (Tset []) kwargs) (Tbool true);
 ;;
