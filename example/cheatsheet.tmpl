@@ -133,7 +133,7 @@ round ceil of 1.5 = {{1.5|round("ceil")|int}}
 join(",", list) = {{ join(",", list) }}
 
 slice with length 4 and padding value = "pad":
-{% for row in slice(4, "pad", long_list) %}
+{% for row in slice(4, long_list, fill_with="pad") %}
   {% set y = loop.index %}
   {% for col in row %}
   {% set x = loop.index %}
