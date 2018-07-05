@@ -11,7 +11,7 @@ val from_file : ?env:environment -> ?ctx:context -> ?models:(string * tvalue) li
 (** [from_file env models template_filename]
     return result string.
 
-    [env] is environment parametors defined in Jg_types.environment.
+    [env] is environment parameters defined in Jg_types.environment.
     enviroment parametors consist of template_dirs, autoescape_flag etc.
 
     default of [ctx] is None.

@@ -4,6 +4,11 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.2.17
+===========================
+o [PR#27] Avoid unnecessary buffer while parsing.
+
+
 version: 1.2.17, 2018-07-03
 ===========================
 o [PR#25] Add keywords 'and', 'or', 'elif'.
