@@ -40,24 +40,24 @@ let test_minus test_ctxt =
   assert_equal (Tfloat 0.0) (jg_minus (Tfloat 1.0) (Tfloat 1.0));
 ;;
 
-let test_list_same test_ctxt =
-  let lst1 = Tlist [Tint 0; Tint 1; Tint 2] in
-  let lst2 = Tlist [Tint 0; Tint 1; Tint 2] in
-  let lst3 = Tlist [Tint 0; Tint 1; Tint 3] in
-  let lst4 = Tlist [Tint 0; Tint 1] in
-  assert_equal (jg_list_same lst1 lst2) (Tbool true);
-  assert_equal (jg_list_same lst1 lst3) (Tbool false);
-  assert_equal (jg_list_same lst1 lst4) (Tbool false);
+let test_list_eq_eq test_ctxt =
+  let lst1 = [Tint 0; Tint 1; Tint 2] in
+  let lst2 = [Tint 0; Tint 1; Tint 2] in
+  let lst3 = [Tint 0; Tint 1; Tint 3] in
+  let lst4 = [Tint 0; Tint 1] in
+  assert_equal (jg_list_eq_eq lst1 lst2) (Tbool true);
+  assert_equal (jg_list_eq_eq lst1 lst3) (Tbool false);
+  assert_equal (jg_list_eq_eq lst1 lst4) (Tbool false);
 ;;
 
-let test_obj_same test_ctxt =
+let test_obj_eq_eq test_ctxt =
   let obj1 = Tobj [("name", Tstr "john"); ("age", Tint 20)] in
   let obj2 = Tobj [("name", Tstr "john"); ("age", Tint 20)] in
   let obj3 = Tobj [("name", Tstr "mary"); ("age", Tint 22)] in
   let obj4 = Tobj [("age", Tint 20); ("name", Tstr "john")] in
-  assert_equal (jg_obj_same obj1 obj2) (Tbool true);
-  assert_equal (jg_obj_same obj1 obj3) (Tbool false);
-  assert_equal (jg_obj_same obj1 obj4) (Tbool true);
+  assert_equal (jg_obj_eq_eq obj1 obj2) (Tbool true);
+  assert_equal (jg_obj_eq_eq obj1 obj3) (Tbool false);
+  assert_equal (jg_obj_eq_eq obj1 obj4) (Tbool true);
 ;;
 
 let test_batch test_ctxt =
@@ -68,7 +68,7 @@ let test_batch test_ctxt =
     Tlist [(Tint 4); (Tint 5); (Tint 6); (Tint 7)];
     Tlist [(Tint 8); (Tint 9); (Tstr "x"); (Tstr "x")];
   ] in
-  assert_equal (jg_list_same batched_list expect_list) (Tbool true)
+  assert_equal (jg_eq_eq batched_list expect_list) (Tbool true)
 ;;
 
 let test_capitalize test_ctxt =
@@ -185,8 +185,8 @@ let test_random test_ctxt =
     if i < 100 then iter ((Tint i) :: ret) (i+1) else ret in
   let lst = iter [] 1 in
   let lst'= unbox_list @@ jg_random (Tlist lst) kwargs in
-  let is_same = List.for_all2 (=) lst lst' in
-  assert_equal is_same false
+  let is_eq_eq = List.for_all2 (=) lst lst' in
+  assert_equal is_eq_eq false
 ;;
 
 let test_slice test_ctxt =
@@ -475,8 +475,8 @@ let suite = "runtime test" >::: [
   "test_or" >:: test_or;
   "test_eq_eq" >:: test_eq_eq;
   "test_batch" >:: test_batch;
-  "test_list_same" >:: test_list_same;
-  "test_obj_same" >:: test_obj_same;
+  "test_list_eq_eq" >:: test_list_eq_eq;
+  "test_obj_eq_eq" >:: test_obj_eq_eq;
   "test_capitalize" >:: test_capitalize;
   "test_default" >:: test_default;
   "test_length" >:: test_length;

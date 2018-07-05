@@ -16,6 +16,7 @@ let box_list lst = Tlist lst
 let box_set lst = Tset lst
 let box_obj alist = Tobj alist
 let box_hash hash = Thash hash
+let box_array a = Tarray a
 
 let unbox_int = function
   | Tint x -> x
@@ -40,6 +41,10 @@ let unbox_list = function
 let unbox_set = function
   | Tset lst -> lst
   | _ -> failwith "invalid arg:not set(unbox_set)"
+
+let unbox_array = function
+  | Tarray lst -> lst
+  | _ -> failwith "invalid arg:not list(unbox_list)"
 
 let unbox_obj = function
   | Tobj alist -> alist
@@ -75,6 +80,7 @@ let string_of_tvalue = function
   | Tset x -> "<set>"
   | Tfun _ -> "<fun>"
   | Tnull -> ""
+  | Tarray _ -> "<array>"
 
 let type_string_of_tvalue = function
   | Tint x -> "int"
@@ -87,6 +93,7 @@ let type_string_of_tvalue = function
   | Tset x -> "set"
   | Tfun _ -> "function"
   | Tnull -> "null"
+  | Tarray _ -> "array"
 
 let dump_expr = function
   | IdentExpr(str) -> spf "IdentExpr(%s)" str
@@ -125,7 +132,7 @@ let jg_strp = function
 let jg_intp = function
   | Tint _ -> Tbool true
   | _ -> Tbool false
-    
+
 let jg_floatp = function
   | Tfloat _ -> Tbool true
   | _ -> Tbool false
@@ -148,6 +155,10 @@ let jg_hashp = function
 
 let jg_funp = function
   | Tfun _ -> Tbool true
+  | _ -> Tbool false
+
+let jg_arrayp = function
+  | Tarray _ -> Tbool true
   | _ -> Tbool false
 
 let jg_push_frame ctx =
@@ -191,7 +202,7 @@ let rec jg_get_value ctx name =
     | [] -> Tnull in
   get_value name ctx.frame_stack
 
-let jg_get_func ctx name = 
+let jg_get_func ctx name =
   match jg_get_value ctx name with
     | Tfun f -> Tfun f
     | _ -> failwith @@ spf "undefined function %s" name
@@ -258,40 +269,59 @@ let jg_obj_lookup_by_name ctx obj_name prop_name =
     | Thash(hash) as hobj -> jg_obj_lookup ctx hobj prop_name
     | _ -> (try Jg_stub.get_func obj_name prop_name with Not_found -> Tnull)
 
+let jg_iter_mk_ctx ctx iterator itm len i =
+  let cycle = Tfun (fun args kwargs ->
+      let args_len = List.length args in
+      List.nth args (i mod args_len)
+    ) in
+  let ctx = jg_push_frame ctx in
+  let ctx = jg_bind_names ctx iterator itm in
+  let ctx =
+    jg_set_value ctx "loop" @@
+    Tobj [
+      ("index0", Tint i);
+      ("index", Tint (i+1));
+      ("revindex0", Tint (len - i - 1));
+      ("revindex", Tint (len - i));
+      ("first", Tbool (i=0));
+      ("last", Tbool (i=len-1));
+      ("length", Tint len);
+      ("cycle", cycle);
+    ]
+  in
+  ctx
+
+let jg_iter_hash ctx iterator f h =
+  let i = ref 0 in
+  let len = Hashtbl.length h in
+  Hashtbl.iter
+    (fun k v ->
+       let itm = Tset [ box_string k ; v ] in
+       let () = f @@ jg_iter_mk_ctx ctx iterator itm len (!i) in
+       incr i)
+    h
+
+let jg_iter_obj ctx iterator f l =
+  let len = List.length l in
+  List.iteri
+    (fun i (k, v) ->
+       let itm = Tset [ box_string k ; v ] in
+       f @@ jg_iter_mk_ctx ctx iterator itm len i)
+    l
+
+let jg_iter_array ctx iterator f a =
+  let len = Array.length a in
+  Array.iteri (fun i itm -> f @@ jg_iter_mk_ctx ctx iterator itm len i) a
+
 let jg_iter ctx iterator f iterable =
-  let lst =
-    match iterable with
-      | Tlist lst -> lst
-      | Tset lst -> lst
-      | Tobj lst -> List.map (fun (n, v) -> Tset [ box_string n; v ]) lst
-      | Thash hash -> List.map (fun (n, v) -> Tset [ box_string n; v ]) @@
-          Hashtbl.fold (fun k v a -> (k,v)::a) hash []
-      | _ -> [] in
-  let len = List.length lst in
-  let rec iter ctx i = function
-    | [] -> ctx
-    | item :: rest ->
-      let ctx = jg_push_frame ctx in
-      let ctx = jg_bind_names ctx iterator item in
-      let cycle = Tfun (fun args kwargs ->
-	let args_len = List.length args in
-	List.nth args (i mod args_len)
-      ) in
-      let ctx = jg_set_value ctx "loop" (
-	Tobj [
-	  ("index0", Tint i);
-	  ("index", Tint (i+1));
-	  ("revindex0", Tint (len - i - 1));
-	  ("revindex", Tint (len - i));
-	  ("first", Tbool (i=0));
-	  ("last", Tbool (i=len-1));
-	  ("length", Tint len);
-	  ("cycle", cycle);
-	]) in
-      let ctx = f ctx in
-      let ctx = jg_pop_frame ctx in
-      iter ctx (i+1) rest in
-  iter ctx 0 lst
+  match iterable with
+  | Thash h -> jg_iter_hash ctx iterator f h
+  | Tobj l -> jg_iter_obj ctx iterator f l
+  | Tarray a -> jg_iter_array ctx iterator f a
+  | Tlist l | Tset l ->
+    let len = List.length l in
+    List.iteri (fun i itm -> f @@ jg_iter_mk_ctx ctx iterator itm len i) l
+  | _ -> ()
 
 let jg_eval_macro ?(caller=false) env ctx macro_name args kwargs macro f =
   match macro with
@@ -342,7 +372,7 @@ let jg_test_obj_undefined ctx obj_name prop_name =
     | Tbool status -> Tbool (not status)
     | _ -> failwith "invalid test:jg_test_obj_defined"
 
-let jg_test_escaped ctx = 
+let jg_test_escaped ctx =
   Tbool(List.mem "safe" @@ ctx.active_filters)
 
 let jg_test_none ctx name =
@@ -366,8 +396,9 @@ let jg_is_true = function
   | Thash x -> Hashtbl.length x > 0
   | Tnull -> false
   | Tfun(f) -> failwith "jg_is_true:type error(function)"
+  | Tarray a -> Array.length a > 0
 
-let jg_not x = 
+let jg_not x =
   Tbool (not (jg_is_true x))
 
 let jg_plus left right =
@@ -439,32 +470,36 @@ let rec jg_eq_eq left right =
     | Tfloat x1, Tfloat x2 -> Tbool(x1=x2)
     | Tstr x1, Tstr x2 -> Tbool(x1=x2)
     | Tbool x1, Tbool x2 -> Tbool(x1=x2)
-    | Tlist x1, Tlist x2-> jg_list_same left right
-    | Tset x1, Tset x2 -> jg_list_same left right
-    | Tobj x1, Tobj x2 -> jg_obj_same left right
+    | Tlist x1, Tlist x2
+    | Tset x1, Tset x2 -> jg_list_eq_eq x1 x2
+    | Tobj x1, Tobj x2 -> jg_obj_eq_eq left right
+    | Tarray x1, Tarray x2 -> jg_array_eq_eq x1 x2
     | _, _ -> Tbool(false)
 
-and jg_list_same lst1 lst2 =
-  let l1 = unbox_list lst1 in
-  let l2 = unbox_list lst2 in
+and jg_array_eq_eq a1 a2 =
+  (* We do not check the size since ocaml already check it before Array.iter2 *)
+  try
+    Array.iter2
+      (fun a b -> if jg_eq_eq a b <> Tbool true
+        then raise @@ Invalid_argument "jg_array_eq_eq"
+        else () )
+      a1 a2 ;
+    Tbool true
+  with
+    Invalid_argument _ -> Tbool false
+
+and jg_list_eq_eq l1 l2 =
   if List.length l1 != List.length l2 then
     Tbool false
-  else
-    let result = 
-      List.for_all2 (fun a b ->
-	match jg_eq_eq a b with
-	  | Tbool true -> true
-	  | _ -> false
-      ) l1 l2 in
-    Tbool result
-      
-and jg_obj_same obj1 obj2 =
+  else Tbool (List.for_all2 (fun a b -> jg_eq_eq a b = Tbool true) l1 l2)
+
+and jg_obj_eq_eq obj1 obj2 =
   let alist1 = unbox_obj obj1 in
   let alist2 = unbox_obj obj2 in
   if List.length alist1 != List.length alist2 then
     Tbool false
   else
-    let result = 
+    let result =
       try
 	List.for_all (fun (prop, value) ->
 	  match jg_eq_eq value (List.assoc prop alist2) with
@@ -476,39 +511,40 @@ and jg_obj_same obj1 obj2 =
     Tbool result
 
 let jg_not_eq left right =
-  match left, right with
-    | Tint x1, Tint x2 -> Tbool(x1!=x2)
-    | Tfloat x1, Tfloat x2 -> Tbool(x1!=x2)
-    | Tstr x1, Tstr x2 -> Tbool(x1<>x2)
-    | _, _ -> Tbool(true)
+  Tbool (not @@ unbox_bool @@ jg_eq_eq left right)
 
-let jg_lt left right = 
+let jg_lt left right =
   match left, right with
     | Tint x1, Tint x2 -> Tbool(x1<x2)
     | Tfloat x1, Tfloat x2 -> Tbool(x1<x2)
+    | Tstr x1, Tstr x2 -> Tbool(x1<x2)
     | _, _ -> failwith "jg_lt:type error"
 
-let jg_gt left right = 
+let jg_gt left right =
   match left, right with
     | Tint x1, Tint x2 -> Tbool(x1>x2)
     | Tfloat x1, Tfloat x2 -> Tbool(x1>x2)
+    | Tstr x1, Tstr x2 -> Tbool(x1>x2)
     | _, _ -> failwith "jg_gt:type error"
 
-let jg_lteq left right = 
+let jg_lteq left right =
   match left, right with
     | Tint x1, Tint x2 -> Tbool(x1<=x2)
     | Tfloat x1, Tfloat x2 -> Tbool(x1<=x2)
-    | _, _ -> failwith "jg_lt:type error"
+    | Tstr x1, Tstr x2 -> Tbool(x1<=x2)
+    | _, _ -> failwith "jg_lteq:type error"
 
-let jg_gteq left right = 
+let jg_gteq left right =
   match left, right with
     | Tint x1, Tint x2 -> Tbool(x1>=x2)
     | Tfloat x1, Tfloat x2 -> Tbool(x1>=x2)
-    | _, _ -> failwith "jg_gt:type error"
+    | Tstr x1, Tstr x2 -> Tbool(x1>=x2)
+    | _, _ -> failwith "jg_gteq:type error"
 
 let jg_inop left right =
   match left, right with
     | value, Tlist lst -> Tbool (List.exists (unbox_bool $ jg_eq_eq value) lst)
+    | value, Tarray a -> Tbool (Array.exists (unbox_bool $ jg_eq_eq value) a)
     | _ -> Tbool false
 
 let jg_get_kvalue ?(defaults=[]) name kwargs =
@@ -544,10 +580,18 @@ let jg_float x kwargs =
 
 let jg_join join_str lst kwargs =
   match join_str, lst with
-    | Tstr str, Tlist lst ->
-      Tstr (String.concat str (List.map string_of_tvalue lst))
+    | Tstr str, Tlist lst
     | Tstr str, Tset lst ->
       Tstr (String.concat str (List.map string_of_tvalue lst))
+    | Tstr str, Tarray array ->
+      let buf = Buffer.create 256 in
+      let () =
+        Array.iteri
+          (fun i v ->
+             if i > 0 then Buffer.add_string buf str ;
+             Buffer.add_string buf (string_of_tvalue v) )
+          array
+      in Tstr (Buffer.contents buf)
     | _ -> failwith "invalid arg:jg_join"
 
 let jg_split pat text kwargs =
@@ -585,6 +629,7 @@ let jg_length x kwargs =
     | Tlist lst -> Tint (List.length lst)
     | Tset lst -> Tint (List.length lst)
     | Tstr str -> Tint (Jg_utils.strlen str)
+    | Tarray arr -> Tint (Array.length arr)
     | _ -> failwith "invalid args: not list(length)"
 
 let jg_md5 x kwargs =
@@ -648,27 +693,38 @@ let jg_dictsort ?(defaults=[
 let jg_reverse lst kwargs =
   match lst with
     | Tlist lst -> Tlist (List.rev lst)
+    | Tarray a ->
+      let len = Array.length a in
+      Tarray (Array.init len (fun i -> Array.get a (len - 1 - i)))
     | _ -> failwith "invalid args: not list(jg_reverse)"
 
 let jg_last lst kwargs =
   match lst with
-    | Tlist lst -> List.hd (List.rev lst)
-    | Tset lst -> List.hd (List.rev lst)
+    | Tlist lst
+    | Tset lst ->
+      let rec last = function
+        | [] -> List.hd [] (* same exception as previous implementation *)
+        | [x] -> x
+        | _ :: tl -> last tl
+      in
+      last lst
+    | Tarray a -> Array.get a (Array.length a - 1)
     | _ -> failwith "invalid args: not list(jg_last)"
 
 let jg_random lst kwargs =
+  let knuth a =
+    for i = Array.length a - 1 downto 1 do
+      let j = Random.int i in
+      let t = a.(i) in
+      a.(i) <- a.(j);
+      a.(j) <- t
+    done ;
+    a
+  in
   match lst with
-    | Tlist lst ->
-      let swap a i j =
-	let t = a.(i) in
-	a.(i) <- a.(j);
-	a.(j) <- t in
-      let shuffle a =
-	Array.iteri (fun i _ -> swap a i (Random.int (i+1))) a in
-      let array = Array.of_list lst in
-      shuffle array;
-      Tlist (Array.to_list array)
-    | _ -> failwith "invalid args: not list(jg_random)"
+    | Tlist l -> Tlist (Array.to_list @@ knuth @@ Array.of_list l)
+    | Tarray a -> Tarray (knuth @@ Array.copy a)
+    | _ -> failwith "invalid args: not list or array(jg_random)"
 
 let jg_replace src dst str kwargs =
   match src, dst, str with
@@ -676,26 +732,19 @@ let jg_replace src dst str kwargs =
       Tstr (Pcre.replace ~rex:(Pcre.regexp src ~flags:[`UTF8]) ~templ:dst str)
     | _ -> failwith "invalid arg:not string(jg_replace)"
 
+let jg_add a b = match a, b with
+  | Tint a, Tint b -> Tint (a + b)
+  | Tfloat a, Tfloat b -> Tfloat (a +. b)
+  | Tint a, Tfloat b
+  | Tfloat b, Tint a -> Tfloat (float_of_int a +. b)
+  | _ -> failwith "invalid args:non numerical list(jg_add)"
+
 let jg_sum lst kwargs =
-  let rec iter sum lst =
-    match sum, lst with
-      | Tint sum, (Tint x) :: rest ->
-	let sum' = sum + x in
-	iter (Tint sum') rest
-      | Tint sum, (Tfloat x) :: rest ->
-	let sum' = float_of_int sum +. x in
-	iter (Tfloat sum') rest
-      | Tfloat sum, (Tfloat x) :: rest ->
-	let sum' = sum +. x in
-	iter (Tfloat sum') rest
-      | Tfloat sum, (Tint x) :: rest ->
-	let sum' = (float_of_int x) +. sum in
-	iter (Tfloat sum') rest
-      | _, [] -> sum
-      | _ -> failwith "invalid args:non numerical list(jg_sum)" in
   match lst with
-    | Tlist lst -> iter (Tint 0) lst
-    | _ -> failwith "invalid args: not list(jg_sum)"
+  | Tset l
+  | Tlist l -> List.fold_left jg_add (Tint 0) l
+  | Tarray a -> Array.fold_left jg_add (Tint 0) a
+  | _ -> failwith "invalid args: not list(jg_sum)"
 
 let jg_trim str kwargs =
   match str with
@@ -708,9 +757,8 @@ let jg_trim str kwargs =
     | _ -> failwith "invalid args: not string(jg_trim)"
 
 let jg_list value kwargs =
-  match value with
-    | Tlist lst -> value
-    | Tset lst -> Tlist lst
+  match  value with
+    | Tlist lst | Tset lst -> Tlist lst
     | Tstr str ->
       let len = strlen str in
       let rec iter ret i =
@@ -720,6 +768,7 @@ let jg_list value kwargs =
 	  let s1 = Tstr (substring i 1 str) in
 	  iter (s1 :: ret) (i+1) in
       Tlist (iter [] 0)
+    | Tarray a -> Tlist (Array.to_list a)
     | _ -> failwith "invalid_arg:can't make sequence(jg_list)"
 
 let jg_slice ?(defaults=[
@@ -744,8 +793,10 @@ let jg_round how value kwargs =
   match how, value with
     | _, Tint x -> Tint x
     | Tstr "floor", Tfloat x -> Tfloat (floor x)
-    | Tstr "ceil", Tfloat x -> Tfloat (ceil x)
-    | Tstr other, Tfloat x -> failwith @@ spf "invalid args:round method %s not supported(jg_round)" other
+    | Tstr ("ceil" | "common"), Tfloat x -> Tfloat (ceil x)
+    | Tstr other, Tfloat x ->
+      failwith @@
+      spf "invalid args:round method %s not supported(jg_round)" other
     | _ -> failwith "invalid args:jg_round"
 
 let jg_fmt_float digit_count value kwargs =
@@ -791,16 +842,18 @@ let jg_striptags text kwargs =
       Tstr text'
     | _ -> failwith "invalid arg: not string(jg_striptags)"
 
+(* FIXME reverse keyword *)
 let jg_sort lst kwargs =
+  let compare a b = match a, b with
+    | Tstr a, Tstr b -> strcmp a b
+    | Tint a, Tint b -> compare a b
+    | Tfloat a, Tfloat b -> compare a b
+    | _, _ -> failwith "invalid_arg:can't sort list of different types (jg_sort)"
+  in
   match lst with
-    | Tlist lst ->
-      (match lst with
-	| (Tstr s) :: rest -> List.map unbox_string lst |> List.sort strcmp |> List.map box_string |> box_list
-	| (Tint i) :: rest -> List.map unbox_int lst |> List.sort (-) |> List.map box_int |> box_list
-	| (Tfloat f) :: rest -> List.map unbox_float lst |> List.sort (fun a b ->
-	  if a > b then 1 else if a = b then 0 else -1) |> List.map box_float |> box_list
-	| _ -> failwith "invalid_arg:can't sort(jg_sort)")
-    | _ -> failwith "invalid_arg:can't sort(jg_sort)"
+    | Tlist l -> Tlist (List.sort compare l)
+    | Tarray a -> Tarray (let a = Array.copy a in Array.sort compare a ; a)
+    | x -> failwith @@ spf "invalid_arg:can't sort %s (jg_sort)" (type_string_of_tvalue x)
 
 let jg_xmlattr obj kwargs =
   match obj with
@@ -850,9 +903,8 @@ let jg_test_odd x kwargs =
     | _ -> Tbool(false)
 
 let jg_test_iterable x kwargs =
-  match x with
-    | Tlist _ -> Tbool(true)
-    | Tset _ -> Tbool(true)
+  match  x with
+    | Tlist _ | Tset _ | Thash _ | Tobj _ | Tarray _ -> Tbool(true)
     | _ -> Tbool(false)
 
 let jg_test_lower x kwargs =
@@ -881,6 +933,7 @@ let jg_test_sameas value target kwargs =
     | Tobj x, Tobj y -> Tbool(x == y)
     | Tlist x, Tlist y -> Tbool(x == y)
     | Tset x, Tset y -> Tbool(x == y)
+    | Tarray x, Tarray y -> Tbool(x == y)
     | _ -> Tbool(false)
 
 let jg_test_sequence target kwargs =
