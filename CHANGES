@@ -9,6 +9,7 @@ version: 1.2.18
 o [PR#27] Avoid unnecessary buffer while parsing.
 * [PR#32] Handle whitespace control in lexer in order to avoid a ugly hack and Pcre use.
 o [PR#31] Added Tarray type.
+o [PR#33] Fixed lexer line update, better error message, fail on unclosed statements.
 
 version: 1.2.17, 2018-07-03
 ===========================
