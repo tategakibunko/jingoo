@@ -38,6 +38,7 @@ and tvalue =
   | Tlist of tvalue list
   | Tset of tvalue list
   | Tfun of (args -> kwargs -> tvalue)
+  | Tarray of tvalue array
 and args = tvalue list
 and kwargs = (string * tvalue) list
 

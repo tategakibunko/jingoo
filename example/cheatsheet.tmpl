@@ -94,7 +94,7 @@ for test
 </ul>
 
 <ul>
-  {% for name, value in hash %}
+  {% for name, value in hash1 %}
   <li>{{ name }} - {{ value }}</li>
   {% endfor %}
 </ul>
@@ -397,6 +397,10 @@ hoge == "ok" and hage == "ng"
 {% if hoge == "ok" and hage == "ng" %}
 hoge == "ok" and hage == "ng"
 {% endif %}
+
+[PR#31] Array
+========================
+{% for item in array1 %}{{item}} {% endfor %}
 
 {# end of 'main' block #}
 {% endblock %}
