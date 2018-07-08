@@ -287,8 +287,7 @@ let jg_iter_mk_ctx ctx iterator itm len i =
       ("last", Tbool (i=len-1));
       ("length", Tint len);
       ("cycle", cycle);
-    ]
-  in
+    ] in
   ctx
 
 let jg_iter_hash ctx iterator f h =
