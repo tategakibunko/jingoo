@@ -484,9 +484,16 @@ let rec jg_eq_eq left right =
     | _, _ -> Tbool(false)
 
 and jg_array_eq_eq a1 a2 =
-  (* We do not check the size since ocaml already check it before Array.iter2 *)
   try
-    Array.iter2
+    (* Copied from Array module to ensure compatibility with 4.02 *)
+    let iter2 f a b =
+      let open Array in
+      if length a <> length b then
+        invalid_arg "Array.iter2: arrays must have the same length"
+      else
+        for i = 0 to length a - 1 do f (unsafe_get a i) (unsafe_get b i) done
+    in
+    iter2
       (fun a b -> if jg_eq_eq a b <> Tbool true
         then raise @@ Invalid_argument "jg_array_eq_eq"
         else () )
