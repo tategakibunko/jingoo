@@ -685,7 +685,7 @@ let jg_batch ?(defaults=[
 	else
 	  box_list @@ List.rev ret in
       batch [] (List.length lst) lst
-    | Tarray slice_count, Tarray ary ->
+    | Tint slice_count, Tarray ary ->
        failwith "not supported yet."
     | _ -> failwith "invalid args: batch"
 
