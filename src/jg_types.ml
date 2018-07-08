@@ -35,6 +35,7 @@ and tvalue =
   | Tstr of string
   | Tobj of (string * tvalue) list
   | Thash of (string, tvalue) Hashtbl.t (* faster object *)
+  | Tpat of (string -> tvalue)
   | Tlist of tvalue list
   | Tset of tvalue list
   | Tfun of (args -> kwargs -> tvalue)
