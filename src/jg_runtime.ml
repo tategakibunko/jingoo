@@ -674,9 +674,9 @@ let jg_attr obj prop kwargs =
 let jg_batch ?(defaults=[
   ("fill_with", Tnull)
 ]) count value kwargs =
+  let fill_value = match jg_get_kvalue "fill_with" kwargs ~defaults with Tnull -> None | other -> Some other in
   match count, value with
     | Tint slice_count, Tlist lst ->
-      let fill_value = match jg_get_kvalue "fill_with" kwargs ~defaults with Tnull -> None | other -> Some other in
       let rec batch ret left_count rest =
 	if left_count > slice_count then
 	  batch ((box_list @@ take slice_count rest) :: ret) (left_count - slice_count) (after slice_count rest)
@@ -685,6 +685,8 @@ let jg_batch ?(defaults=[
 	else
 	  box_list @@ List.rev ret in
       batch [] (List.length lst) lst
+    | Tarray slice_count, Tarray ary ->
+       failwith "not supported yet."
     | _ -> failwith "invalid args: batch"
 
 let jg_center ?(defaults=[
@@ -727,8 +729,7 @@ let jg_last lst kwargs =
       let rec last = function
         | [] -> List.hd [] (* same exception as previous implementation *)
         | [x] -> x
-        | _ :: tl -> last tl
-      in
+        | _ :: tl -> last tl in
       last lst
     | Tarray a -> Array.get a (Array.length a - 1)
     | _ -> failwith "invalid args: not list(jg_last)"
