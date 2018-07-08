@@ -29,6 +29,11 @@
   let spf = Printf.sprintf
   let buf = Buffer.create 256
 
+  let fail
+      { Lexing.lex_curr_p = { Lexing.pos_fname ; pos_lnum ; pos_bol ; pos_cnum } } str =
+    failwith @@
+    spf "File '%s', line %d, char %d: %s" pos_fname pos_lnum (pos_cnum - pos_bol) str
+
   let init_lexer_pos fname lexbuf =
     let curr = lexbuf.Lexing.lex_curr_p in
     let pos : Lexing.position = {
@@ -104,13 +109,16 @@ rule main = parse
     main lexbuf
   }
   | "{%" blank+ "raw" blank+ "%}" { raw lexbuf }
-  | "{%" | (blank | newline)* "{%-" {
+  | ("{%" | (blank | newline)* "{%-") as str {
+    String.iter (function '\n' -> Lexing.new_line lexbuf | _ -> () ) str;
+    if ctx.mode = `Logic then fail lexbuf @@ "Unexpected '{%' token" ;
     update_context `Logic (Some "%}");
     match get_buf () with
       | "" -> main lexbuf
       | content -> TEXT content
   }
   | "{{" {
+    if ctx.mode = `Logic then fail lexbuf @@ "Unexpected '{{' token" ;
     update_context `Logic (Some "}}");
     (* print_endline @@ spf "text:%s" (Buffer.contents buf); *)
     match get_buf () with
@@ -132,16 +140,17 @@ rule main = parse
       | Some "}}" ->
 	update_context `Html None;
 	main lexbuf
-      | _ -> failwith @@ spf "syntax error '%s'" str
+      | _ -> fail lexbuf @@ spf "syntax error '%s'" str
   }
   | ("%}" | "-%}" (blank | newline)*) as str {
+    String.iter (function '\n' -> Lexing.new_line lexbuf | _ -> () ) str ;
     match ctx.terminator with
       | None ->
 	add_str str; main lexbuf
       | Some "%}" ->
 	update_context `Html None;
 	main lexbuf
-      | _ -> failwith @@ spf "syntax error '%s'" str
+      | _ -> fail lexbuf @@ spf "syntax error '%s'" str
   }
   | '\"' as c {
     match ctx.mode with
@@ -224,7 +233,7 @@ rule main = parse
   | "|" as c { token_or_char (c, VLINE) main lexbuf }
   | ident_first_char ident_char* as str {
     if ctx.token_required then
-      failwith @@ spf "syntax error: expected token, got '%s'" str
+      fail lexbuf @@ spf "syntax error: expected token, got '%s'" str
     ;
     match ctx.mode with
       | `Html ->
@@ -242,7 +251,7 @@ rule main = parse
   | _ as c {
     match ctx.mode with
       | `Html -> add_char c; main lexbuf
-      | _ -> failwith @@ spf "unexpected token:%c" c
+      | _ -> fail lexbuf @@ spf "unexpected token:%c" c
   }
   | eof {
     match ctx.eof with
