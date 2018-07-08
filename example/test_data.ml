@@ -21,6 +21,7 @@ let models = [
     Tobj [("name", Tstr "bob"); ("age", Tint 20)];
     Tobj [("name", Tstr "ken"); ("age", Tint 25)];
   ]);
-  ("hash", build_ht ());
+  ("hash1", build_ht ());
+  ("array1", Tarray [| Tstr "this"; Tstr "is"; Tstr "from"; Tstr "array" |]);
 ] 
 ;;

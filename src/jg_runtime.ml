@@ -483,17 +483,17 @@ let rec jg_eq_eq left right =
     | Tarray x1, Tarray x2 -> jg_array_eq_eq x1 x2
     | _, _ -> Tbool(false)
 
+(* Copied from Array module to ensure compatibility with 4.02 *)
+and array_iter2 f a b =
+  let open Array in
+  if length a <> length b then
+    invalid_arg "Array.iter2: arrays must have the same length"
+  else
+    for i = 0 to length a - 1 do f (unsafe_get a i) (unsafe_get b i) done
+
 and jg_array_eq_eq a1 a2 =
   try
-    (* Copied from Array module to ensure compatibility with 4.02 *)
-    let iter2 f a b =
-      let open Array in
-      if length a <> length b then
-        invalid_arg "Array.iter2: arrays must have the same length"
-      else
-        for i = 0 to length a - 1 do f (unsafe_get a i) (unsafe_get b i) done
-    in
-    iter2
+    array_iter2
       (fun a b -> if jg_eq_eq a b <> Tbool true
         then raise @@ Invalid_argument "jg_array_eq_eq"
         else () )
@@ -555,10 +555,19 @@ let jg_gteq left right =
     | Tstr x1, Tstr x2 -> Tbool(x1>=x2)
     | _, _ -> failwith "jg_gteq:type error"
 
+(* Copied from Array module to ensure compatibility with 4.02 *)
+let array_exists p a =
+  let n = Array.length a in
+  let rec loop i =
+    if i = n then false
+    else if p (Array.unsafe_get a i) then true
+    else loop (succ i) in
+  loop 0
+
 let jg_inop left right =
   match left, right with
     | value, Tlist lst -> Tbool (List.exists (unbox_bool $ jg_eq_eq value) lst)
-    | value, Tarray a -> Tbool (Array.exists (unbox_bool $ jg_eq_eq value) a)
+    | value, Tarray a -> Tbool (array_exists (unbox_bool $ jg_eq_eq value) a)
     | _ -> Tbool false
 
 let jg_get_kvalue ?(defaults=[]) name kwargs =
