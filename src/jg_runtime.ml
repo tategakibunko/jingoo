@@ -275,11 +275,12 @@ let jg_output ?(autoescape=true) ?(safe=false) ctx value =
   );
   ctx
 
-let jg_obj_lookup ctx obj prop_name =
+let rec jg_obj_lookup ctx obj prop_name =
   match obj with
     | Tobj(alist) -> (try List.assoc prop_name alist with Not_found -> Tnull)
     | Thash(hash) -> (try Hashtbl.find hash prop_name with Not_found -> Tnull)
     | Tpat(fn) -> (try fn prop_name with Not_found -> Tnull)
+    | Tlazy l -> jg_obj_lookup ctx (jg_force l) prop_name
     | _ -> failwith ("jg_obj_lookup:not object when looking for '"  ^ prop_name ^ "'")
 
 let jg_obj_lookup_by_name ctx obj_name prop_name =

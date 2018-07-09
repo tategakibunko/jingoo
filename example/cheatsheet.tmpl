@@ -402,5 +402,14 @@ hoge == "ok" and hage == "ng"
 ========================
 {% for item in array1 %}{{item}} {% endfor %}
 
+
+[PR#34] [PR#35] Laziness
+========================
+{% if lazy.next.next.next.next.prev.cur == 3 %}
+   Laziness if awesome :)
+{% else %}
+   Laziness if broken :(
+{% endif %}
+
 {# end of 'main' block #}
 {% endblock %}
