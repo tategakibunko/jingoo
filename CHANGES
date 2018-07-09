@@ -11,6 +11,7 @@ o [PR#27] Avoid unnecessary buffer while parsing.
 o [PR#31] Added Tarray type.
 o [PR#33] Fixed lexer line update, better error message, fail on unclosed statements.
 o [PR#28] Added Tpat data structure: object base on string pattern matching.
+o [PR#34] Added Tlazy constructor.
 
 version: 1.2.17, 2018-07-03
 ===========================
