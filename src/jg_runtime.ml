@@ -18,6 +18,7 @@ let box_obj alist = Tobj alist
 let box_hash hash = Thash hash
 let box_array a = Tarray a
 let box_pat fn = Tpat fn
+let box_lazy z = Tlazy z
 
 let unbox_int = function
   | Tint x -> x
@@ -87,6 +88,7 @@ let string_of_tvalue = function
   | Tfun _ -> "<fun>"
   | Tnull -> ""
   | Tarray _ -> "<array>"
+  | Tlazy _ -> "<lazy>"
 
 let type_string_of_tvalue = function
   | Tint x -> "int"
@@ -101,6 +103,7 @@ let type_string_of_tvalue = function
   | Tfun _ -> "function"
   | Tnull -> "null"
   | Tarray _ -> "array"
+  | Tlazy _ -> "lazy"
 
 let dump_expr = function
   | IdentExpr(str) -> spf "IdentExpr(%s)" str
@@ -192,24 +195,25 @@ let jg_set_value ctx name value =
       {ctx with frame_stack = frame :: rest}
 
 let jg_set_values ctx names values =
-  List.fold_left (fun ctx (name, value) ->
+  List.fold_left2 (fun ctx name value ->
     jg_set_value ctx name value
-  ) ctx @@ List.combine names @@ take (List.length names) values ~pad:Tnull
+  ) ctx names (Jg_utils.take (List.length names) values ~pad:Tnull)
 
 let jg_bind_names ctx names values =
-  let set_values names values =
-    List.fold_left (fun ctx (name, value) ->
-      jg_set_value ctx name value
-    ) ctx @@ List.combine names @@ Jg_utils.take (List.length names) values ~pad:Tnull in
   match names, values with
     | [name], value -> jg_set_value ctx name value
-    | name :: rest, Tset values -> set_values names values
+    | name :: rest, Tset values -> jg_set_values ctx names values
     | _ -> ctx
+
+let rec force x = match Lazy.force x with Tlazy x -> force x | x -> x
 
 let rec jg_get_value ctx name =
   let rec get_value name = function
     | frame :: rest ->
-      (try Hashtbl.find frame name with Not_found -> get_value name rest)
+      (match Hashtbl.find frame name with
+       | Tlazy x -> force x
+       | x -> x
+       | exception Not_found -> get_value name rest)
     | [] -> Tnull in
   get_value name ctx.frame_stack
 
@@ -417,6 +421,7 @@ let jg_is_true = function
   | Tnull -> false
   | Tfun(f) -> failwith "jg_is_true:type error(function)"
   | Tarray a -> Array.length a > 0
+  | Tlazy _ -> failwith "jg_is_true:type error(lazy)"
 
 let jg_not x =
   Tbool (not (jg_is_true x))
