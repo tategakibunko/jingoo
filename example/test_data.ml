@@ -6,6 +6,12 @@ let build_ht () =
   Hashtbl.add ht "b" (Tint 2);
   Thash ht
 
+let rec lazy_model n =
+  Tlazy (lazy (Tpat (function "cur" -> Tint n
+                            | "prev" -> lazy_model (n - 1)
+                            | "next" -> lazy_model (n + 1)
+                            | _ -> raise Not_found ) ) )
+
 let models = [
   ("msg", Tstr "hello world");
   ("list1", Tlist [Tint 1]);
@@ -23,5 +29,6 @@ let models = [
   ]);
   ("hash1", build_ht ());
   ("array1", Tarray [| Tstr "this"; Tstr "is"; Tstr "from"; Tstr "array" |]);
+  ("lazy", lazy_model 0)
 ] 
 ;;
