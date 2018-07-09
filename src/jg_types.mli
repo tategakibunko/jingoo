@@ -67,6 +67,7 @@ and tvalue =
   | Tset of tvalue list
   | Tfun of (args -> kwargs -> tvalue)
   | Tarray of tvalue array
+  | Tlazy of tvalue Lazy.t
 and args = tvalue list
 and kwargs = (string * tvalue) list
 (**
