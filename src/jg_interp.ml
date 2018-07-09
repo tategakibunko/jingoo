@@ -9,6 +9,13 @@ open Jg_types
 open Jg_utils
 open Jg_runtime
 
+let rec filter_map fn = function
+  | [] -> []
+  | hd :: tl ->
+    match fn hd with
+    | Some x -> x :: filter_map fn tl
+    | None -> filter_map fn tl
+
 let rec value_of_expr env ctx = function
   | LiteralExpr(x) -> x
   | IdentExpr(name) -> jg_get_value ctx name
@@ -94,13 +101,9 @@ and apply_name_of = function
   | _ -> "<lambda>"
 
 and ident_names_of lst =
-  List.filter (function
-    | IdentExpr(_) -> true
-    | _ -> false) lst |>
-    List.map (function
-      | IdentExpr(name) -> name
-      | _ -> failwith "ident_names_of"
-    )
+  filter_map
+    (function IdentExpr name -> Some name | _ -> None)
+    lst
 
 and alias_names_of lst =
   List.map (function
@@ -109,14 +112,15 @@ and alias_names_of lst =
     | _ -> failwith "invalid argument:alias_names_of") lst
 
 and nargs_of env ctx args =
-  List.filter (function KeywordExpr(_,_) -> false | _ -> true) args |>
-    List.map (value_of_expr env ctx)
+  filter_map
+    (function KeywordExpr _ -> None | x -> Some (value_of_expr env ctx x))
+    args
 
 and kwargs_of env ctx args =
-  List.filter (function KeywordExpr(_,_) -> true | _ -> false) args |>
-    List.map (function
-      | KeywordExpr(IdentExpr(name), expr) -> (name, value_of_expr env ctx expr)
-      | _ -> failwith "invalid keyword args found")
+  filter_map
+    (function KeywordExpr(IdentExpr(name), expr) -> Some (name, value_of_expr env ctx expr)
+            | _ -> None)
+    args
 
 and eval_macro env ctx name args kwargs macro =
   let caller = match jg_get_macro ctx "caller" with None -> false | _ -> true in
@@ -135,7 +139,7 @@ and eval_statement env ctx = function
 
   | ExpandStatement(expr) ->
     jg_output ctx (value_of_expr env ctx expr) ~autoescape:env.autoescape ~safe:(is_safe_expr expr)
-      
+
   | SetStatement(SetExpr(ident_list), expr) ->
     jg_bind_names ctx (ident_names_of ident_list) (value_of_expr env ctx expr)
 
@@ -201,8 +205,7 @@ and eval_statement env ctx = function
 
   | WithStatement(binds, statements) ->
     let kwargs = kwargs_of env ctx binds in
-    let names = List.map fst kwargs in
-    let values = List.map snd kwargs in
+    let names, values = List.split kwargs in
     let ctx = jg_push_frame ctx in
     let ctx = jg_set_values ctx names values in
     let ctx = List.fold_left (eval_statement env) ctx statements in
@@ -219,7 +222,7 @@ and eval_statement env ctx = function
 	  failwith "invalid syntax:autoescape(bool value required)" in
     let ctx = List.fold_left (eval_statement env) ctx statements in
     jg_pop_filter ctx
-      
+
   | _ -> ctx
 
 and unfold_extends env ctx stmts =
@@ -230,7 +233,7 @@ and unfold_extends env ctx stmts =
     | other :: rest -> iter (ret @ [other]) rest
     | [] -> ret in
   iter [] stmts
-    
+
 and align_block stmts =
   let is_same_block name = function
     | BlockStatement(IdentExpr(name'),_) -> name' = name
@@ -249,7 +252,7 @@ and align_block stmts =
 
   iter [] stmts
 
-and reset_interp () = 
+and reset_interp () =
   Parsing.clear_parser ()
 
 and import_macro ?namespace ?select env ctx codes =
@@ -262,16 +265,16 @@ and import_macro ?namespace ?select env ctx codes =
 	let arg_names = ident_names_of def_args in
 	let kwargs = kwargs_of env ctx def_args in
 	jg_set_macro ctx (macro_name @@ alias_name name) @@ Macro(arg_names, kwargs, statements)
-	  
+
       | BlockStatement(_, stmts) ->
 	import_macro env ctx ?namespace ?select stmts
-	  
+
       | IncludeStatement(LiteralExpr(Tstr path), _) ->
 	import_macro env ctx ?namespace ?select @@ statements_from_file env ctx path
 
       | ImportStatement(path, namespace) ->
 	import_macro env ctx ?namespace ?select @@ statements_from_file env ctx path
-	  
+
       | FromImportStatement(path, select_macros) ->
 	let alias_names = alias_names_of select_macros in
 	import_macro env ctx ?namespace ?select:(Some alias_names) @@ statements_from_file env ctx path
