@@ -794,12 +794,7 @@ let jg_sum lst kwargs =
 
 let jg_trim str kwargs =
   match str with
-    | Tstr str ->
-      let head_white = Pcre.regexp "^\\s+" in
-      let tail_white = Pcre.regexp "\\s+$" in
-      let str = Pcre.replace ~rex:head_white ~templ:"" str in
-      let str = Pcre.replace ~rex:tail_white ~templ:"" str in
-      Tstr str
+    | Tstr str -> Tstr (String.trim str)
     | _ -> failwith "invalid args: not string(jg_trim)"
 
 let jg_list value kwargs =
