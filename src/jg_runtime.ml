@@ -205,13 +205,16 @@ let jg_bind_names ctx names values =
     | name :: rest, Tset values -> jg_set_values ctx names values
     | _ -> ctx
 
-let rec force x = match Lazy.force x with Tlazy x -> force x | x -> x
+let rec jg_force x =
+  match Lazy.force x with
+  | Tlazy x -> jg_force x
+  | x -> x
 
 let rec jg_get_value ctx name =
   let rec get_value name = function
     | frame :: rest ->
       (match Hashtbl.find frame name with
-       | Tlazy x -> force x
+       | Tlazy x -> jg_force x
        | x -> x
        | exception Not_found -> get_value name rest)
     | [] -> Tnull in
