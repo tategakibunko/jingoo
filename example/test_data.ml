@@ -12,6 +12,8 @@ let rec lazy_model n =
                             | "next" -> lazy_model (n + 1)
                             | _ -> raise Not_found ) ) )
 
+let volatile = ref false
+
 let models = [
   ("msg", Tstr "hello world");
   ("list1", Tlist [Tint 1]);
@@ -29,6 +31,9 @@ let models = [
   ]);
   ("hash1", build_ht ());
   ("array1", Tarray [| Tstr "this"; Tstr "is"; Tstr "from"; Tstr "array" |]);
-  ("lazy", lazy_model 0)
-] 
-;;
+  ("lazy", lazy_model 0);
+  ("volatile", Tvolatile (fun () -> !volatile))
+]
+
+let _ = volatile := true
+

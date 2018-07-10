@@ -406,9 +406,21 @@ hoge == "ok" and hage == "ng"
 [PR#34] [PR#35] Laziness
 ========================
 {% if lazy.next.next.next.next.prev.cur == 3 %}
-   Laziness if awesome :)
+   Laziness is awesome :)
 {% else %}
-   Laziness if broken :(
+   Laziness is broken :(
+{% endif %}
+
+{# end of 'main' block #}
+{% endblock %}
+
+
+[PR#36] Volatile
+========================
+{% if volatile %}
+   Volatile works fine :)
+{% else %}
+   Volatile is broken :(
 {% endif %}
 
 {# end of 'main' block #}
