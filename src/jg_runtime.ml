@@ -89,6 +89,7 @@ let string_of_tvalue = function
   | Tnull -> ""
   | Tarray _ -> "<array>"
   | Tlazy _ -> "<lazy>"
+  | Tvolatile x -> "<volatile>"
 
 let type_string_of_tvalue = function
   | Tint x -> "int"
@@ -104,6 +105,7 @@ let type_string_of_tvalue = function
   | Tnull -> "null"
   | Tarray _ -> "array"
   | Tlazy _ -> "lazy"
+  | Tvolatile _ -> "volatile"
 
 let dump_expr = function
   | IdentExpr(str) -> spf "IdentExpr(%s)" str
@@ -208,6 +210,13 @@ let jg_bind_names ctx names values =
 let rec jg_force x =
   match Lazy.force x with
   | Tlazy x -> jg_force x
+  | Tvolatile x -> jg_get_volatile x
+  | x -> x
+
+and jg_get_volatile x =
+  match x () with
+  | Tlazy x -> jg_force x
+  | Tvolatile x -> jg_get_volatile x
   | x -> x
 
 let rec jg_get_value ctx name =
@@ -215,6 +224,7 @@ let rec jg_get_value ctx name =
     | frame :: rest ->
       (match Hashtbl.find frame name with
        | Tlazy x -> jg_force x
+       | Tvolatile x -> jg_get_volatile x
        | x -> x
        | exception Not_found -> get_value name rest)
     | [] -> Tnull in
@@ -281,6 +291,7 @@ let rec jg_obj_lookup ctx obj prop_name =
     | Thash(hash) -> (try Hashtbl.find hash prop_name with Not_found -> Tnull)
     | Tpat(fn) -> (try fn prop_name with Not_found -> Tnull)
     | Tlazy l -> jg_obj_lookup ctx (jg_force l) prop_name
+    | Tvolatile x -> jg_get_volatile x
     | _ -> failwith ("jg_obj_lookup:not object when looking for '"  ^ prop_name ^ "'")
 
 let jg_obj_lookup_by_name ctx obj_name prop_name =
@@ -426,6 +437,7 @@ let jg_is_true = function
   | Tfun(f) -> failwith "jg_is_true:type error(function)"
   | Tarray a -> Array.length a > 0
   | Tlazy _ -> failwith "jg_is_true:type error(lazy)"
+  | Tvolatile _ -> failwith "jg_is_true:type error(volatile)"
 
 let jg_not x =
   Tbool (not (jg_is_true x))
