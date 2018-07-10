@@ -192,26 +192,16 @@ let jg_bind_names ctx names values =
     | name :: rest, Tset values -> jg_set_values ctx names values
     | _ -> ctx
 
-let rec jg_force x =
-  match Lazy.force x with
-  | Tlazy x -> jg_force x
-  | Tvolatile x -> jg_get_volatile x
-  | x -> x
-
-and jg_get_volatile x =
-  match x () with
-  | Tlazy x -> jg_force x
-  | Tvolatile x -> jg_get_volatile x
+let rec jg_force = function
+  | Tlazy x -> jg_force (Lazy.force x)
+  | Tvolatile x -> jg_force (x ())
   | x -> x
 
 let rec jg_get_value ctx name =
   let rec get_value name = function
     | frame :: rest ->
-      (match Hashtbl.find frame name with
-       | Tlazy x -> jg_force x
-       | Tvolatile x -> jg_get_volatile x
-       | x -> x
-       | exception Not_found -> get_value name rest)
+      (try jg_force (Hashtbl.find frame name)
+       with Not_found -> get_value name rest)
     | [] -> Tnull in
   get_value name ctx.frame_stack
 
@@ -271,12 +261,12 @@ let jg_output ?(autoescape=true) ?(safe=false) ctx value =
   ctx
 
 let rec jg_obj_lookup ctx obj prop_name =
+  jg_force @@
   match obj with
     | Tobj(alist) -> (try List.assoc prop_name alist with Not_found -> Tnull)
     | Thash(hash) -> (try Hashtbl.find hash prop_name with Not_found -> Tnull)
     | Tpat(fn) -> (try fn prop_name with Not_found -> Tnull)
-    | Tlazy l -> jg_obj_lookup ctx (jg_force l) prop_name
-    | Tvolatile x -> jg_get_volatile x
+    | Tlazy _ | Tvolatile _ -> jg_obj_lookup ctx (jg_force obj) prop_name
     | _ -> failwith ("jg_obj_lookup:not object when looking for '"  ^ prop_name ^ "'")
 
 let jg_obj_lookup_by_name ctx obj_name prop_name =
