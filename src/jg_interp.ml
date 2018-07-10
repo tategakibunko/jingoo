@@ -27,8 +27,10 @@ let rec value_of_expr env ctx = function
   | PowerOpExpr(left, right) -> jg_power (value_of_expr env ctx left) (value_of_expr env ctx right)
   | DivOpExpr(left, right) -> jg_div (value_of_expr env ctx left) (value_of_expr env ctx right)
   | ModOpExpr(left, right) -> jg_mod (value_of_expr env ctx left) (value_of_expr env ctx right)
-  | AndOpExpr(left, right) -> jg_and (value_of_expr env ctx left) (value_of_expr env ctx right)
-  | OrOpExpr(left, right) -> jg_or (value_of_expr env ctx left) (value_of_expr env ctx right)
+  | AndOpExpr(left, right) ->
+    Tbool (jg_is_true (value_of_expr env ctx left) && jg_is_true (value_of_expr env ctx right))
+  | OrOpExpr(left, right) ->
+    Tbool (jg_is_true (value_of_expr env ctx left) || jg_is_true (value_of_expr env ctx right))
   | EqEqOpExpr(left, right) -> jg_eq_eq (value_of_expr env ctx left) (value_of_expr env ctx right)
   | NotEqOpExpr(left, right) -> jg_not_eq (value_of_expr env ctx left) (value_of_expr env ctx right)
   | LtOpExpr(left, right) -> jg_lt (value_of_expr env ctx left) (value_of_expr env ctx right)
