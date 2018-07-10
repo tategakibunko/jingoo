@@ -60,21 +60,6 @@ let unbox_pat = function
   | Tpat pat -> pat
   | _ -> failwith "invalid arg:not hahs(unbox_pat)"
 
-let merge_defaults defaults kwargs =
-  List.map (fun (name, value) ->
-    try (name, List.assoc name kwargs) with Not_found -> (name, value)
-  ) defaults
-
-let union_defaults defaults kwargs =
-  let rec append alist = function
-    | (name, value) :: rest ->
-      if List.mem_assoc name alist then
-	append alist rest
-      else
-	append ((name,value) :: alist) rest
-    | [] -> alist in
-  append (merge_defaults defaults kwargs) kwargs
-
 let string_of_tvalue = function
   | Tint x -> string_of_int x
   | Tfloat x -> string_of_float x
@@ -361,34 +346,35 @@ let jg_iter ctx iterator f iterable =
   | _ -> ()
 
 let jg_eval_macro ?(caller=false) env ctx macro_name args kwargs macro f =
-  match macro with
-    | Macro(arg_names, defaults, code) ->
-      let args_len = List.length args in
-      let arg_names_len = List.length arg_names in
-      let ctx = jg_push_frame ctx in
-      let ctx = jg_set_value ctx "varargs" @@ Tlist (Jg_utils.after arg_names_len args) in
-      let ctx = jg_set_value ctx "kwargs" @@ Tobj kwargs in
-      let ctx = jg_set_value ctx macro_name @@ Tpat (function
-          | "name" -> Tstr macro_name
-          | "arguments" -> Tlist (List.map box_string arg_names)
-          | "defaults" -> Tobj defaults
-          | "catch_kwargs" -> Tbool (kwargs <> [])
-          | "catch_vargs" -> Tbool (args_len > arg_names_len)
-          | "caller" -> Tbool caller
-          | _ -> raise Not_found
-        ) in
-      let ctx = List.fold_left (fun ctx (name, value) ->
-	jg_set_value ctx name value
-      ) ctx @@ List.combine arg_names (Jg_utils.take arg_names_len args ~pad:Tnull) in
-      let ctx = List.fold_left (fun ctx (name, value) ->
-	jg_set_value ctx name value
-      ) ctx @@ merge_defaults defaults kwargs in
-      let ctx = List.fold_left (fun ctx (name, value) ->
-	try jg_set_value ctx name @@ List.assoc name kwargs with Not_found ->
-	  jg_set_value ctx name value
-      ) ctx defaults in
-      let ctx = f ctx code in
-      jg_pop_frame ctx
+  let Macro (arg_names, defaults, code) = macro in
+  let args_len = List.length args in
+  let arg_names_len = List.length arg_names in
+  let ctx' = jg_push_frame ctx in
+  let ctx' = jg_set_value ctx' "varargs" @@ Tlist (Jg_utils.after arg_names_len args) in
+  let ctx' = jg_set_value ctx' "kwargs" @@ Tobj kwargs in
+  let ctx' = jg_set_value ctx' macro_name @@ Tpat (function
+      | "name" -> Tstr macro_name
+      | "arguments" -> Tlist (List.map box_string arg_names)
+      | "defaults" -> Tobj defaults
+      | "catch_kwargs" -> Tbool (kwargs <> [])
+      | "catch_vargs" -> Tbool (args_len > arg_names_len)
+      | "caller" -> Tbool caller
+      | _ -> raise Not_found
+    ) in
+  let ctx' = List.fold_left2 (fun ctx' name value ->
+      jg_set_value ctx' name value
+    ) ctx' arg_names (Jg_utils.take arg_names_len args ~pad:Tnull) in
+  let ctx' = List.fold_left (fun ctx' (name, value) ->
+      jg_set_value ctx' name value
+    ) ctx' @@ List.map (fun (name, value) ->
+      try (name, List.assoc name kwargs) with Not_found -> (name, value)
+    ) defaults in
+  let ctx' = List.fold_left (fun ctx' (name, value) ->
+      try jg_set_value ctx' name @@ List.assoc name kwargs with Not_found ->
+	jg_set_value ctx' name value
+    ) ctx' defaults in
+  let _ = f ctx' code in
+  ctx
 
 let jg_test_defined ctx name =
   match jg_get_value ctx name with
