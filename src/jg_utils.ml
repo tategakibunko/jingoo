@@ -49,11 +49,46 @@ let rec substring base count str =
     UTF8.sub str base count
 
 let escape_html str =
-  let str = Pcre.qreplace ~rex:(Pcre.regexp "&") ~templ:"&amp;" str in
-  let str = Pcre.qreplace ~rex:(Pcre.regexp "\"") ~templ:"&quot;" str in
-  let str = Pcre.qreplace ~rex:(Pcre.regexp "<") ~templ:"&lt;" str in
-  let str = Pcre.qreplace ~rex:(Pcre.regexp ">") ~templ:"&gt;" str in
-    str
+  let buflen = ref 0 in
+  let strlen = ref 0 in
+  String.iter (fun c ->
+      incr strlen ;
+      match c with
+      | '&' -> buflen := !buflen + 5 (* "&amp;" *)
+      | '"' -> buflen := !buflen + 6 (* "&quot;" *)
+      | '<' -> buflen := !buflen + 4 (* "&lt;" *)
+      | '>' -> buflen := !buflen + 4 (* "&gt;" *)
+      | _ -> incr buflen
+    ) str ;
+  if !buflen = !strlen then str
+  else
+    let buf = Bytes.create !buflen in
+    let i = ref 0 in
+    let len = ref 0 in
+    let j = ref 0 in
+    let copy () =
+      if !len <> 0 then begin
+        Bytes.blit_string str !i buf !j !len ;
+        j := !j + !len ;
+        i := !i + !len ;
+        len := 0
+      end
+    in
+    let add_string s =
+      let len = String.length s in
+      Bytes.blit_string s 0 buf !j len ;
+      j := !j + len
+    in
+    String.iter (fun c ->
+        match c with
+        | '&' -> copy () ; add_string "&amp;" ; incr i
+        | '"' -> copy () ; add_string "&quot;" ; incr i
+        | '<' -> copy () ; add_string "&lt;" ; incr i
+        | '>' -> copy () ; add_string "&gt;" ; incr i
+        | _ -> incr len
+      ) str ;
+    copy () ;
+    Bytes.unsafe_to_string buf
 
 let chomp str =
   Pcre.qreplace ~rex:(Pcre.regexp "\\n+$") ~templ:"" str
