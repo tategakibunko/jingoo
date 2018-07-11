@@ -95,17 +95,17 @@ let chomp str =
 
 let is_lower str =
   try
-    ignore @@ Pcre.exec ~rex:(Pcre.regexp "[A-Z]+") str;
-    false
+    String.iter (function 'A'..'Z' -> raise Not_found | _ -> ()) str ;
+    true
   with
-      Not_found -> true
+    Not_found -> false
 
 let is_upper str =
   try
-    ignore @@ Pcre.exec ~rex:(Pcre.regexp "[a-z]+") str;
-    false
+    String.iter (function 'a'..'z' -> raise Not_found | _ -> ()) str ;
+    true
   with
-      Not_found -> true
+    Not_found -> false
 
 let rec take ?pad n lst =
   match n, lst, pad with
