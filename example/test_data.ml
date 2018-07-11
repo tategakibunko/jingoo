@@ -32,7 +32,7 @@ let models = [
   ("hash1", build_ht ());
   ("array1", Tarray [| Tstr "this"; Tstr "is"; Tstr "from"; Tstr "array" |]);
   ("lazy", lazy_model 0);
-  ("volatile", Tvolatile (fun () -> !volatile))
+  ("volatile", Tvolatile (fun () -> Tbool !volatile))
 ]
 
 let _ = volatile := true
