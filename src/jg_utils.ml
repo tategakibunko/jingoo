@@ -54,10 +54,7 @@ let escape_html str =
   String.iter (fun c ->
       incr strlen ;
       match c with
-      | '&' -> buflen := !buflen + 5 (* "&amp;" *)
-      | '"' -> buflen := !buflen + 6 (* "&quot;" *)
-      | '<' -> buflen := !buflen + 4 (* "&lt;" *)
-      | '>' -> buflen := !buflen + 4 (* "&gt;" *)
+      | '&' | '"' | '<' | '>' -> buflen := !buflen + 5 (* "&#xx;" *)
       | _ -> incr buflen
     ) str ;
   if !buflen = !strlen then str
@@ -75,16 +72,17 @@ let escape_html str =
       end
     in
     let add_string s =
-      let len = String.length s in
-      Bytes.blit_string s 0 buf !j len ;
-      j := !j + len
+      copy () ;
+      Bytes.blit_string s 0 buf !j 5 ;
+      j := !j + 5 ;
+      incr i
     in
     String.iter (fun c ->
         match c with
-        | '&' -> copy () ; add_string "&amp;" ; incr i
-        | '"' -> copy () ; add_string "&quot;" ; incr i
-        | '<' -> copy () ; add_string "&lt;" ; incr i
-        | '>' -> copy () ; add_string "&gt;" ; incr i
+        | '&' -> add_string "&#38;"
+        | '"' -> add_string "&#34;"
+        | '<' -> add_string "&#60;"
+        | '>' -> add_string "&#62;"
         | _ -> incr len
       ) str ;
     copy () ;

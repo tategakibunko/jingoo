@@ -12,10 +12,10 @@ let tval_equal t1 t2 =
     | _ -> failwith "tval_equal:invalid op"
 
 let test_escape ctx =
-  assert_equal (Tstr "&lt;script&gt;") (jg_escape_html (Tstr "<script>") kwargs);
-  assert_equal (Tstr "&quot;&quot;") (jg_escape_html (Tstr "\"\"") kwargs);
+  assert_equal (Tstr "&#60;script&#62;") (jg_escape_html (Tstr "<script>") kwargs);
+  assert_equal (Tstr "&#34;&#34;") (jg_escape_html (Tstr "\"\"") kwargs);
   assert_equal
-    (Tstr "Lo&amp;rem&gt;\n I&lt;ps&quot;um")
+    (Tstr "Lo&#38;rem&#62;\n I&#60;ps&#34;um")
     (jg_escape_html (Tstr "Lo&rem>\n I<ps\"um") kwargs);
 ;;
 
