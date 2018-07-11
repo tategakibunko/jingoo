@@ -38,7 +38,13 @@ let test_if test_ctxt =
   assert_interp ~test_ctxt source ~models:["x", Tint 2] "two";
   assert_interp ~test_ctxt source ~models:["x", Tint 4] "three";
 ;;
-  
+
+let test_and_or test_ctxt =
+  assert_interp ~test_ctxt "{% if undefined and undefined.foo %}foo{% endif %}" "";
+  assert_interp ~test_ctxt
+    ~models:[ ("foo", Tbool true) ; ("bar", Tvolatile (fun () -> assert false)) ]
+    "{% if foo or bar %}foo{% endif %}" "foo"
+
 let test_for test_ctxt =
   assert_interp ~test_ctxt
     "{% for i in range(1,3) %}{{i}}{% endfor %}"
@@ -199,6 +205,7 @@ let suite = "runtime test" >::: [
   "test_expand_safe" >:: test_expand_safe;
   "test_expand_filter" >:: test_expand_filter;
   "test_if" >:: test_if;
+  "test_and_or" >:: test_and_or;
   "test_for" >:: test_for;
   "test_loop_index" >:: test_loop_index;
   "test_loop_index0" >:: test_loop_index0;

@@ -41,6 +41,7 @@ and tvalue =
   | Tfun of (args -> kwargs -> tvalue)
   | Tarray of tvalue array
   | Tlazy of tvalue Lazy.t
+  | Tvolatile of (unit -> tvalue)
 and args = tvalue list
 and kwargs = (string * tvalue) list
 
