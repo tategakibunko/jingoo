@@ -12,6 +12,7 @@ o [PR#31] Added Tarray type.
 o [PR#33] Fixed lexer line update, better error message, fail on unclosed statements.
 o [PR#28] Added Tpat data structure: object base on string pattern matching.
 o [PR#34] Added Tlazy constructor.
+o [PR#36] Added Tvolatile contructor.
 
 version: 1.2.17, 2018-07-03
 ===========================
