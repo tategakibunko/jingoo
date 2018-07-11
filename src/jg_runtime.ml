@@ -422,15 +422,15 @@ let jg_plus left right =
   match left, right with
     | Tint x1, Tint x2 -> Tint(x1+x2)
     | Tint x1, Tfloat x2 -> Tfloat(float_of_int x1+.x2)
-    | Tint x1, Tstr x2 -> Tstr (String.concat "" [string_of_int x1; x2])
+    | Tint x1, Tstr x2 -> Tstr (string_of_int x1 ^ x2)
 
     | Tfloat x1, Tfloat x2 -> Tfloat(x1+.x2)
     | Tfloat x1, Tint x2 -> Tfloat(x1+.float_of_int x2)
-    | Tfloat x1, Tstr x2 -> Tstr (String.concat "" [string_of_float x1; x2])
+    | Tfloat x1, Tstr x2 -> Tstr (string_of_float x1 ^ x2)
 
-    | Tstr x1, Tstr x2 -> Tstr (String.concat "" [x1; x2])
-    | Tstr x1, Tint x2 -> Tstr (String.concat "" [x1; string_of_int x2])
-    | Tstr x1, Tfloat x2 -> Tstr (String.concat "" [x1; string_of_float x2])
+    | Tstr x1, Tstr x2 -> Tstr (x1 ^ x2)
+    | Tstr x1, Tint x2 -> Tstr (x1 ^ string_of_int x2)
+    | Tstr x1, Tfloat x2 -> Tstr (x1 ^ string_of_float x2)
 
     | _, _ -> failwith "jg_plus:type error"
 
