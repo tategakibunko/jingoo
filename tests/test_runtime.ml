@@ -207,7 +207,8 @@ let test_slice ctx =
 let test_wordcount ctx =
   assert_equal (jg_wordcount (Tstr "hoge hige hage") kwargs) (Tint 3);
   assert_equal (jg_wordcount (Tstr "hoge") kwargs) (Tint 1);
-  assert_equal (jg_wordcount (Tstr "") kwargs) (Tint 0)
+  assert_equal (jg_wordcount (Tstr "") kwargs) (Tint 0);
+  assert_equal (jg_wordcount (Tstr "日　本　語") kwargs) (Tint 3)
 ;;
 
 let test_round ctx =
