@@ -3,11 +3,15 @@ open Jg_utils
 open Jg_types
 open Jg_runtime
 
-let assert_interp ~test_ctxt ?(models=[]) source exp_output =
-  let output = Jg_template.from_string source ~models in
+let assert_interp ~test_ctxt ?(env=std_env) ?(models=[]) source expected =
+  let output = Jg_template.from_string source ~env ~models in
   logf test_ctxt `Info "Source: %S" source;
   logf test_ctxt `Info "Output: %S" output;
-  assert_equal output exp_output
+  assert_equal output expected
+;;
+
+let assert_interp_raises ~test_ctxt ?(env=std_env) ?(models=[]) source error =
+  assert_raises error (fun _ -> ignore (Jg_template.from_string source ~env ~models))
 ;;
 
 let test_expand_escape test_ctxt =
@@ -200,6 +204,11 @@ let test_white_space_control test_ctxt =
   assert_interp ~test_ctxt "\n{%- set x = 1 -%}\n" ""
 ;;
 
+let test_invalid_iterable test_ctxt =
+  let source = "{% for i in 3 %}{{i}}{% endfor %}" in
+  assert_interp ~test_ctxt ~env:{std_env with strict_mode = false} source "";
+  assert_interp_raises ~test_ctxt ~env:{std_env with strict_mode = true} source (Failure "3 is not iterable")
+
 let suite = "runtime test" >::: [
   "test_expand_escape" >:: test_expand_escape;
   "test_expand_safe" >:: test_expand_safe;
@@ -226,5 +235,6 @@ let suite = "runtime test" >::: [
   "test_is" >:: test_is;
   "test_with" >:: test_with;
   "test_white_space_control" >:: test_white_space_control;
+  "test_invalid_iterable" >:: test_invalid_iterable;
 ]
 ;;

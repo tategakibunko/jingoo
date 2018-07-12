@@ -157,15 +157,21 @@ and eval_statement env ctx = function
       | [] -> false_statements in
     List.fold_left (eval_statement env) ctx @@ select_case if_elseif_conds
 
-  | ForStatement(iterator, list_expr, statements) ->
+  | ForStatement(iterator, iterable_expr, statements) ->
     let iterator =
       match iterator with
 	| IdentExpr(name) -> [name]
 	| SetExpr(lst) -> ident_names_of lst
 	| _ -> failwith "invalid iterator" in
+    let iterable = value_of_expr env ctx iterable_expr in
+    let is_iterable = Jg_runtime.is_iterable iterable in
+    (* [ISSUE#23] when strict_mode is enabled, raises error if loop target is not iterable. *)
+    if env.strict_mode = true && is_iterable = false then
+      failwith @@ spf "%s is not iterable" (string_of_tvalue iterable)
+    ;
     jg_iter ctx iterator (fun ctx ->
       ignore @@ List.fold_left (eval_statement env) ctx statements
-    ) @@ (value_of_expr env ctx list_expr) ;
+    ) iterable;
     ctx
 
   | BlockStatement(IdentExpr(name), statements) ->

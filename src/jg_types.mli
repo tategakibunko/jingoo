@@ -14,6 +14,19 @@ type environment = {
       if true, template variables are auto escaped when output.
   *)
 
+  strict_mode : bool;
+  (** [defualt: false]
+      if true, strict type cheking is enabled.
+      if false, some kind of invalid type usages are just ignored.
+      for example, following expression throws exception if strict_mode is true,
+      but skipped if strict_mode = false.
+
+      {# 3(Tint) is not iterable #}
+      {% for item in 3 %}
+        {{ item }}
+      {% endfor %}
+  *)
+
   template_dirs : string list;
   (** [default: empty list]
       define template search path list.

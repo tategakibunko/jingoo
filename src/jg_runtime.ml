@@ -122,6 +122,10 @@ let dump_expr = function
   | ApplyExpr(_,_) -> "ApplyExpr"
   | TestOpExpr(_,_) -> "TestOpExpr"
 
+let is_iterable = function
+  | Tlist _ | Tset _ | Thash _ | Tobj _ | Tarray _ | Tstr _ -> true
+  | _ -> false
+
 let jg_strp = function
   | Tstr _ -> Tbool true
   | _ -> Tbool false
@@ -936,9 +940,7 @@ let jg_test_odd x kwargs =
     | _ -> Tbool(false)
 
 let jg_test_iterable x kwargs =
-  match x with
-    | Tlist _ | Tset _ | Thash _ | Tobj _ | Tarray _ | Tstr _ -> Tbool(true)
-    | _ -> Tbool(false)
+  Tbool (is_iterable x)
 
 let jg_test_lower x kwargs =
   match x with

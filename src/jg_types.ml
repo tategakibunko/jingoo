@@ -10,6 +10,7 @@ exception SyntaxError of string
 
 type environment = {
   autoescape : bool;
+  strict_mode : bool;
   template_dirs : string list;
   filters : (string * tvalue) list;
   extensions : string list;
@@ -102,6 +103,7 @@ and arguments = expression list
 
 let std_env = {
   autoescape = true;
+  strict_mode = false;
   template_dirs = [];
   filters = [];
   extensions = [];

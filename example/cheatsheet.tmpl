@@ -167,6 +167,10 @@ syntax test "is"
 6 is divisibleby 2 = {{ 6 is divisibleby 2 }}
 6 is divisibleby 3 via func = {{ divisibleby(3,6) }}
 
+3 is iterable = {% 3 is iterable %}
+[1,2,3] is iterable = {% [1,2,3] is iterable %}
+"hoge" is iterable = {% "hoge" is iterable %}
+
 macro test
 ==========
 
