@@ -93,7 +93,7 @@
 }
 
 let blank = [ ' ' '\t' ]
-let ident_first_char = [ 'A'-'Z' 'a'-'z' ]
+let ident_first_char = [ 'A'-'Z' 'a'-'z' '_' ]
 let ident_char =  [ 'A'-'Z' 'a'-'z' '_' '0'-'9' ]
 let int_literal = ['0'-'9'] ['0'-'9']*
 let float_literal = ['0'-'9']+('.' ['0'-'9']*)? (['e' 'E'] ['+' '-']? ['0'-'9']+)?
