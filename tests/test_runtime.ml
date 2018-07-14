@@ -12,7 +12,11 @@ let tval_equal t1 t2 =
     | _ -> failwith "tval_equal:invalid op"
 
 let test_escape ctx =
-  assert_equal (Tstr "&lt;script&gt;") (jg_escape_html (Tstr "<script>") kwargs)
+  assert_equal (Tstr "&#60;script&#62;") (jg_escape_html (Tstr "<script>") kwargs);
+  assert_equal (Tstr "&#34;&#34;") (jg_escape_html (Tstr "\"\"") kwargs);
+  assert_equal
+    (Tstr "Lo&#38;rem&#62;\n I&#60;ps&#34;um")
+    (jg_escape_html (Tstr "Lo&rem>\n I<ps\"um") kwargs);
 ;;
 
 let test_string_of_tvalue ctx =
@@ -203,7 +207,8 @@ let test_slice ctx =
 let test_wordcount ctx =
   assert_equal (jg_wordcount (Tstr "hoge hige hage") kwargs) (Tint 3);
   assert_equal (jg_wordcount (Tstr "hoge") kwargs) (Tint 1);
-  assert_equal (jg_wordcount (Tstr "") kwargs) (Tint 0)
+  assert_equal (jg_wordcount (Tstr "") kwargs) (Tint 0);
+  assert_equal (jg_wordcount (Tstr "日　本　語") kwargs) (Tint 3)
 ;;
 
 let test_round ctx =

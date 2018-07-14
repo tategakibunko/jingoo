@@ -49,28 +49,61 @@ let rec substring base count str =
     UTF8.sub str base count
 
 let escape_html str =
-  let str = Pcre.qreplace ~rex:(Pcre.regexp "&") ~templ:"&amp;" str in
-  let str = Pcre.qreplace ~rex:(Pcre.regexp "\"") ~templ:"&quot;" str in
-  let str = Pcre.qreplace ~rex:(Pcre.regexp "<") ~templ:"&lt;" str in
-  let str = Pcre.qreplace ~rex:(Pcre.regexp ">") ~templ:"&gt;" str in
-    str
+  let buflen = ref 0 in
+  let strlen = ref 0 in
+  String.iter (fun c ->
+      incr strlen ;
+      match c with
+      | '&' | '"' | '<' | '>' -> buflen := !buflen + 5 (* "&#xx;" *)
+      | _ -> incr buflen
+    ) str ;
+  if !buflen = !strlen then str
+  else
+    let buf = Bytes.create !buflen in
+    let i = ref 0 in
+    let len = ref 0 in
+    let j = ref 0 in
+    let copy () =
+      if !len <> 0 then begin
+        Bytes.blit_string str !i buf !j !len ;
+        j := !j + !len ;
+        i := !i + !len ;
+        len := 0
+      end
+    in
+    let add_string s =
+      copy () ;
+      Bytes.blit_string s 0 buf !j 5 ;
+      j := !j + 5 ;
+      incr i
+    in
+    String.iter (fun c ->
+        match c with
+        | '&' -> add_string "&#38;"
+        | '"' -> add_string "&#34;"
+        | '<' -> add_string "&#60;"
+        | '>' -> add_string "&#62;"
+        | _ -> incr len
+      ) str ;
+    copy () ;
+    Bytes.unsafe_to_string buf
 
 let chomp str =
   Pcre.qreplace ~rex:(Pcre.regexp "\\n+$") ~templ:"" str
 
 let is_lower str =
   try
-    ignore @@ Pcre.exec ~rex:(Pcre.regexp "[A-Z]+") str;
-    false
+    String.iter (function 'A'..'Z' -> raise Not_found | _ -> ()) str ;
+    true
   with
-      Not_found -> true
+    Not_found -> false
 
 let is_upper str =
   try
-    ignore @@ Pcre.exec ~rex:(Pcre.regexp "[a-z]+") str;
-    false
+    String.iter (function 'a'..'z' -> raise Not_found | _ -> ()) str ;
+    true
   with
-      Not_found -> true
+    Not_found -> false
 
 let rec take ?pad n lst =
   match n, lst, pad with
