@@ -405,9 +405,9 @@ let jg_negative = function
 
 let jg_is_true = function
   | Tbool x -> x
-  | Tstr x -> not (x = "")
+  | Tstr x -> x <> ""
   | Tint x -> x != 0
-  | Tfloat x -> x != 0.0
+  | Tfloat x -> (x > epsilon_float) || (x < -. epsilon_float)
   | Tlist x -> List.length x > 0
   | Tset x -> List.length x > 0
   | Tobj x -> List.length x > 0
