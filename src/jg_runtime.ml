@@ -123,7 +123,7 @@ let dump_expr = function
   | TestOpExpr(_,_) -> "TestOpExpr"
 
 let is_iterable = function
-  | Tlist _ | Tset _ | Thash _ | Tobj _ | Tarray _ | Tstr _ -> true
+  | Tlist _ | Tset _ | Thash _ | Tobj _ | Tarray _ | Tstr _ | Tnull-> true
   | _ -> false
 
 let jg_strp = function
