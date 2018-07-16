@@ -264,18 +264,18 @@ let jg_output ?(autoescape=true) ?(safe=false) ctx value =
   );
   ctx
 
-let rec jg_obj_lookup ctx obj prop_name =
+let rec jg_obj_lookup obj prop_name =
   jg_force @@
   match obj with
     | Tobj(alist) -> (try List.assoc prop_name alist with Not_found -> Tnull)
     | Thash(hash) -> (try Hashtbl.find hash prop_name with Not_found -> Tnull)
     | Tpat(fn) -> (try fn prop_name with Not_found -> Tnull)
-    | Tlazy _ | Tvolatile _ -> jg_obj_lookup ctx (jg_force obj) prop_name
+    | Tlazy _ | Tvolatile _ -> jg_obj_lookup (jg_force obj) prop_name
     | _ -> failwith ("jg_obj_lookup:not object when looking for '"  ^ prop_name ^ "'")
 
 let jg_obj_lookup_by_name ctx obj_name prop_name =
   match jg_get_value ctx obj_name with
-    | (Tobj _ | Thash _ | Tpat _) as obj -> jg_obj_lookup ctx obj prop_name
+    | (Tobj _ | Thash _ | Tpat _) as obj -> jg_obj_lookup obj prop_name
     | _ -> (try Jg_stub.get_func obj_name prop_name with Not_found -> Tnull)
 
 let jg_iter_mk_ctx ctx iterator itm len i =

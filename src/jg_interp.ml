@@ -41,10 +41,10 @@ let rec value_of_expr env ctx = function
   | ListExpr(expr_list) -> Tlist (List.map (value_of_expr env ctx) expr_list)
   | SetExpr(expr_list) -> Tset (List.map (value_of_expr env ctx) expr_list)
   | DotExpr(IdentExpr(name), prop) -> jg_obj_lookup_by_name ctx name prop
-  | DotExpr(left, prop) -> jg_obj_lookup ctx (value_of_expr env ctx left) prop
+  | DotExpr(left, prop) -> jg_obj_lookup (value_of_expr env ctx left) prop
   | BracketExpr(left, expr) ->
     (match value_of_expr env ctx expr with
-     | Tstr prop -> jg_obj_lookup ctx (value_of_expr env ctx left) prop
+     | Tstr prop -> jg_obj_lookup (value_of_expr env ctx left) prop
      | _ -> Tnull)
   | TestOpExpr(IdentExpr(name), IdentExpr("defined")) -> jg_test_defined ctx name
   | TestOpExpr(IdentExpr(name), IdentExpr("undefined")) -> jg_test_undefined ctx name
