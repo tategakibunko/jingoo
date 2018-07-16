@@ -468,6 +468,7 @@ let test_iterable ctx =
   assert_equal (jg_test_iterable (Tobj []) kwargs) (Tbool true);
   assert_equal (jg_test_iterable (Tlist []) kwargs) (Tbool true);
   assert_equal (jg_test_iterable (Tset []) kwargs) (Tbool true);
+  assert_equal (jg_test_iterable Tnull kwargs) (Tbool true);
 ;;
 
 let test_lower ctx =
