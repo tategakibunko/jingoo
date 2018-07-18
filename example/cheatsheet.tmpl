@@ -19,6 +19,12 @@ this is footer!
 {# main content #}
 {% block main %}
 
+{% set error = namespace (count=0) -%}
+
+{% macro assert (b) -%}
+  {% if not b %}{% set error.count = error.count + 1 %}{% endif %}
+{%- endmacro %}
+
 include test
 ============
 
@@ -55,6 +61,13 @@ set test
 set hoge = "ok"
 {% set hoge = "ok" %}
 now hoge = {{ hoge }}
+
+set foo, bar = ("foo", "bar")
+{% set foo, bar = ("foo", "bar") %}
+
+{{ assert (foo == 'foo' and bar == 'bar') }}
+foo -> {{ foo }}
+bar -> {{ bar }}
 
 if test
 =======
@@ -406,12 +419,12 @@ hoge == "ok" and hage == "ng"
 ========================
 {% for item in array1 %}{{item}} {% endfor %}
 
-
 [PR#34] [PR#35] Laziness
 ========================
 {% if lazy.next.next.next.next.prev.cur == 3 %}
    Laziness is awesome :)
 {% else %}
+  {{ assert (false) }}
    Laziness is broken :(
 {% endif %}
 
@@ -420,7 +433,32 @@ hoge == "ok" and hage == "ng"
 {% if volatile %}
    Volatile works fine :)
 {% else %}
+  {{ assert (false) }}
    Volatile is broken :(
+{% endif %}
+
+[PR#41] Basic namespace support
+========================
+{% set ns = namespace (foo=0, bar='bar') -%}
+
+{%- for i in [1,2,3] -%}
+  {%- set ns.foo = ns.foo + i -%}
+  {%- set ns.bar = ns.bar + i -%}
+{%- endfor -%}
+
+{%- if ns.foo == 6 and ns.bar == 'bar123' %}
+   Namespace works :)
+{%- else %}
+  {{ assert (false) }}
+   Namespace is broken :(
+{%- endif %}
+
+========================
+
+{% if error.count != 0 %}
+  {{ error.count }} error{% if error.count > 1 %}s{% endif %} detected
+{% else %}
+  No errors detected!
 {% endif %}
 
 {# end of 'main' block #}
