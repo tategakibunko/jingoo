@@ -112,7 +112,17 @@ stmts:
 stmt:
   expr { pel "expand expr"; ExpandStatement($1) }
 | error { raise @@ SyntaxError "expand stmt error" }
-| SET ident_list EQ expr { pel "set sts"; SetStatement(SetExpr($2), $4) }
+| SET ident DOT ident EQ expr { pel "set"; SetStatement (DotExpr ($2, ident_name $4), $6) }
+| SET ident_list EQ expr {
+      pel "set";
+      match $2, $4 with
+      | [ n ], ApplyExpr (IdentExpr "namespace", init) ->
+         let extract_assign = function
+           | KeywordExpr (n, v) -> (ident_name n, v)
+           | _ -> assert false in
+         NamespaceStatement (ident_name n, List.map extract_assign init)
+      | _ -> pel "set sts"; SetStatement(SetExpr($2), $4)
+    }
 | SET error { raise @@ SyntaxError "set" }
 | EXTENDS STRING { pel "extends sts"; ExtendsStatement($2) }
 | EXTENDS error { raise @@ SyntaxError "extends" }
