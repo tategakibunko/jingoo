@@ -58,6 +58,7 @@ type environment = {
 and context = {
   frame_stack : frame list;
   macro_table : (string, macro) Hashtbl.t;
+  namespace_table : (string, frame) Hashtbl.t;
   active_filters : string list;
   output : string -> unit;
 }
@@ -137,6 +138,7 @@ and statement =
   | CallStatement of expression * arguments * arguments * ast
   | WithStatement of expression list * ast
   | AutoEscapeStatement of expression * ast
+  | NamespaceStatement of string * (string * expression) list
 
 and expression =
     IdentExpr of string

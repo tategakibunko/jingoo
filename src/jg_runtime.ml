@@ -206,7 +206,9 @@ let rec jg_get_value ctx name =
     | frame :: rest ->
       (try jg_force (Hashtbl.find frame name)
        with Not_found -> get_value name rest)
-    | [] -> Tnull in
+    | [] ->
+      (try Thash (Hashtbl.find ctx.namespace_table name)
+       with Not_found -> Tnull) in
   get_value name ctx.frame_stack
 
 let jg_get_func ctx name =
@@ -1077,6 +1079,7 @@ let jg_init_context ?(models=[]) output env =
   ];
   { frame_stack = [model_frame; top_frame];
     macro_table = Hashtbl.create 10;
+    namespace_table = Hashtbl.create 10;
     active_filters = [];
     output
   }

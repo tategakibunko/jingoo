@@ -145,6 +145,11 @@ and eval_statement env ctx = function
   | SetStatement(SetExpr(ident_list), expr) ->
     jg_bind_names ctx (ident_names_of ident_list) (value_of_expr env ctx expr)
 
+  | SetStatement(DotExpr(IdentExpr ns, v), expr) ->
+    Hashtbl.add
+      (Hashtbl.find ctx.namespace_table ns) v (value_of_expr env ctx expr) ;
+    ctx
+
   | FilterStatement(IdentExpr(name), statements) ->
     let ctx = jg_set_filter ctx name in
     let ctx = List.fold_left (eval_statement env) ctx statements in
@@ -230,6 +235,13 @@ and eval_statement env ctx = function
 	  failwith "invalid syntax:autoescape(bool value required)" in
     let ctx = List.fold_left (eval_statement env) ctx statements in
     jg_pop_filter ctx
+
+  | NamespaceStatement (ns, assign) ->
+    let size = match List.length assign with 0 -> 10 | x -> x in
+    let h = Hashtbl.create size in
+    List.iter (fun (k, v) -> Hashtbl.add h k (value_of_expr env ctx v)) assign ;
+    Hashtbl.add ctx.namespace_table ns h ;
+    ctx
 
   | _ -> ctx
 
