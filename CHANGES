@@ -16,6 +16,7 @@ o [PR#36] Added Tvolatile contructor.
 o [PR#37] Optimize some operations on strings.
 * [PR#39] Fixed jg_is_true with float (used comparison with epsilon_float).
 * [PR#40] Treat Tnull iterable.
+o [PR#41] Added basic namespace support.
 o [ISSUE#23] Added strict_mode to environment.
 
 version: 1.2.17, 2018-07-03
