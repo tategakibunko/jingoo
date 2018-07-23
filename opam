@@ -11,5 +11,10 @@ build: [
 ]
 install: [make "install"]
 remove: ["ocamlfind" "remove" "jingoo"]
-depends: ["ocamlfind" "pcre" "uutf" "ounit"]
+depends: [
+  "ocamlfind" {build}
+  "pcre"
+  "uutf"
+  "ounit" {test}
+]
 available: [ocaml-version >= "4.02.0"]
