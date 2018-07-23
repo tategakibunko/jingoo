@@ -179,7 +179,7 @@ and eval_statement env ctx = function
     ) iterable;
     ctx
 
-  | BlockStatement(IdentExpr(name), statements) ->
+  | BlockStatement(_, statements) ->
     List.fold_left (eval_statement env) ctx statements
 
   | CallStatement(IdentExpr(name), call_args_def, macro_args, call_statements) ->
