@@ -19,6 +19,7 @@ let box_hash hash = Thash hash
 let box_array a = Tarray a
 let box_pat fn = Tpat fn
 let box_lazy z = Tlazy z
+let box_fun z = Tfun z
 
 let unbox_int = function
   | Tint x -> x
