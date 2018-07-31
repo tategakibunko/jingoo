@@ -406,7 +406,7 @@ let jg_negative = function
   | Tfloat x -> Tfloat(-.x)
   | _ -> failwith "jg_negative:type error"
 
-let jg_is_true = function
+let rec jg_is_true = function
   | Tbool x -> x
   | Tstr x -> x <> ""
   | Tint x -> x != 0
@@ -415,12 +415,12 @@ let jg_is_true = function
   | Tset x -> List.length x > 0
   | Tobj x -> List.length x > 0
   | Thash x -> Hashtbl.length x > 0
-  | Tpat _ -> failwith "jg_is_true:type error(pattern)"
+  | Tpat _ -> true
   | Tnull -> false
   | Tfun(f) -> failwith "jg_is_true:type error(function)"
   | Tarray a -> Array.length a > 0
-  | Tlazy _ -> failwith "jg_is_true:type error(lazy)"
-  | Tvolatile _ -> failwith "jg_is_true:type error(volatile)"
+  | Tlazy fn -> jg_is_true (Lazy.force fn)
+  | Tvolatile fn -> jg_is_true (fn ())
 
 let jg_not x =
   Tbool (not (jg_is_true x))
