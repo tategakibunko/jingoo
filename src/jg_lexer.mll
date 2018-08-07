@@ -263,11 +263,15 @@ rule main = parse
 
 and comment = parse
   | "#}" { main lexbuf }
-  | _ { comment lexbuf }
+  | _ as c {
+    if c = '\n' then Lexing.new_line lexbuf;
+    comment lexbuf
+  }
 
 and raw = parse
   | "{%" blank+ "endraw" blank+ "%}" { TEXT (get_buf()) }
   | _ as c {
+    if c = '\n' then Lexing.new_line lexbuf;
     add_char c;
     raw lexbuf
   }
