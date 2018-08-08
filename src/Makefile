@@ -10,7 +10,7 @@ OCAMLC:=ocamlfind ocamlc -g
 OCAMLOPT:=ocamlfind ocamlopt -g
 LIB_SRCS:=jg_types.mli jg_types.ml jg_utils.ml\
 	  jg_stub.mli jg_stub.ml \
-	  jg_parser.mli jg_parser.ml jg_lexer.ml \
+	  jg_parser.mli jg_parser.ml jg_lexer.ml jg_ast_mapper.ml \
 	  jg_runtime.ml jg_interp.ml \
 	  jg_template.mli jg_template.ml \
 

@@ -167,7 +167,7 @@ let rec get_file_path ?(template_dirs=[]) file_name =
 
 type mutex_pair = {
   mutable lock: unit -> unit;
-  mutable unlock: unit -> unit 
+  mutable unlock: unit -> unit
 }
 
 let lock_unlock = {

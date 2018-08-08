@@ -19,6 +19,7 @@ let box_hash hash = Thash hash
 let box_array a = Tarray a
 let box_pat fn = Tpat fn
 let box_lazy z = Tlazy z
+let box_fun z = Tfun z
 
 let unbox_int = function
   | Tint x -> x
@@ -217,15 +218,13 @@ let jg_get_func ctx name =
     | _ -> failwith @@ spf "undefined function %s" name
 
 let jg_set_macro ctx name macro =
-  Hashtbl.add ctx.macro_table name macro;
-  ctx
+  Hashtbl.add ctx.macro_table name macro
 
 let jg_get_macro ctx name =
   try Some(Hashtbl.find ctx.macro_table name) with Not_found -> None
 
 let jg_remove_macro ctx name =
-  Hashtbl.remove ctx.macro_table name;
-  ctx
+  Hashtbl.remove ctx.macro_table name
 
 let jg_set_filter ctx name =
   {ctx with active_filters = name :: ctx.active_filters}
@@ -405,7 +404,7 @@ let jg_negative = function
   | Tfloat x -> Tfloat(-.x)
   | _ -> failwith "jg_negative:type error"
 
-let jg_is_true = function
+let rec jg_is_true = function
   | Tbool x -> x
   | Tstr x -> x <> ""
   | Tint x -> x != 0
@@ -414,12 +413,12 @@ let jg_is_true = function
   | Tset x -> List.length x > 0
   | Tobj x -> List.length x > 0
   | Thash x -> Hashtbl.length x > 0
-  | Tpat _ -> failwith "jg_is_true:type error(pattern)"
+  | Tpat _ -> true
   | Tnull -> false
   | Tfun(f) -> failwith "jg_is_true:type error(function)"
   | Tarray a -> Array.length a > 0
-  | Tlazy _ -> failwith "jg_is_true:type error(lazy)"
-  | Tvolatile _ -> failwith "jg_is_true:type error(volatile)"
+  | Tlazy fn -> jg_is_true (Lazy.force fn)
+  | Tvolatile fn -> jg_is_true (fn ())
 
 let jg_not x =
   Tbool (not (jg_is_true x))

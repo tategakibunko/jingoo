@@ -139,6 +139,7 @@ and statement =
   | WithStatement of expression list * ast
   | AutoEscapeStatement of expression * ast
   | NamespaceStatement of string * (string * expression) list
+  | Statements of ast
 
 and expression =
     IdentExpr of string
