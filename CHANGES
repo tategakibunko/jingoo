@@ -4,6 +4,10 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.2.19
+===========================
+o [PR#43] Added ast_mapper in order to implement optimization passes.
+
 version: 1.2.18, 2018-07-24
 ===========================
 o [PR#27] Avoid unnecessary buffer while parsing.
