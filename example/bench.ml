@@ -10,8 +10,9 @@ let () =
     ("-count", Arg.Int (fun i -> count := max 5 i), "loop count");
   ] ignore "";
 
+  let template = Jg_utils.read_file_as_string !file in
   let output () = 
-    ignore @@ Jg_template.from_file !file ~models:Test_data.models in
+    ignore @@ Jg_template.from_string ~models:Test_data.models template in
 
   let t0 = Unix.gettimeofday () in
   for i = 1 to 5 do
