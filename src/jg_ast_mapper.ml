@@ -71,6 +71,8 @@ and statement self stmt : statement = match stmt with
       ( str
       , List.map (fun (s, e) -> (s, self.expression self e) ) str_e_l)
 
+  | Statements ast ->
+    Statements (self.ast self ast)
 
 and expression self expr = match expr with
 
