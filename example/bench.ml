@@ -2,23 +2,18 @@ open Jg_types
 open Jg_utils
 
 let file = ref "cheatsheet.tmpl"
-let count = ref 1000
-  
+let count = ref 10000
+
 let () =
   Arg.parse [
-    ("-tmpl", Arg.String (fun f -> file := f), "template name");
+    ("-tmpl", Arg.Set_string file, "template name");
     ("-count", Arg.Int (fun i -> count := max 5 i), "loop count");
   ] ignore "";
 
-  let output () = 
-    ignore @@ Jg_template.from_file !file ~models:Test_data.models in
-
-  let t0 = Unix.gettimeofday () in
-  for i = 1 to 5 do
-    for j = 1 to (!count / 5) do
-      output ()
-    done;
-    Printf.printf "%d/5 done\n%!" i
-  done;
-  let t1 = Unix.gettimeofday () in
-  Printf.printf "time: %f\n" (t1 -. t0)
+  let input = Jg_utils.read_file_as_string !file in
+  let n = Int64.of_int !count in
+  let benchmark name (fn : unit -> 'a) =
+    Benchmark.tabulate (Benchmark.latency1 n ~name fn ())
+  in
+ benchmark "Jg_template.from_string"
+   (fun () -> Jg_template.from_string ~models:Test_data.models input)
