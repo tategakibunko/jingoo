@@ -250,31 +250,56 @@ and eval_statement env ctx = function
   | _ -> ctx
 
 and unfold_extends env stmts =
-  let rec iter ret = function
-    | ExtendsStatement(path) :: rest ->
-      let ast = unfold_extends env @@ ast_from_file env path in
-      iter (ret @ ast) rest
-    | other :: rest -> iter (ret @ [other]) rest
-    | [] -> ret in
-  iter [] stmts
+  let open Jg_ast_mapper in
+  let statement self = function
+    | ExtendsStatement path ->
+      Statements (self.ast self @@ ast_from_file env path)
+    | e -> default_mapper.statement self e
+  in
+  let mapper = { default_mapper with statement } in
+  mapper.ast mapper stmts
 
-and align_block stmts =
-  let is_same_block name = function
-    | BlockStatement(IdentExpr(name'),_) -> name' = name
-    | _ -> false in
-  let erase_block name lst =
-    List.filter (fun x -> not (is_same_block name x)) lst in
-  let rec iter ret = function
-    | (BlockStatement(IdentExpr(name), _) as block) :: rest ->
-      (try
-	 let block' = List.find (is_same_block name) rest in
-	 iter (block' :: ret) (erase_block name rest)
-       with
-	 Not_found -> iter (block :: ret) rest)
-    | other :: rest -> iter (other :: ret) rest
-    | [] -> List.rev ret in
+and replace_blocks stmts =
+  let open Jg_ast_mapper in
+  let h = Hashtbl.create 10 in
+  let stmts =
+    let statement self = function
+      | BlockStatement (IdentExpr name, ast) ->
+        Hashtbl.add h name ast ;
+        BlockStatement (IdentExpr name, self.ast self ast)
+      | e -> default_mapper.statement self e
+    in
+    let mapper = { default_mapper with statement } in
+    mapper.ast mapper stmts
+  in
+  if Hashtbl.length h = 0 then stmts
+  else
+    let h' = Hashtbl.create 10 in
+    let statement self = function
+      | BlockStatement (IdentExpr name, _) ->
+        let stmts =
+          if Hashtbl.mem h' name then []
+          else
+            let () = Hashtbl.add h' name true in
+            self.ast self @@ Hashtbl.find h name
+        in
+        Statements stmts
+      | e -> default_mapper.statement self e
+    in
+    let mapper = { default_mapper with statement } in
+    mapper.ast mapper stmts
 
-  iter [] stmts
+and inline_include env stmts =
+  let open Jg_ast_mapper in
+  let statement self = function
+    | IncludeStatement (LiteralExpr (Tstr file), true) ->
+      Statements (self.ast self @@ ast_from_file ~env file)
+    | RawIncludeStatement (LiteralExpr (Tstr file)) ->
+      Statements (self.ast self @@ ast_from_file ~env file)
+    | e -> default_mapper.statement self e
+  in
+  let mapper = { default_mapper with statement } in
+  mapper.ast mapper stmts
 
 and import_macro ?namespace ?select env ctx codes =
   let macro_name name = match namespace with Some namespace -> spf "%s.%s" namespace name | _ -> name in
@@ -342,11 +367,7 @@ and ast_from_string ~env string =
   ast_from_lexbuf ~env None lexbuf
 
 and eval_aux ~env ~ctx ast =
-  let ast =
-    ast
-    |> unfold_extends env
-    |> align_block
-  in
+  let ast = unfold_extends env ast |> replace_blocks in
   let ctx = import_macro env ctx ast in
   ignore @@ List.fold_left (eval_statement env) ctx ast
 
