@@ -191,9 +191,9 @@ and eval_statement env ctx = function
      | Some(Macro(arg_names, def_kwargs, macro_ast)) ->
        let call_arg_names = ident_names_of call_args_def in
        let call_defaults = kwargs_of env ctx call_args_def in
-       let ctx = jg_set_macro ctx "caller" @@ Macro(call_arg_names, call_defaults, call_ast) in
+       jg_set_macro ctx "caller" @@ Macro(call_arg_names, call_defaults, call_ast) ;
        let text = string_of_tvalue @@ value_of_expr env ctx @@ ApplyExpr(IdentExpr(name), macro_args) in
-       let ctx = jg_remove_macro ctx "caller" in
+       jg_remove_macro ctx "caller" ;
        jg_output ctx (Tstr text) ~safe:true
 
      | None -> ctx (* do nothing *)
@@ -301,35 +301,46 @@ and inline_include env stmts =
   let mapper = { default_mapper with statement } in
   mapper.ast mapper stmts
 
-and import_macro ?namespace ?select env ctx codes =
-  let macro_name name = match namespace with Some namespace -> spf "%s.%s" namespace name | _ -> name in
-  let alias_name name = match select with None -> name | Some alist -> List.assoc name alist in
-  let can_import name = match select with None -> true | Some alist -> List.mem_assoc name alist in
-  List.fold_left (fun ctx code ->
-      match code with
-      | MacroStatement(IdentExpr(name), def_args, ast) when can_import name ->
-	let arg_names = ident_names_of def_args in
-	let kwargs = kwargs_of env ctx def_args in
-	jg_set_macro ctx (macro_name @@ alias_name name) @@ Macro(arg_names, kwargs, ast)
+(* Import macros into ctx and remove it from ast *)
+and import_macros env ctx stmts =
 
-      | BlockStatement(_, stmts) ->
-	import_macro env ctx ?namespace ?select stmts
+  let open Jg_ast_mapper in
+  let select = ref None in
+  let namespace = ref None in
+  let macro_name name = match !namespace with Some namespace -> spf "%s.%s" namespace name | _ -> name in
+  let alias_name name = match !select with None -> name | Some alist -> List.assoc name alist in
+  let can_import name = match !select with None -> true | Some alist -> List.mem_assoc name alist in
+  let statement self = function
 
-      | IncludeStatement(LiteralExpr(Tstr path), _) ->
-	import_macro env ctx ?namespace ?select @@ ast_from_file env path
+    | MacroStatement(IdentExpr(name), def_args, ast) when can_import name ->
+      let arg_names = ident_names_of def_args in
+      let kwargs = kwargs_of env ctx def_args in
+      jg_set_macro ctx (macro_name @@ alias_name name) @@ Macro(arg_names, kwargs, ast) ;
+      Statements []
 
-      | ImportStatement(path, namespace) ->
-	import_macro env ctx ?namespace ?select @@ ast_from_file env path
+    | IncludeStatement(LiteralExpr(Tstr path), _) as stmt ->
+      ignore @@ self.ast self @@ ast_from_file env path ;
+      stmt
 
-      | FromImportStatement(path, select_macros) ->
-	let alias_names = alias_names_of select_macros in
-	import_macro env ctx ?namespace ?select:(Some alias_names) @@ ast_from_file env path
+    | ImportStatement(path, namespace') ->
+      let oldNamespace = !namespace in
+      let () = namespace := namespace' in
+      ignore @@ self.ast self @@ ast_from_file env path ;
+      let () = namespace := oldNamespace in
+      Statements []
 
-      | Statements stmts ->
-	import_macro env ctx ?namespace ?select stmts
+    | FromImportStatement(path, select_macros) ->
+      let alias_names = alias_names_of select_macros in
+      let oldSelect = !select in
+      let () = select := Some alias_names in
+      ignore @@ self.ast self @@ ast_from_file env path ;
+      let () = select := oldSelect in
+      Statements []
 
-      | _ -> ctx
-    ) ctx codes
+    | s -> default_mapper.statement self s
+  in
+  let mapper = { default_mapper with statement } in
+  mapper.ast mapper stmts
 
 and get_file_path env file_name =
   Jg_utils.get_file_path file_name ~template_dirs:env.template_dirs
@@ -367,8 +378,11 @@ and ast_from_string ~env string =
   ast_from_lexbuf ~env None lexbuf
 
 and eval_aux ~env ~ctx ast =
-  let ast = unfold_extends env ast |> replace_blocks in
-  let ctx = import_macro env ctx ast in
+  let ast =
+    unfold_extends env ast
+    |> replace_blocks
+    |> import_macros env ctx
+  in
   ignore @@ List.fold_left (eval_statement env) ctx ast
 
 and from_file
