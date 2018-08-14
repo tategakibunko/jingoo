@@ -536,17 +536,17 @@ and jg_compare left right = match left, right with
     end
   | _, _ -> -1
 
-let rec jg_eq_eq left right =
+let rec jg_eq_eq_aux left right =
   match left, right with
-    | Tint x1, Tint x2 -> Tbool(x1=x2)
-    | Tfloat x1, Tfloat x2 -> Tbool(x1=x2)
-    | Tstr x1, Tstr x2 -> Tbool(x1=x2)
-    | Tbool x1, Tbool x2 -> Tbool(x1=x2)
+    | Tint x1, Tint x2 -> x1=x2
+    | Tfloat x1, Tfloat x2 -> x1=x2
+    | Tstr x1, Tstr x2 -> x1=x2
+    | Tbool x1, Tbool x2 -> x1=x2
     | Tlist x1, Tlist x2
     | Tset x1, Tset x2 -> jg_list_eq_eq x1 x2
     | Tobj x1, Tobj x2 -> jg_obj_eq_eq left right
     | Tarray x1, Tarray x2 -> jg_array_eq_eq x1 x2
-    | _, _ -> Tbool(false)
+    | _, _ -> false
 
 (* Copied from Array module to ensure compatibility with 4.02 *)
 and array_iter2 f a b =
@@ -559,38 +559,35 @@ and array_iter2 f a b =
 and jg_array_eq_eq a1 a2 =
   try
     array_iter2
-      (fun a b -> if jg_eq_eq a b <> Tbool true
-        then raise @@ Invalid_argument "jg_array_eq_eq"
-        else () )
+      (fun a b ->
+         if not @@ jg_eq_eq_aux a b
+         then raise @@ Invalid_argument "jg_array_eq_eq")
       a1 a2 ;
-    Tbool true
+    true
   with
-    Invalid_argument _ -> Tbool false
+    Invalid_argument _ -> false
 
 and jg_list_eq_eq l1 l2 =
-  if List.length l1 != List.length l2 then
-    Tbool false
-  else Tbool (List.for_all2 (fun a b -> jg_eq_eq a b = Tbool true) l1 l2)
+  List.length l1 = List.length l2
+  && List.for_all2 jg_eq_eq_aux l1 l2
 
 and jg_obj_eq_eq obj1 obj2 =
   let alist1 = unbox_obj obj1 in
   let alist2 = unbox_obj obj2 in
-  if List.length alist1 != List.length alist2 then
-    Tbool false
-  else
-    let result =
-      try
-	List.for_all (fun (prop, value) ->
-	  match jg_eq_eq value (List.assoc prop alist2) with
-	    | Tbool true -> true
-	    | _ -> false
-	) alist1
-      with
-	  Not_found -> false in
-    Tbool result
+  List.length alist1 = List.length alist2
+  &&
+  try
+    List.for_all
+      (fun (prop, value) -> jg_eq_eq_aux value (List.assoc prop alist2))
+      alist1
+  with
+    Not_found -> false
+
+let jg_eq_eq left right =
+  Tbool (jg_eq_eq_aux left right)
 
 let jg_not_eq left right =
-  Tbool (not @@ unbox_bool @@ jg_eq_eq left right)
+  Tbool (not @@ jg_eq_eq_aux left right)
 
 let jg_lt left right =
   match left, right with
@@ -631,8 +628,8 @@ let array_exists p a =
 
 let jg_inop left right =
   match left, right with
-    | value, Tlist lst -> Tbool (List.exists (unbox_bool $ jg_eq_eq value) lst)
-    | value, Tarray a -> Tbool (array_exists (unbox_bool $ jg_eq_eq value) a)
+    | value, Tlist lst -> Tbool (List.exists (jg_eq_eq_aux value) lst)
+    | value, Tarray a -> Tbool (array_exists (jg_eq_eq_aux value) a)
     | _ -> Tbool false
 
 let jg_get_kvalue ?(defaults=[]) name kwargs =

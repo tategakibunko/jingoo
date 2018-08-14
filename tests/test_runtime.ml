@@ -49,9 +49,9 @@ let test_list_eq_eq ctx =
   let lst2 = [Tint 0; Tint 1; Tint 2] in
   let lst3 = [Tint 0; Tint 1; Tint 3] in
   let lst4 = [Tint 0; Tint 1] in
-  assert_equal (jg_list_eq_eq lst1 lst2) (Tbool true);
-  assert_equal (jg_list_eq_eq lst1 lst3) (Tbool false);
-  assert_equal (jg_list_eq_eq lst1 lst4) (Tbool false);
+  assert_equal (jg_list_eq_eq lst1 lst2) true;
+  assert_equal (jg_list_eq_eq lst1 lst3) false;
+  assert_equal (jg_list_eq_eq lst1 lst4) false;
 ;;
 
 let test_obj_eq_eq ctx =
@@ -59,9 +59,9 @@ let test_obj_eq_eq ctx =
   let obj2 = Tobj [("name", Tstr "john"); ("age", Tint 20)] in
   let obj3 = Tobj [("name", Tstr "mary"); ("age", Tint 22)] in
   let obj4 = Tobj [("age", Tint 20); ("name", Tstr "john")] in
-  assert_equal (jg_obj_eq_eq obj1 obj2) (Tbool true);
-  assert_equal (jg_obj_eq_eq obj1 obj3) (Tbool false);
-  assert_equal (jg_obj_eq_eq obj1 obj4) (Tbool true);
+  assert_equal (jg_obj_eq_eq obj1 obj2) true;
+  assert_equal (jg_obj_eq_eq obj1 obj3) false;
+  assert_equal (jg_obj_eq_eq obj1 obj4) true;
 ;;
 
 let test_batch ctx =
