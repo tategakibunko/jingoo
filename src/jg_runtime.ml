@@ -503,10 +503,7 @@ and jg_compare left right = match left, right with
   | Tstr x1, Tstr x2 -> compare x1 x2
   | Tbool x1, Tbool x2 -> compare x1 x2
   | Tlist x1, Tlist x2 -> jg_compare_list ~filter:(fun x -> x) x1 x2
-  | Tset x1, Tset x2 ->
-    jg_compare_list ~filter:(fun x -> x)
-      (List.sort jg_compare x1)
-      (List.sort jg_compare x2)
+  | Tset x1, Tset x2 -> jg_compare_list ~filter:(fun x -> x) x1 x2
   | Tobj x1, Tobj x2 ->
     jg_compare_list ~filter:snd
       (List.sort (fun (a, _) (b, _) -> compare a b) x1)
