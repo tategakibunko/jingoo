@@ -357,7 +357,7 @@ and ast_from_lexbuf ~env filename lexbuf =
     Jg_lexer.reset_context () ;
     Jg_lexer.init_lexer_pos filename lexbuf ;
     let ast = Jg_parser.input Jg_lexer.main lexbuf in
-    Jg_utils.lock_unlock.lock () ;
+    Jg_utils.lock_unlock.unlock () ;
     ast
   with
     exn ->
