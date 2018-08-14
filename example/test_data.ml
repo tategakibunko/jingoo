@@ -15,17 +15,16 @@ let rec lazy_model n =
 let volatile = ref false
 
 let persons_to_group =
-  let person gender fn ln =
-    Tpat (function "first_name" -> Tstr fn
-                 | "last_name" -> Tstr ln
+  let person ~gender ~first_name ~last_name =
+    Tpat (function "first_name" -> Tstr first_name
+                 | "last_name" -> Tstr last_name
                  | "gender" -> Tstr gender
-                 | _ -> raise Not_found )
-  in
-  Tarray [| person "F" "Tobi" "Legault";
-            person "M" "Kip" "Schon";
-            person "F" "Lorriane" "Olive";
-            person "F" "Hana" "Breton";
-            person "M" "Arlen" "Aubrey";
+                 | _ -> raise Not_found ) in
+  Tarray [| person ~gender:"F" ~first_name:"Tobi" ~last_name:"Legault";
+            person ~gender:"M" ~first_name:"Kip" ~last_name:"Schon";
+            person ~gender:"F" ~first_name:"Lorriane" ~last_name:"Olive";
+            person ~gender:"F" ~first_name:"Hana" ~last_name:"Breton";
+            person ~gender:"M" ~first_name:"Arlen" ~last_name:"Aubrey";
          |]
 
 let models = [
