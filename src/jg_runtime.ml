@@ -497,6 +497,17 @@ let rec jg_compare_list
       | 0 -> compare acc1 acc2
       | c -> c
 
+and jg_compare_obj left right = match left, right with
+  | Tobj x1, Tobj x2 ->
+    jg_compare_list ~filter:snd
+      (List.sort (fun (a, _) (b, _) -> compare a b) x1)
+      (List.sort (fun (a, _) (b, _) -> compare a b) x2)
+  | Thash x1, Thash x2 ->
+    let x1 = Hashtbl.fold (fun k v acc -> (k, v) :: acc) x1 [] in
+    let x2 = Hashtbl.fold (fun k v acc -> (k, v) :: acc) x2 [] in
+    jg_compare_obj (Tobj x1) (Tobj x2)
+  | _ -> -1
+
 and jg_compare left right = match left, right with
   | Tint x1, Tint x2 -> compare x1 x2
   | Tfloat x1, Tfloat x2 -> compare x1 x2
@@ -504,10 +515,6 @@ and jg_compare left right = match left, right with
   | Tbool x1, Tbool x2 -> compare x1 x2
   | Tlist x1, Tlist x2 -> jg_compare_list ~filter:(fun x -> x) x1 x2
   | Tset x1, Tset x2 -> jg_compare_list ~filter:(fun x -> x) x1 x2
-  | Tobj x1, Tobj x2 ->
-    jg_compare_list ~filter:snd
-      (List.sort (fun (a, _) (b, _) -> compare a b) x1)
-      (List.sort (fun (a, _) (b, _) -> compare a b) x2)
   | Tarray x1, Tarray x2 ->
     begin
       let l1 = Array.length x1 in
@@ -522,10 +529,10 @@ and jg_compare left right = match left, right with
         in loop 0
       | c -> c
     end
-  | Tpat _, Tpat _ ->
+  | (Tpat _ | Thash _ | Tobj _), (Tpat _ | Thash _ | Tobj _) ->
     begin
       try unbox_int @@ jg_apply (jg_obj_lookup left "__compare__") [ left ; right ]
-      with Not_found -> -1
+      with Not_found -> jg_compare_obj left right
     end
   | _, _ -> -1
 
