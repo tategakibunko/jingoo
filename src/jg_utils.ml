@@ -175,6 +175,18 @@ let lock_unlock = {
   unlock = (fun () -> ())
 }
 
+let with_lock ?(on_error = ignore) fn =
+  try
+    let () = lock_unlock.lock() in
+    let result = fn () in
+    let () = lock_unlock.unlock() in
+    result
+  with
+    exn ->
+      on_error ();
+      lock_unlock.unlock ();
+      raise exn
+
 module Maybe = struct
   let return x = Some x
   let bind x f =

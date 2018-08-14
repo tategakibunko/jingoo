@@ -351,19 +351,13 @@ and init_context ?(env=std_env) ?(models=[]) ~output () =
   jg_init_context ~models output env
 
 and ast_from_lexbuf ~env filename lexbuf =
-  try
-    Jg_utils.lock_unlock.lock () ;
-    Parsing.clear_parser () ;
-    Jg_lexer.reset_context () ;
-    Jg_lexer.init_lexer_pos filename lexbuf ;
+  Jg_utils.with_lock (fun () ->
+    Parsing.clear_parser ();
+    Jg_lexer.reset_context ();
+    Jg_lexer.init_lexer_pos filename lexbuf;
     let ast = Jg_parser.input Jg_lexer.main lexbuf in
-    Jg_utils.lock_unlock.unlock () ;
     ast
-  with
-    exn ->
-    Parsing.clear_parser () ;
-    Jg_utils.lock_unlock.unlock ();
-    raise exn
+  ) ~on_error:(fun () -> Parsing.clear_parser ())
 
 and ast_from_file ~env filename =
   let filename = get_file_path env filename in
