@@ -511,7 +511,7 @@ and jg_compare_obj left right = match left, right with
 and jg_compare left right = match left, right with
   | Tint x1, Tint x2 -> compare x1 x2
   | Tfloat x1, Tfloat x2 -> compare x1 x2
-  | Tstr x1, Tstr x2 -> compare x1 x2
+  | Tstr x1, Tstr x2 -> strcmp x1 x2
   | Tbool x1, Tbool x2 -> compare x1 x2
   | Tlist x1, Tlist x2 -> jg_compare_list ~filter:(fun x -> x) x1 x2
   | Tset x1, Tset x2 -> jg_compare_list ~filter:(fun x -> x) x1 x2
@@ -929,15 +929,9 @@ let jg_striptags text kwargs =
 
 (* FIXME reverse keyword *)
 let jg_sort lst kwargs =
-  let compare a b = match a, b with
-    | Tstr a, Tstr b -> strcmp a b
-    | Tint a, Tint b -> compare a b
-    | Tfloat a, Tfloat b -> compare a b
-    | _, _ -> failwith "invalid_arg:can't sort list of different types (jg_sort)"
-  in
   match lst with
-    | Tlist l -> Tlist (List.sort compare l)
-    | Tarray a -> Tarray (let a = Array.copy a in Array.sort compare a ; a)
+    | Tlist l -> Tlist (List.sort jg_compare l)
+    | Tarray a -> Tarray (let a = Array.copy a in Array.sort jg_compare a ; a)
     | x -> failwith @@ spf "invalid_arg:can't sort %s (jg_sort)" (type_string_of_tvalue x)
 
 let jg_xmlattr obj kwargs =
