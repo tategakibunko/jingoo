@@ -486,6 +486,52 @@ let jg_and left right =
 let jg_or left right =
   Tbool(jg_is_true left || jg_is_true right)
 
+let rec jg_compare_list
+  : 'a . filter:('a -> tvalue) -> 'a list -> 'a list -> int =
+  fun ~filter x1 x2 -> match x1, x2 with
+    | [], [] -> 0
+    | [], _ -> -1
+    | _, [] -> 1
+    | x1 :: acc1, x2 :: acc2 ->
+      match jg_compare (filter x1) (filter x2) with
+      | 0 -> compare acc1 acc2
+      | c -> c
+
+and jg_compare left right = match left, right with
+  | Tint x1, Tint x2 -> compare x1 x2
+  | Tfloat x1, Tfloat x2 -> compare x1 x2
+  | Tstr x1, Tstr x2 -> compare x1 x2
+  | Tbool x1, Tbool x2 -> compare x1 x2
+  | Tlist x1, Tlist x2 -> jg_compare_list ~filter:(fun x -> x) x1 x2
+  | Tset x1, Tset x2 ->
+    jg_compare_list ~filter:(fun x -> x)
+      (List.sort jg_compare x1)
+      (List.sort jg_compare x2)
+  | Tobj x1, Tobj x2 ->
+    jg_compare_list ~filter:snd
+      (List.sort (fun (a, _) (b, _) -> compare a b) x1)
+      (List.sort (fun (a, _) (b, _) -> compare a b) x2)
+  | Tarray x1, Tarray x2 ->
+    begin
+      let l1 = Array.length x1 in
+      let l2 = Array.length x2 in
+      match compare l1 l2 with
+      | 0 ->
+        let rec loop i =
+          if i = l1 then 0
+          else match jg_compare x1.(i) x2.(i) with
+            | 0 -> loop (i + 1)
+            | c -> c
+        in loop 0
+      | c -> c
+    end
+  | Tpat _, Tpat _ ->
+    begin
+      try unbox_int @@ jg_apply (jg_obj_lookup left "__compare__") [ left ; right ]
+      with Not_found -> -1
+    end
+  | _, _ -> -1
+
 let rec jg_eq_eq left right =
   match left, right with
     | Tint x1, Tint x2 -> Tbool(x1=x2)
