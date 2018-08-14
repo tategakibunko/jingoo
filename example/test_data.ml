@@ -14,6 +14,20 @@ let rec lazy_model n =
 
 let volatile = ref false
 
+let persons_to_group =
+  let person gender fn ln =
+    Tpat (function "first_name" -> Tstr fn
+                 | "last_name" -> Tstr ln
+                 | "gender" -> Tstr gender
+                 | _ -> raise Not_found )
+  in
+  Tarray [| person "F" "Tobi" "Legault";
+            person "M" "Kip" "Schon";
+            person "F" "Lorriane" "Olive";
+            person "F" "Hana" "Breton";
+            person "M" "Arlen" "Aubrey";
+         |]
+
 let models = [
   ("msg", Tstr "hello world");
   ("list1", Tlist [Tint 1]);
@@ -33,6 +47,7 @@ let models = [
   ("array1", Tarray [| Tstr "this"; Tstr "is"; Tstr "from"; Tstr "array" |]);
   ("lazy", lazy_model 0);
   ("volatile", Tvolatile (fun () -> Tbool !volatile));
+  ("persons_to_group", persons_to_group)
 ]
 
 let _ = volatile := true

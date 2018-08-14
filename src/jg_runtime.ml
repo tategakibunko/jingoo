@@ -974,6 +974,41 @@ let jg_wordwrap width break_long_words text kwargs =
       Tstr (iter "" "" 0 words)
     | _ -> failwith "invalid args:jg_wordwrap"
 
+module JgHashtbl = Hashtbl.Make (struct
+    type t = Jg_types.tvalue
+    let equal a b = jg_compare a b = 0
+    let hash = Hashtbl.hash
+  end)
+
+let jg_groupby_aux ~key length iter x =
+  let h = JgHashtbl.create (length x) in
+  iter
+    (fun x ->
+       let k = jg_obj_lookup x key in
+       if JgHashtbl.mem h k then
+         JgHashtbl.replace h k (x :: JgHashtbl.find h k)
+       else
+         JgHashtbl.add h k [ x ]) x ;
+  box_list @@ JgHashtbl.fold
+    (fun k v acc ->
+       let list = List.rev v in
+       Tpat (function
+           | "grouper" -> k
+           | "list" -> Tlist list
+           | _ -> raise Not_found) :: acc)
+    h []
+
+(* TODO: dotted notation *)
+let jg_groupby key value kwargs : tvalue =
+  match key with
+  | Tstr key -> begin
+      match value with
+      | Tarray x -> jg_groupby_aux ~key Array.length Array.iter x
+      | Tlist x -> jg_groupby_aux ~key List.length List.iter x
+      | _ -> failwith "invalid arg: not list nor array(jg_groupby value)"
+    end
+  | _ -> failwith "invalid arg: not str(jg_groupby key)"
+
 let jg_test_divisibleby num target kwargs =
   match num, target with
     | Tint 0, _ -> Tbool(false)
@@ -1091,6 +1126,7 @@ let std_filters = [
   ("truncate", func_arg2 jg_truncate);
   ("range", func_arg2 jg_range);
   ("round", func_arg2 jg_round);
+  ("groupby", func_arg2 jg_groupby);
 
   ("replace", func_arg3 jg_replace);
   ("substring", func_arg3 jg_substring);
