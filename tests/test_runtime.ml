@@ -49,9 +49,9 @@ let test_list_eq_eq ctx =
   let lst2 = [Tint 0; Tint 1; Tint 2] in
   let lst3 = [Tint 0; Tint 1; Tint 3] in
   let lst4 = [Tint 0; Tint 1] in
-  assert_equal (jg_list_eq_eq lst1 lst2) (Tbool true);
-  assert_equal (jg_list_eq_eq lst1 lst3) (Tbool false);
-  assert_equal (jg_list_eq_eq lst1 lst4) (Tbool false);
+  assert_equal (jg_list_eq_eq lst1 lst2) true;
+  assert_equal (jg_list_eq_eq lst1 lst3) false;
+  assert_equal (jg_list_eq_eq lst1 lst4) false;
 ;;
 
 let test_obj_eq_eq ctx =
@@ -59,9 +59,9 @@ let test_obj_eq_eq ctx =
   let obj2 = Tobj [("name", Tstr "john"); ("age", Tint 20)] in
   let obj3 = Tobj [("name", Tstr "mary"); ("age", Tint 22)] in
   let obj4 = Tobj [("age", Tint 20); ("name", Tstr "john")] in
-  assert_equal (jg_obj_eq_eq obj1 obj2) (Tbool true);
-  assert_equal (jg_obj_eq_eq obj1 obj3) (Tbool false);
-  assert_equal (jg_obj_eq_eq obj1 obj4) (Tbool true);
+  assert_equal (jg_obj_eq_eq obj1 obj2) true;
+  assert_equal (jg_obj_eq_eq obj1 obj3) false;
+  assert_equal (jg_obj_eq_eq obj1 obj4) true;
 ;;
 
 let test_batch ctx =
@@ -491,6 +491,47 @@ let test_string ctx =
   assert_equal (jg_test_string (Tstr "aaa") kwargs) (Tbool true);
   assert_equal (jg_test_string (Tint 1) kwargs) (Tbool false);
 ;;
+
+let test_groupby ctx =
+  let person ~gender ~first_name ~last_name =
+    Tpat (function
+    | "gender" -> Tstr gender
+    | "first_name" -> Tstr first_name
+    | "last_name" -> Tstr last_name
+    | _ -> raise Not_found) in
+  let persons = Tlist [
+    person ~gender:"F" ~first_name:"Tobi" ~last_name:"Legault";
+    person ~gender:"M" ~first_name:"Kip" ~last_name:"Schon";
+    person ~gender:"F" ~first_name:"Lorriane" ~last_name:"Olive";
+    person ~gender:"F" ~first_name:"Hana" ~last_name:"Breton";
+    person ~gender:"M" ~first_name:"Arlen" ~last_name:"Aubrey";
+  ] in
+  let groups = unbox_list @@ jg_groupby (Tstr "gender") persons kwargs in
+  let get_group grouper groups =
+    List.find (function
+    | Tpat fn -> unbox_string (fn "grouper") = grouper
+    | _ -> failwith "invalid item") groups in
+  let get_group_list = function
+    | Tpat fn -> unbox_list (fn "list")
+    | _ -> failwith "invalid item" in
+  let females = get_group "F" groups |> get_group_list in
+  let males = get_group "M" groups |> get_group_list in
+  let checker ~gender ~first_name ~last_name item =
+    unbox_string (jg_obj_lookup item "gender") = gender &&
+    unbox_string (jg_obj_lookup item "first_name") = first_name &&
+    unbox_string (jg_obj_lookup item "last_name") = last_name in
+  let females_expected = [
+    checker ~gender:"F" ~first_name:"Tobi" ~last_name:"Legault";
+    checker ~gender:"F" ~first_name:"Lorriane" ~last_name:"Olive";
+    checker ~gender:"F" ~first_name:"Hana" ~last_name:"Breton";
+  ] in
+  let males_expected = [
+    checker ~gender:"M" ~first_name:"Kip" ~last_name:"Schon";
+    checker ~gender:"M" ~first_name:"Arlen" ~last_name:"Aubrey";
+  ] in
+  assert_equal (List.for_all2 (fun checker item -> checker item) females_expected females) true;
+  assert_equal (List.for_all2 (fun checker item -> checker item) males_expected males) true
+;;
   
 let suite = "runtime test" >::: [
   "test_escape" >:: test_escape;
@@ -551,5 +592,6 @@ let suite = "runtime test" >::: [
   "test_upper" >:: test_upper;
   "test_number" >:: test_number;
   "test_string" >:: test_string;
+  "test_groupby" >:: test_groupby;
 ]
 ;;

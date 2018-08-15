@@ -486,17 +486,67 @@ let jg_and left right =
 let jg_or left right =
   Tbool(jg_is_true left || jg_is_true right)
 
-let rec jg_eq_eq left right =
+let rec jg_compare_list
+  : 'a . filter:('a -> tvalue) -> 'a list -> 'a list -> int =
+  fun ~filter x1 x2 -> match x1, x2 with
+    | [], [] -> 0
+    | [], _ -> -1
+    | _, [] -> 1
+    | x1 :: acc1, x2 :: acc2 ->
+      match jg_compare (filter x1) (filter x2) with
+      | 0 -> compare acc1 acc2
+      | c -> c
+
+and jg_compare_obj left right = match left, right with
+  | Tobj x1, Tobj x2 ->
+    jg_compare_list ~filter:snd
+      (List.sort (fun (a, _) (b, _) -> compare a b) x1)
+      (List.sort (fun (a, _) (b, _) -> compare a b) x2)
+  | Thash x1, Thash x2 ->
+    let x1 = Hashtbl.fold (fun k v acc -> (k, v) :: acc) x1 [] in
+    let x2 = Hashtbl.fold (fun k v acc -> (k, v) :: acc) x2 [] in
+    jg_compare_obj (Tobj x1) (Tobj x2)
+  | _ -> -1
+
+and jg_compare left right = match left, right with
+  | Tint x1, Tint x2 -> compare x1 x2
+  | Tfloat x1, Tfloat x2 -> compare x1 x2
+  | Tstr x1, Tstr x2 -> strcmp x1 x2
+  | Tbool x1, Tbool x2 -> compare x1 x2
+  | Tlist x1, Tlist x2 -> jg_compare_list ~filter:(fun x -> x) x1 x2
+  | Tset x1, Tset x2 -> jg_compare_list ~filter:(fun x -> x) x1 x2
+  | Tarray x1, Tarray x2 ->
+    begin
+      let l1 = Array.length x1 in
+      let l2 = Array.length x2 in
+      match compare l1 l2 with
+      | 0 ->
+        let rec loop i =
+          if i = l1 then 0
+          else match jg_compare x1.(i) x2.(i) with
+            | 0 -> loop (i + 1)
+            | c -> c
+        in loop 0
+      | c -> c
+    end
+  | (Tpat _ | Thash _ | Tobj _), (Tpat _ | Thash _ | Tobj _) ->
+    begin
+      try unbox_int @@ jg_apply (jg_obj_lookup left "__compare__") [ left ; right ]
+      with Not_found -> jg_compare_obj left right
+    end
+  | _, _ -> -1
+
+let rec jg_eq_eq_aux left right =
   match left, right with
-    | Tint x1, Tint x2 -> Tbool(x1=x2)
-    | Tfloat x1, Tfloat x2 -> Tbool(x1=x2)
-    | Tstr x1, Tstr x2 -> Tbool(x1=x2)
-    | Tbool x1, Tbool x2 -> Tbool(x1=x2)
+    | Tint x1, Tint x2 -> x1=x2
+    | Tfloat x1, Tfloat x2 -> x1=x2
+    | Tstr x1, Tstr x2 -> x1=x2
+    | Tbool x1, Tbool x2 -> x1=x2
     | Tlist x1, Tlist x2
     | Tset x1, Tset x2 -> jg_list_eq_eq x1 x2
     | Tobj x1, Tobj x2 -> jg_obj_eq_eq left right
     | Tarray x1, Tarray x2 -> jg_array_eq_eq x1 x2
-    | _, _ -> Tbool(false)
+    | _, _ -> false
 
 (* Copied from Array module to ensure compatibility with 4.02 *)
 and array_iter2 f a b =
@@ -509,38 +559,35 @@ and array_iter2 f a b =
 and jg_array_eq_eq a1 a2 =
   try
     array_iter2
-      (fun a b -> if jg_eq_eq a b <> Tbool true
-        then raise @@ Invalid_argument "jg_array_eq_eq"
-        else () )
+      (fun a b ->
+         if not @@ jg_eq_eq_aux a b
+         then raise @@ Invalid_argument "jg_array_eq_eq")
       a1 a2 ;
-    Tbool true
+    true
   with
-    Invalid_argument _ -> Tbool false
+    Invalid_argument _ -> false
 
 and jg_list_eq_eq l1 l2 =
-  if List.length l1 != List.length l2 then
-    Tbool false
-  else Tbool (List.for_all2 (fun a b -> jg_eq_eq a b = Tbool true) l1 l2)
+  List.length l1 = List.length l2
+  && List.for_all2 jg_eq_eq_aux l1 l2
 
 and jg_obj_eq_eq obj1 obj2 =
   let alist1 = unbox_obj obj1 in
   let alist2 = unbox_obj obj2 in
-  if List.length alist1 != List.length alist2 then
-    Tbool false
-  else
-    let result =
-      try
-	List.for_all (fun (prop, value) ->
-	  match jg_eq_eq value (List.assoc prop alist2) with
-	    | Tbool true -> true
-	    | _ -> false
-	) alist1
-      with
-	  Not_found -> false in
-    Tbool result
+  List.length alist1 = List.length alist2
+  &&
+  try
+    List.for_all
+      (fun (prop, value) -> jg_eq_eq_aux value (List.assoc prop alist2))
+      alist1
+  with
+    Not_found -> false
+
+let jg_eq_eq left right =
+  Tbool (jg_eq_eq_aux left right)
 
 let jg_not_eq left right =
-  Tbool (not @@ unbox_bool @@ jg_eq_eq left right)
+  Tbool (not @@ jg_eq_eq_aux left right)
 
 let jg_lt left right =
   match left, right with
@@ -581,8 +628,8 @@ let array_exists p a =
 
 let jg_inop left right =
   match left, right with
-    | value, Tlist lst -> Tbool (List.exists (unbox_bool $ jg_eq_eq value) lst)
-    | value, Tarray a -> Tbool (array_exists (unbox_bool $ jg_eq_eq value) a)
+    | value, Tlist lst -> Tbool (List.exists (jg_eq_eq_aux value) lst)
+    | value, Tarray a -> Tbool (array_exists (jg_eq_eq_aux value) a)
     | _ -> Tbool false
 
 let jg_get_kvalue ?(defaults=[]) name kwargs =
@@ -882,15 +929,9 @@ let jg_striptags text kwargs =
 
 (* FIXME reverse keyword *)
 let jg_sort lst kwargs =
-  let compare a b = match a, b with
-    | Tstr a, Tstr b -> strcmp a b
-    | Tint a, Tint b -> compare a b
-    | Tfloat a, Tfloat b -> compare a b
-    | _, _ -> failwith "invalid_arg:can't sort list of different types (jg_sort)"
-  in
   match lst with
-    | Tlist l -> Tlist (List.sort compare l)
-    | Tarray a -> Tarray (let a = Array.copy a in Array.sort compare a ; a)
+    | Tlist l -> Tlist (List.sort jg_compare l)
+    | Tarray a -> Tarray (let a = Array.copy a in Array.sort jg_compare a ; a)
     | x -> failwith @@ spf "invalid_arg:can't sort %s (jg_sort)" (type_string_of_tvalue x)
 
 let jg_xmlattr obj kwargs =
@@ -923,6 +964,41 @@ let jg_wordwrap width break_long_words text kwargs =
       let words = Pcre.split ~rex:(Pcre.regexp "[\\s\\t　]+" ~flags:[`UTF8]) text in
       Tstr (iter "" "" 0 words)
     | _ -> failwith "invalid args:jg_wordwrap"
+
+module JgHashtbl = Hashtbl.Make (struct
+    type t = Jg_types.tvalue
+    let equal a b = jg_compare a b = 0
+    let hash = Hashtbl.hash
+  end)
+
+let jg_groupby_aux ~key length iter x =
+  let h = JgHashtbl.create (length x) in
+  iter
+    (fun x ->
+       let k = jg_obj_lookup x key in
+       if JgHashtbl.mem h k then
+         JgHashtbl.replace h k (x :: JgHashtbl.find h k)
+       else
+         JgHashtbl.add h k [ x ]) x ;
+  box_list @@ JgHashtbl.fold
+    (fun k v acc ->
+       let list = List.rev v in
+       Tpat (function
+           | "grouper" -> k
+           | "list" -> Tlist list
+           | _ -> raise Not_found) :: acc)
+    h []
+
+(* TODO: dotted notation *)
+let jg_groupby key value kwargs : tvalue =
+  match key with
+  | Tstr key -> begin
+      match value with
+      | Tarray x -> jg_groupby_aux ~key Array.length Array.iter x
+      | Tlist x -> jg_groupby_aux ~key List.length List.iter x
+      | _ -> failwith "invalid arg: not list nor array(jg_groupby value)"
+    end
+  | _ -> failwith "invalid arg: not str(jg_groupby key)"
 
 let jg_test_divisibleby num target kwargs =
   match num, target with
@@ -1041,6 +1117,7 @@ let std_filters = [
   ("truncate", func_arg2 jg_truncate);
   ("range", func_arg2 jg_range);
   ("round", func_arg2 jg_round);
+  ("groupby", func_arg2 jg_groupby);
 
   ("replace", func_arg3 jg_replace);
   ("substring", func_arg3 jg_substring);
