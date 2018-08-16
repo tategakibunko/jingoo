@@ -7,7 +7,12 @@
 *)
 open Jg_types
 
-val from_file : ?env:environment -> ?ctx:context -> ?models:(string * tvalue) list -> string -> string
+val from_file :
+  ?env:environment ->
+  ?ctx:context ->
+  ?models:(string * tvalue) list ->
+  string ->
+  string
 (** [from_file env models template_filename]
     return result string.
 
@@ -20,7 +25,12 @@ val from_file : ?env:environment -> ?ctx:context -> ?models:(string * tvalue) li
     [("msg", Tstr "hello, world!"); ("count", Tint 100); ]
 *)
 
-val from_string : ?env:environment -> ?ctx:context -> ?models:(string * tvalue) list -> string -> string
+val from_string :
+  ?env:environment ->
+  ?ctx:context ->
+  ?models:(string * tvalue) list ->
+  string ->
+  string
 (** [from_string env context models source_string]
     return result string.
 

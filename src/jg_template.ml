@@ -8,22 +8,24 @@
 open Jg_types
 open Jg_utils
 
-let content : 'a .
-    (?env:Jg_types.environment
-     -> ?models:(string * Jg_types.tvalue) list
-     -> output:(string -> unit)
-     -> ?ctx:Jg_types.context
-     -> 'a
-     -> unit)
-    -> ?env:Jg_types.environment
-    -> ?ctx:Jg_types.context
-    -> ?models:(string * Jg_types.tvalue) list
-    -> 'a
-    -> string
-  = fun fn ?(env=std_env) ?ctx ?(models = []) arg ->
-  let buffer = Buffer.create 1024 in
-  let () = fn ~env ~models ~output:(Buffer.add_string buffer) ?ctx arg in
-  Buffer.contents buffer
+(** Internally, interpretted result is outputed to `output:(string -> unit)` interface. *)
+type 'a internal_interp = ?env:Jg_types.environment ->
+    ?models:(string * Jg_types.tvalue) list ->
+    output:(string -> unit) ->
+    ?ctx:Jg_types.context ->
+    'a -> unit
+
+(** Externally, interpretted result is outputed as string. *)
+type 'a external_interp = ?env:Jg_types.environment ->
+    ?ctx:Jg_types.context ->
+    ?models:(string * Jg_types.tvalue) list ->
+    'a -> string
+
+let content (fn : 'a internal_interp) : 'a external_interp =
+  fun ?(env=std_env) ?ctx ?(models=[]) (arg:'a) ->
+    let buffer = Buffer.create 1024 in
+    let () = fn ~env ~models ~output:(Buffer.add_string buffer) ?ctx arg in
+    Buffer.contents buffer
 
 let from_file = content Jg_interp.from_file
 

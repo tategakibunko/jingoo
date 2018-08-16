@@ -103,32 +103,31 @@ and apply_name_of = function
   | _ -> "<lambda>"
 
 and ident_names_of lst =
-  filter_map
-    (function IdentExpr name -> Some name | _ -> None)
-    lst
+  filter_map (function
+  | IdentExpr name -> Some name
+  | _ -> None) lst
 
 and alias_names_of lst =
   List.map (function
-    | IdentExpr(name) -> (name, name)
-    | AliasExpr(IdentExpr(name), IdentExpr(name')) -> (name, name')
-    | _ -> failwith "invalid argument:alias_names_of") lst
+  | IdentExpr(name) -> (name, name)
+  | AliasExpr(IdentExpr(name), IdentExpr(name')) -> (name, name')
+  | _ -> failwith "invalid argument:alias_names_of") lst
 
 and nargs_of env ctx args =
-  filter_map
-    (function KeywordExpr _ -> None | x -> Some (value_of_expr env ctx x))
-    args
+  filter_map (function
+  | KeywordExpr _ -> None
+  | x -> Some (value_of_expr env ctx x)) args
 
 and kwargs_of env ctx args =
-  filter_map
-    (function KeywordExpr(IdentExpr(name), expr) -> Some (name, value_of_expr env ctx expr)
-            | _ -> None)
-    args
+  filter_map (function
+  | KeywordExpr(IdentExpr(name), expr) -> Some (name, value_of_expr env ctx expr)
+  | _ -> None) args
 
 and eval_macro env ctx name args kwargs macro =
   let caller = match jg_get_macro ctx "caller" with None -> false | _ -> true in
   jg_eval_macro env ctx name args kwargs macro ~caller:caller (fun ctx ast ->
-      List.fold_left (eval_statement env) ctx ast
-    )
+    List.fold_left (eval_statement env) ctx ast
+  )
 
 and is_safe_expr = function
   | ApplyExpr(IdentExpr("safe"), _) -> true
@@ -136,7 +135,6 @@ and is_safe_expr = function
   | _ -> false
 
 and eval_statement env ctx = function
-
   | Statements ast ->
     List.fold_left (eval_statement env) ctx ast
 
@@ -243,8 +241,8 @@ and eval_statement env ctx = function
   | NamespaceStatement (ns, assign) ->
     let size = match List.length assign with 0 -> 10 | x -> x in
     let h = Hashtbl.create size in
-    List.iter (fun (k, v) -> Hashtbl.add h k (value_of_expr env ctx v)) assign ;
-    Hashtbl.add ctx.namespace_table ns h ;
+    List.iter (fun (k, v) -> Hashtbl.add h k (value_of_expr env ctx v)) assign;
+    Hashtbl.add ctx.namespace_table ns h;
     ctx
 
   | _ -> ctx
@@ -254,8 +252,7 @@ and unfold_extends env stmts =
   let statement self = function
     | ExtendsStatement path ->
       Statements (self.ast self @@ ast_from_file env path)
-    | e -> default_mapper.statement self e
-  in
+    | e -> default_mapper.statement self e in
   let mapper = { default_mapper with statement } in
   mapper.ast mapper stmts
 
@@ -267,11 +264,9 @@ and replace_blocks stmts =
       | BlockStatement (IdentExpr name, ast) ->
         Hashtbl.add h name ast ;
         BlockStatement (IdentExpr name, self.ast self ast)
-      | e -> default_mapper.statement self e
-    in
+      | e -> default_mapper.statement self e in
     let mapper = { default_mapper with statement } in
-    mapper.ast mapper stmts
-  in
+    mapper.ast mapper stmts in
   if Hashtbl.length h = 0 then stmts
   else
     let h' = Hashtbl.create 10 in
@@ -281,11 +276,9 @@ and replace_blocks stmts =
           if Hashtbl.mem h' name then []
           else
             let () = Hashtbl.add h' name true in
-            self.ast self @@ Hashtbl.find h name
-        in
+            self.ast self @@ Hashtbl.find h name in
         Statements stmts
-      | e -> default_mapper.statement self e
-    in
+      | e -> default_mapper.statement self e in
     let mapper = { default_mapper with statement } in
     mapper.ast mapper stmts
 
@@ -296,14 +289,12 @@ and inline_include env stmts =
       Statements (self.ast self @@ ast_from_file ~env file)
     | RawIncludeStatement (LiteralExpr (Tstr file)) ->
       Statements (self.ast self @@ ast_from_file ~env file)
-    | e -> default_mapper.statement self e
-  in
+    | e -> default_mapper.statement self e in
   let mapper = { default_mapper with statement } in
   mapper.ast mapper stmts
 
 (* Import macros into ctx and remove it from ast *)
 and import_macros env ctx stmts =
-
   let open Jg_ast_mapper in
   let select = ref None in
   let namespace = ref None in
@@ -315,30 +306,29 @@ and import_macros env ctx stmts =
     | MacroStatement(IdentExpr(name), def_args, ast) when can_import name ->
       let arg_names = ident_names_of def_args in
       let kwargs = kwargs_of env ctx def_args in
-      jg_set_macro ctx (macro_name @@ alias_name name) @@ Macro(arg_names, kwargs, ast) ;
+      jg_set_macro ctx (macro_name @@ alias_name name) @@ Macro(arg_names, kwargs, ast);
       Statements []
 
     | IncludeStatement(LiteralExpr(Tstr path), _) as stmt ->
-      ignore @@ self.ast self @@ ast_from_file env path ;
+      ignore @@ self.ast self @@ ast_from_file env path;
       stmt
 
     | ImportStatement(path, namespace') ->
-      let oldNamespace = !namespace in
+      let old_namespace = !namespace in
       let () = namespace := namespace' in
-      ignore @@ self.ast self @@ ast_from_file env path ;
-      let () = namespace := oldNamespace in
+      ignore @@ self.ast self @@ ast_from_file env path;
+      let () = namespace := old_namespace in
       Statements []
 
     | FromImportStatement(path, select_macros) ->
       let alias_names = alias_names_of select_macros in
-      let oldSelect = !select in
+      let old_select = !select in
       let () = select := Some alias_names in
-      ignore @@ self.ast self @@ ast_from_file env path ;
-      let () = select := oldSelect in
+      ignore @@ self.ast self @@ ast_from_file env path;
+      let () = select := old_select in
       Statements []
 
-    | s -> default_mapper.statement self s
-  in
+    | s -> default_mapper.statement self s in
   let mapper = { default_mapper with statement } in
   mapper.ast mapper stmts
 
@@ -364,7 +354,7 @@ and ast_from_file ~env filename =
   let ch = open_in filename in
   let lexbuf = Lexing.from_channel ch in
   let ast = ast_from_lexbuf ~env (Some filename) lexbuf in
-  close_in ch ;
+  close_in ch;
   ast
 
 and ast_from_string ~env string =
@@ -375,8 +365,7 @@ and eval_aux ~env ~ctx ast =
   let ast =
     unfold_extends env ast
     |> replace_blocks
-    |> import_macros env ctx
-  in
+    |> import_macros env ctx in
   ignore @@ List.fold_left (eval_statement env) ctx ast
 
 and from_file
