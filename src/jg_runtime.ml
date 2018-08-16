@@ -971,31 +971,43 @@ module JgHashtbl = Hashtbl.Make (struct
     let hash = Hashtbl.hash
   end)
 
-let jg_groupby_aux ~key length iter x =
-  let h = JgHashtbl.create (length x) in
+(* Copy of String.split_on_char which is available in 4.04 *)
+let string_split_on_char sep s =
+  let open String in
+  let r = ref [] in
+  let j = ref (length s) in
+  for i = length s - 1 downto 0 do
+    if unsafe_get s i = sep then begin
+      r := sub s (i + 1) (!j - i - 1) :: !r;
+      j := i
+    end
+  done;
+sub s 0 !j :: !r
+
+let jg_groupby_aux key length iter collection =
+  let path = string_split_on_char '.' key in
+  let h = JgHashtbl.create length in
   iter
-    (fun x ->
-       let k = jg_obj_lookup x key in
-       if JgHashtbl.mem h k then
-         JgHashtbl.replace h k (x :: JgHashtbl.find h k)
-       else
-         JgHashtbl.add h k [ x ]) x ;
+    (fun obj ->
+      let k = List.fold_left (fun obj key -> jg_obj_lookup obj key) obj path in
+      if JgHashtbl.mem h k then
+        JgHashtbl.replace h k (obj :: JgHashtbl.find h k)
+      else
+        JgHashtbl.add h k [obj]) collection;
   box_list @@ JgHashtbl.fold
-    (fun k v acc ->
-       let list = List.rev v in
-       Tpat (function
-           | "grouper" -> k
-           | "list" -> Tlist list
-           | _ -> raise Not_found) :: acc)
+    (fun key list acc ->
+      Tpat (function
+      | "grouper" -> key
+      | "list" -> Tlist (List.rev list)
+      | _ -> raise Not_found) :: acc)
     h []
 
-(* TODO: dotted notation *)
-let jg_groupby key value kwargs : tvalue =
+let jg_groupby key value kwargs =
   match key with
   | Tstr key -> begin
       match value with
-      | Tarray x -> jg_groupby_aux ~key Array.length Array.iter x
-      | Tlist x -> jg_groupby_aux ~key List.length List.iter x
+      | Tarray ary -> jg_groupby_aux key (Array.length ary) Array.iter ary
+      | Tlist list -> jg_groupby_aux key (List.length list) List.iter list
       | _ -> failwith "invalid arg: not list nor array(jg_groupby value)"
     end
   | _ -> failwith "invalid arg: not str(jg_groupby key)"

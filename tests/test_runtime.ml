@@ -493,20 +493,25 @@ let test_string ctx =
 ;;
 
 let test_groupby ctx =
-  let person ~gender ~first_name ~last_name =
+  let person ~gender ~first_name ~last_name ~native_lang ~second_lang =
     Tpat (function
     | "gender" -> Tstr gender
+    | "lang" -> Tpat (function
+      | "native" -> Tstr native_lang
+      | "second" -> Tstr second_lang
+      | _ -> raise Not_found)
     | "first_name" -> Tstr first_name
     | "last_name" -> Tstr last_name
     | _ -> raise Not_found) in
   let persons = Tlist [
-    person ~gender:"F" ~first_name:"Tobi" ~last_name:"Legault";
-    person ~gender:"M" ~first_name:"Kip" ~last_name:"Schon";
-    person ~gender:"F" ~first_name:"Lorriane" ~last_name:"Olive";
-    person ~gender:"F" ~first_name:"Hana" ~last_name:"Breton";
-    person ~gender:"M" ~first_name:"Arlen" ~last_name:"Aubrey";
+    person ~gender:"F" ~first_name:"Tobi" ~last_name:"Legault" ~native_lang:"French" ~second_lang:"English";
+    person ~gender:"M" ~first_name:"Kip" ~last_name:"Schon" ~native_lang:"French" ~second_lang:"German";
+    person ~gender:"F" ~first_name:"Lorriane" ~last_name:"Olive" ~native_lang:"English" ~second_lang:"Spanish";
+    person ~gender:"F" ~first_name:"Hana" ~last_name:"Breton" ~native_lang:"French" ~second_lang:"German";
+    person ~gender:"M" ~first_name:"Arlen" ~last_name:"Aubrey" ~native_lang:"English" ~second_lang:"French";
   ] in
-  let groups = unbox_list @@ jg_groupby (Tstr "gender") persons kwargs in
+  let groups_by_gender = unbox_list @@ jg_groupby (Tstr "gender") persons kwargs in
+  let groups_by_lang_native = unbox_list @@ jg_groupby (Tstr "lang.native") persons kwargs in
   let get_group grouper groups =
     List.find (function
     | Tpat fn -> unbox_string (fn "grouper") = grouper
@@ -514,8 +519,11 @@ let test_groupby ctx =
   let get_group_list = function
     | Tpat fn -> unbox_list (fn "list")
     | _ -> failwith "invalid item" in
-  let females = get_group "F" groups |> get_group_list in
-  let males = get_group "M" groups |> get_group_list in
+  let females = get_group "F" groups_by_gender |> get_group_list in
+  let males = get_group "M" groups_by_gender |> get_group_list in
+  let english_speakers = get_group "English" groups_by_lang_native |> get_group_list in
+  let french_speakers = get_group "French" groups_by_lang_native |> get_group_list in
+  (* checks only gender, first_name, last_name for ease *)
   let checker ~gender ~first_name ~last_name item =
     unbox_string (jg_obj_lookup item "gender") = gender &&
     unbox_string (jg_obj_lookup item "first_name") = first_name &&
@@ -529,8 +537,20 @@ let test_groupby ctx =
     checker ~gender:"M" ~first_name:"Kip" ~last_name:"Schon";
     checker ~gender:"M" ~first_name:"Arlen" ~last_name:"Aubrey";
   ] in
-  assert_equal (List.for_all2 (fun checker item -> checker item) females_expected females) true;
-  assert_equal (List.for_all2 (fun checker item -> checker item) males_expected males) true
+  let english_speakers_expected = [
+    checker ~gender:"F" ~first_name:"Lorriane" ~last_name:"Olive";
+    checker ~gender:"M" ~first_name:"Arlen" ~last_name:"Aubrey";
+  ] in
+  let french_speakers_expected = [
+    checker ~gender:"F" ~first_name:"Tobi" ~last_name:"Legault";
+    checker ~gender:"M" ~first_name:"Kip" ~last_name:"Schon";
+    checker ~gender:"F" ~first_name:"Hana" ~last_name:"Breton";
+  ] in
+  let check_person checker person = checker person in
+  assert_equal (List.for_all2 check_person females_expected females) true;
+  assert_equal (List.for_all2 check_person males_expected males) true;
+  assert_equal (List.for_all2 check_person english_speakers_expected english_speakers) true;
+  assert_equal (List.for_all2 check_person french_speakers_expected french_speakers) true
 ;;
   
 let suite = "runtime test" >::: [
