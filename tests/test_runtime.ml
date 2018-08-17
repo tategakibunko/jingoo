@@ -357,6 +357,37 @@ let test_sort_string_list ctx =
     | _ -> failwith "ouch"
 ;;
 
+let test_sort_rev ctx =
+  let lst = Tlist [Tint 3; Tint 1; Tint 2] in
+  match jg_sort lst [("reverse", Tbool true)] with
+  | Tlist lst' ->
+     assert_equal lst' [Tint 3; Tint 2; Tint 1]
+  | _ -> failwith "ouch"
+;;
+
+let test_sort_attr ctx =
+  let persons = Tlist [
+    Tobj [("name", Tstr "bob"); ("info", Tobj [
+      ("age", Tint 20)
+    ])];
+    Tobj [("name", Tstr "ken"); ("info", Tobj [
+      ("age", Tint 25);
+    ])];
+  ] in
+  let checker name = function
+    | Tobj alist ->
+       (match List.assoc "name" alist with
+       | Tstr name' -> name = name'
+       | _ -> false)
+    | _ -> failwith "invalid obj" in
+  let expected = [checker "ken"; checker "bob"] in
+  let sorted =
+    match jg_sort persons [("attribute", Tstr "info.age")] with
+    | Tlist list -> list
+    | _ -> failwith "ouch" in
+  List.for_all2 (fun checker person -> checker person) expected sorted
+;;
+
 let test_sort_string_array ctx =
   let ary = Tarray [| Tstr "baba"; Tstr "aa"; Tstr "caca" |] in
   match jg_sort ary kwargs with
@@ -600,6 +631,8 @@ let suite = "runtime test" >::: [
   "test_sort_float_array" >:: test_sort_float_array;
   "test_sort_string_list" >:: test_sort_string_list;
   "test_sort_string_array" >:: test_sort_string_array;
+  "test_sort_rev" >:: test_sort_rev;
+  "test_sort_attr" >:: test_sort_rev;
   "test_xmlattr" >:: test_xmlattr;
   "test_wordwrap" >:: test_wordwrap;
   "test_sublist" >:: test_sublist;
