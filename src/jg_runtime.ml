@@ -948,13 +948,12 @@ let jg_sort lst kwargs =
   let attribute = ref "" in
   List.iter (function ("reverse", Tbool true) -> reverse := true
                     | ("attribute", Tstr name) -> attribute := name
-                    | (kw, _) -> failwith kw) kwargs ;
+                    | (kw, _) -> failwith kw) kwargs;
   let compare = match !attribute with
     | "" -> jg_compare
     | att ->
       let path = string_split_on_char '.' att in
-      fun a b -> jg_compare (jg_obj_lookup_path a path) (jg_obj_lookup_path b path)
-  in
+      fun a b -> jg_compare (jg_obj_lookup_path a path) (jg_obj_lookup_path b path) in
   let compare = if !reverse then fun a b -> compare b a else compare in
   match lst with
     | Tlist l -> Tlist (List.sort compare l)

@@ -8,6 +8,7 @@ version: 1.2.19
 ===========================
 o [PR#43] Added ast_mapper in order to implement optimization passes.
 o [PR#46,47] groupby filter support.
+o [PR#48] sort filter supports reverse and attribute keyword arguments.
 
 version: 1.2.18, 2018-07-24
 ===========================
