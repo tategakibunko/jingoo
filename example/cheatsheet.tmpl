@@ -471,6 +471,16 @@ hoge == "ok" and hage == "ng"
   {%- endfor %}
 </ul>
 
+[PR#48] jg_sort: support reverse and attribute arguments
+========================
+
+must be 10 20 30: {% for i in sort(list) %}{{i}} {% endfor %}
+must be 30 20 10: {% for i in sort(list, reverse=true) %}{{i}} {% endfor %}
+
+must be ken(25) bob(20): {% for p in sort(rows, reverse=true, attribute="age") %}{{p.name}}({{p.age}}) {% endfor %}
+must be bob(20) ken(25): {% for p in sort(rows, attribute="age") %}{{p.name}}({{p.age}}) {% endfor %}
+
+
 ========================
 
 {% if error.count != 0 %}

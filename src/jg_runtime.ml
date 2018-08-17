@@ -927,11 +927,38 @@ let jg_striptags text kwargs =
       Tstr text'
     | _ -> failwith "invalid arg: not string(jg_striptags)"
 
-(* FIXME reverse keyword *)
+(* Copy of String.split_on_char which is available in 4.04 *)
+let string_split_on_char sep s =
+  let open String in
+  let r = ref [] in
+  let j = ref (length s) in
+  for i = length s - 1 downto 0 do
+    if unsafe_get s i = sep then begin
+      r := sub s (i + 1) (!j - i - 1) :: !r;
+      j := i
+    end
+  done;
+sub s 0 !j :: !r
+
+let jg_obj_lookup_path obj path =
+  List.fold_left (fun obj key -> jg_obj_lookup obj key) obj path
+
 let jg_sort lst kwargs =
+  let reverse = ref false in
+  let attribute = ref "" in
+  List.iter (function ("reverse", Tbool true) -> reverse := true
+                    | ("attribute", Tstr name) -> attribute := name
+                    | (kw, _) -> failwith kw) kwargs ;
+  let compare = match !attribute with
+    | "" -> jg_compare
+    | att ->
+      let path = string_split_on_char '.' att in
+      fun a b -> jg_compare (jg_obj_lookup_path a path) (jg_obj_lookup_path b path)
+  in
+  let compare = if !reverse then fun a b -> compare b a else compare in
   match lst with
-    | Tlist l -> Tlist (List.sort jg_compare l)
-    | Tarray a -> Tarray (let a = Array.copy a in Array.sort jg_compare a ; a)
+    | Tlist l -> Tlist (List.sort compare l)
+    | Tarray a -> Tarray (let a = Array.copy a in Array.sort compare a ; a)
     | x -> failwith @@ spf "invalid_arg:can't sort %s (jg_sort)" (type_string_of_tvalue x)
 
 let jg_xmlattr obj kwargs =
@@ -971,25 +998,12 @@ module JgHashtbl = Hashtbl.Make (struct
     let hash = Hashtbl.hash
   end)
 
-(* Copy of String.split_on_char which is available in 4.04 *)
-let string_split_on_char sep s =
-  let open String in
-  let r = ref [] in
-  let j = ref (length s) in
-  for i = length s - 1 downto 0 do
-    if unsafe_get s i = sep then begin
-      r := sub s (i + 1) (!j - i - 1) :: !r;
-      j := i
-    end
-  done;
-sub s 0 !j :: !r
-
 let jg_groupby_aux key length iter collection =
   let path = string_split_on_char '.' key in
   let h = JgHashtbl.create length in
   iter
     (fun obj ->
-      let k = List.fold_left (fun obj key -> jg_obj_lookup obj key) obj path in
+      let k = jg_obj_lookup_path obj path in
       if JgHashtbl.mem h k then
         JgHashtbl.replace h k (obj :: JgHashtbl.find h k)
       else
