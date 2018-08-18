@@ -374,16 +374,13 @@ let test_sort_attr ctx =
       ("age", Tint 25);
     ])];
   ] in
-  let checker name = function
-    | Tobj alist ->
-       (match List.assoc "name" alist with
-       | Tstr name' -> name = name'
-       | _ -> failwith "invalid obj")
+  let name_is name = function
+    | Tobj alist -> unbox_string (List.assoc "name" alist) = name
     | _ -> failwith "invalid obj" in
   let forward_sorted = jg_sort persons [("attribute", Tstr "info.age")] |> unbox_list in
-  let forward_expected = [checker "bob"; checker "ken"] in
+  let forward_expected = [name_is "bob"; name_is "ken"] in
   let reverse_sorted = jg_sort persons [("attribute", Tstr "info.age"); ("reverse", Tbool true)] |> unbox_list in
-  let reverse_expected = [checker "ken"; checker "bob"] in
+  let reverse_expected = [name_is "ken"; name_is "bob"] in
   let check_person checker person = checker person in
   assert_equal (List.for_all2 check_person forward_expected forward_sorted) true;
   assert_equal (List.for_all2 check_person reverse_expected reverse_sorted) true;
@@ -555,28 +552,27 @@ let test_groupby ctx =
   let males = get_group "M" groups_by_gender |> get_group_list in
   let english_speakers = get_group "English" groups_by_lang_native |> get_group_list in
   let french_speakers = get_group "French" groups_by_lang_native |> get_group_list in
-  (* checks only gender, first_name, last_name for ease *)
-  let checker ~gender ~first_name ~last_name item =
-    unbox_string (jg_obj_lookup item "gender") = gender &&
+  (* checks only full name for ease *)
+  let full_name_is ~first_name ~last_name item =
     unbox_string (jg_obj_lookup item "first_name") = first_name &&
     unbox_string (jg_obj_lookup item "last_name") = last_name in
   let females_expected = [
-    checker ~gender:"F" ~first_name:"Tobi" ~last_name:"Legault";
-    checker ~gender:"F" ~first_name:"Lorriane" ~last_name:"Olive";
-    checker ~gender:"F" ~first_name:"Hana" ~last_name:"Breton";
+    full_name_is ~first_name:"Tobi" ~last_name:"Legault";
+    full_name_is ~first_name:"Lorriane" ~last_name:"Olive";
+    full_name_is ~first_name:"Hana" ~last_name:"Breton";
   ] in
   let males_expected = [
-    checker ~gender:"M" ~first_name:"Kip" ~last_name:"Schon";
-    checker ~gender:"M" ~first_name:"Arlen" ~last_name:"Aubrey";
+    full_name_is ~first_name:"Kip" ~last_name:"Schon";
+    full_name_is ~first_name:"Arlen" ~last_name:"Aubrey";
   ] in
   let english_speakers_expected = [
-    checker ~gender:"F" ~first_name:"Lorriane" ~last_name:"Olive";
-    checker ~gender:"M" ~first_name:"Arlen" ~last_name:"Aubrey";
+    full_name_is ~first_name:"Lorriane" ~last_name:"Olive";
+    full_name_is ~first_name:"Arlen" ~last_name:"Aubrey";
   ] in
   let french_speakers_expected = [
-    checker ~gender:"F" ~first_name:"Tobi" ~last_name:"Legault";
-    checker ~gender:"M" ~first_name:"Kip" ~last_name:"Schon";
-    checker ~gender:"F" ~first_name:"Hana" ~last_name:"Breton";
+    full_name_is ~first_name:"Tobi" ~last_name:"Legault";
+    full_name_is ~first_name:"Kip" ~last_name:"Schon";
+    full_name_is ~first_name:"Hana" ~last_name:"Breton";
   ] in
   let check_person checker person = checker person in
   assert_equal (List.for_all2 check_person females_expected females) true;
