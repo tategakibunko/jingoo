@@ -38,9 +38,13 @@ let models = [
       ("name", Tstr "aaa")
      ]);
    ]);
-  ("rows", Tlist [
-    Tobj [("name", Tstr "bob"); ("age", Tint 20)];
-    Tobj [("name", Tstr "ken"); ("age", Tint 25)];
+  ("persons", Tlist [
+    Tobj [("name", Tstr "bob"); ("age", Tint 20); ("extra", Tobj [
+      ("rank", Tint 1);
+    ])];
+    Tobj [("name", Tstr "ken"); ("age", Tint 25); ("extra", Tobj [
+      ("rank", Tint 2);
+    ])];
   ]);
   ("hash1", build_ht ());
   ("array1", Tarray [| Tstr "this"; Tstr "is"; Tstr "from"; Tstr "array" |]);

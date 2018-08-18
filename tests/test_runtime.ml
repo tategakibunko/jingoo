@@ -378,14 +378,15 @@ let test_sort_attr ctx =
     | Tobj alist ->
        (match List.assoc "name" alist with
        | Tstr name' -> name = name'
-       | _ -> false)
+       | _ -> failwith "invalid obj")
     | _ -> failwith "invalid obj" in
-  let expected = [checker "ken"; checker "bob"] in
-  let sorted =
-    match jg_sort persons [("attribute", Tstr "info.age")] with
-    | Tlist list -> list
-    | _ -> failwith "ouch" in
-  List.for_all2 (fun checker person -> checker person) expected sorted
+  let forward_sorted = jg_sort persons [("attribute", Tstr "info.age")] |> unbox_list in
+  let forward_expected = [checker "bob"; checker "ken"] in
+  let reverse_sorted = jg_sort persons [("attribute", Tstr "info.age"); ("reverse", Tbool true)] |> unbox_list in
+  let reverse_expected = [checker "ken"; checker "bob"] in
+  let check_person checker person = checker person in
+  assert_equal (List.for_all2 check_person forward_expected forward_sorted) true;
+  assert_equal (List.for_all2 check_person reverse_expected reverse_sorted) true;
 ;;
 
 let test_sort_string_array ctx =
@@ -632,7 +633,7 @@ let suite = "runtime test" >::: [
   "test_sort_string_list" >:: test_sort_string_list;
   "test_sort_string_array" >:: test_sort_string_array;
   "test_sort_rev" >:: test_sort_rev;
-  "test_sort_attr" >:: test_sort_rev;
+  "test_sort_attr" >:: test_sort_attr;
   "test_xmlattr" >:: test_xmlattr;
   "test_wordwrap" >:: test_wordwrap;
   "test_sublist" >:: test_sublist;

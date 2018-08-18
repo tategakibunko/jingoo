@@ -279,6 +279,9 @@ let jg_obj_lookup_by_name ctx obj_name prop_name =
     | (Tobj _ | Thash _ | Tpat _) as obj -> jg_obj_lookup obj prop_name
     | _ -> (try Jg_stub.get_func obj_name prop_name with Not_found -> Tnull)
 
+let jg_obj_lookup_path obj path =
+  List.fold_left (fun obj key -> jg_obj_lookup obj key) obj path
+
 let jg_iter_mk_ctx ctx iterator itm len i =
   let cycle = Tfun (fun args kwargs ->
       let args_len = List.length args in
@@ -939,9 +942,6 @@ let string_split_on_char sep s =
     end
   done;
 sub s 0 !j :: !r
-
-let jg_obj_lookup_path obj path =
-  List.fold_left (fun obj key -> jg_obj_lookup obj key) obj path
 
 let jg_sort lst kwargs =
   let reverse = ref false in
