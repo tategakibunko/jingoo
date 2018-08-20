@@ -1027,6 +1027,33 @@ let jg_groupby key value kwargs =
     end
   | _ -> failwith "invalid arg: not str(jg_groupby key)"
 
+let jg_max_min_aux max fst iter value kwargs =
+  let compare =
+    match kwargs with
+    | [("attribute", Tstr att)] ->
+      let path = string_split_on_char '.' att in
+      fun a b -> jg_compare (jg_obj_lookup_path a path) (jg_obj_lookup_path b path)
+    | _ -> jg_compare
+  in
+  let compare = if max then compare else fun a b -> compare b a in
+  let max = ref fst in
+  iter (fun x -> if compare !max x = -1 then max := x) value ;
+  !max
+
+let jg_max arg kwargs =
+  match arg with
+  | Tarray [||] | Tlist [] -> Tnull
+  | Tarray a -> jg_max_min_aux true a.(0) Array.iter a kwargs
+  | Tlist (hd :: tl) -> jg_max_min_aux true hd List.iter tl kwargs
+  | _ -> failwith "invalid arg: not array nor list(jg_max)"
+
+let jg_min arg kwargs =
+  match arg with
+  | Tarray [||] | Tlist [] -> Tnull
+  | Tarray a -> jg_max_min_aux false a.(0) Array.iter a kwargs
+  | Tlist (hd :: tl) -> jg_max_min_aux false hd List.iter tl kwargs
+  | _ -> failwith "invalid arg: not array nor list(jg_min)"
+
 let jg_test_divisibleby num target kwargs =
   match num, target with
     | Tint 0, _ -> Tbool(false)
@@ -1118,7 +1145,9 @@ let std_filters = [
   ("length", func_arg1 jg_length);
   ("list", func_arg1 jg_list);
   ("lower", func_arg1 jg_lower);
+  ("max", func_arg1 jg_max);
   ("md5", func_arg1 jg_md5);
+  ("min", func_arg1 jg_min);
   ("safe", func_arg1 jg_safe);
   ("strlen", func_arg1 jg_strlen);
   ("sum", func_arg1 jg_sum);
