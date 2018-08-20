@@ -45,6 +45,7 @@ let rec value_of_expr env ctx = function
   | BracketExpr(left, expr) ->
     (match value_of_expr env ctx expr with
      | Tstr prop -> jg_obj_lookup (value_of_expr env ctx left) prop
+     | Tint i -> jg_nth (value_of_expr env ctx left) i
      | _ -> Tnull)
   | TestOpExpr(IdentExpr(name), IdentExpr("defined")) -> jg_test_defined ctx name
   | TestOpExpr(IdentExpr(name), IdentExpr("undefined")) -> jg_test_undefined ctx name

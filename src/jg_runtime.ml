@@ -228,6 +228,12 @@ let jg_obj_lookup_by_name ctx obj_name prop_name =
     | (Tobj _ | Thash _ | Tpat _) as obj -> jg_obj_lookup obj prop_name
     | _ -> (try Jg_stub.get_func obj_name prop_name with Not_found -> Tnull)
 
+let jg_nth value i =
+  match value with
+  | Tarray a -> a.(i)
+  | Tlist l -> List.nth l i
+  | _ -> failwith ("jg_obj_nth:not array nor list")
+
 let jg_get_func ctx name =
   match jg_get_value ctx name with
     | Tfun f -> Tfun f
