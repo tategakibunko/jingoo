@@ -581,6 +581,23 @@ let test_groupby ctx =
   assert_equal (List.for_all2 check_person french_speakers_expected french_speakers) true
 ;;
   
+let test_min_max ctx =
+  let numbers = Tlist [Tint 3; Tint 1; Tint 2] in
+  let persons = Tlist [
+    Tobj [("name", Tstr "taro"); ("age", Tint 12)];
+    Tobj [("name", Tstr "jiro"); ("age", Tint 10)];
+    Tobj [("name", Tstr "hana"); ("age", Tint 13)];
+  ] in
+  let min_number = jg_min numbers [] in
+  let max_number = jg_max numbers [] in
+  let min_person = jg_min persons [("attribute", Tstr "age")] in
+  let max_person = jg_max persons [("attribute", Tstr "age")] in
+  assert_equal min_number (Tint 1);
+  assert_equal max_number (Tint 3);
+  assert_equal (jg_obj_lookup min_person "name") (Tstr "jiro");
+  assert_equal (jg_obj_lookup max_person "name") (Tstr "hana")
+;;
+
 let suite = "runtime test" >::: [
   "test_escape" >:: test_escape;
   "test_string_of_tvalue" >:: test_string_of_tvalue;
@@ -643,5 +660,6 @@ let suite = "runtime test" >::: [
   "test_number" >:: test_number;
   "test_string" >:: test_string;
   "test_groupby" >:: test_groupby;
+  "test_min_max" >:: test_min_max;
 ]
 ;;
