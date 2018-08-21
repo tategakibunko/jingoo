@@ -249,6 +249,7 @@ rule main = parse
       | _ -> main lexbuf
   }
   | _ as c {
+    if c = '\n' then Lexing.new_line lexbuf;
     match ctx.mode with
       | `Html -> add_char c; main lexbuf
       | _ -> fail lexbuf @@ spf "unexpected token:%c" c
@@ -292,6 +293,7 @@ and string_literal terminator = parse
       (* print_endline @@ spf "string literal:(%s)" (Buffer.contents buf); *)
       STRING (get_buf ())
     end else begin
+      if c = '\n' then Lexing.new_line lexbuf;
       add_char c;
       string_literal terminator lexbuf
     end

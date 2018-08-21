@@ -483,6 +483,21 @@ must be bob(20) ken(25): {% for p in sort(persons, attribute="age") %}{{p.name}}
 must be ken(2) bob(1): {% for p in sort(persons, reverse=true, attribute="extra.rank") %}{{p.name}}({{p.extra.rank}}) {% endfor %}
 must be bob(1) ken(2): {% for p in sort(persons, attribute="extra.rank") %}{{p.name}}({{p.extra.rank}}) {% endfor %}
 
+[PR#49] jg_min, jg_max, jg_nth
+========================
+
+min of [10, 20, 30] = {{min(list)}}
+max of [10, 20, 30] = {{max(list)}}
+
+younguest person = {{min(persons, attribute="age").name}}(must be bob)
+oldest person = {{max(persons, attribute="age").name}}(must be ken)
+
+min rank = {{min(persons, attribute="extra.rank").extra.rank}}(must be 1)
+max rank = {{max(persons, attribute="extra.rank").extra.rank}}(must be 2)
+
+[10,20,30][0] = {{[10,20,30][0]}}
+[10,20,30][1] = {{[10,20,30][1]}}
+[10,20,30][2] = {{[10,20,30][2]}}
 
 ========================
 

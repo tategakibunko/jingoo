@@ -195,3 +195,24 @@ module Maybe = struct
       | None -> None
 end
 
+(* Copied from Array module to ensure compatibility with 4.02 *)
+let array_iter2 f a b =
+  let open Array in
+  if length a <> length b then
+    invalid_arg "Array.iter2: arrays must have the same length"
+  else
+    for i = 0 to length a - 1 do f (unsafe_get a i) (unsafe_get b i) done
+
+(* Copy of String.split_on_char which is available in 4.04 *)
+let string_split_on_char sep s =
+  let open String in
+  let r = ref [] in
+  let j = ref (length s) in
+  for i = length s - 1 downto 0 do
+    if unsafe_get s i = sep then begin
+      r := sub s (i + 1) (!j - i - 1) :: !r;
+      j := i
+    end
+  done;
+sub s 0 !j :: !r
+

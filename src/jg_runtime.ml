@@ -191,18 +191,20 @@ let jg_set_values ctx names values =
     jg_set_value ctx name value
   ) ctx names (Jg_utils.take (List.length names) values ~pad:Tnull)
 
-let jg_bind_names ctx names values =
-  match names, values with
-    | [name], value -> jg_set_value ctx name value
-    | name :: rest, Tset values -> jg_set_values ctx names values
-    | _ -> ctx
-
 let rec jg_force = function
   | Tlazy x -> jg_force (Lazy.force x)
   | Tvolatile x -> jg_force (x ())
   | x -> x
 
-let rec jg_get_value ctx name =
+let rec jg_bind_names ctx names values =
+  match names, values with
+    | [name], value -> jg_set_value ctx name value
+    | _, Tset values -> jg_set_values ctx names values
+    | _, (Tobj _ | Thash _ | Tpat _) ->
+      jg_set_values ctx names (List.map (jg_obj_lookup values) names)
+    | _ -> ctx
+
+and jg_get_value ctx name =
   let rec get_value name = function
     | frame :: rest ->
       (try jg_force (Hashtbl.find frame name)
@@ -211,6 +213,26 @@ let rec jg_get_value ctx name =
       (try Thash (Hashtbl.find ctx.namespace_table name)
        with Not_found -> Tnull) in
   get_value name ctx.frame_stack
+
+and jg_obj_lookup obj prop_name =
+  jg_force @@
+  match obj with
+    | Tobj(alist) -> (try List.assoc prop_name alist with Not_found -> Tnull)
+    | Thash(hash) -> (try Hashtbl.find hash prop_name with Not_found -> Tnull)
+    | Tpat(fn) -> (try fn prop_name with Not_found -> Tnull)
+    | Tlazy _ | Tvolatile _ -> jg_obj_lookup (jg_force obj) prop_name
+    | _ -> failwith ("jg_obj_lookup:not object when looking for '"  ^ prop_name ^ "'")
+
+let jg_obj_lookup_by_name ctx obj_name prop_name =
+  match jg_get_value ctx obj_name with
+    | (Tobj _ | Thash _ | Tpat _) as obj -> jg_obj_lookup obj prop_name
+    | _ -> (try Jg_stub.get_func obj_name prop_name with Not_found -> Tnull)
+
+let jg_nth value i =
+  match value with
+  | Tarray a -> a.(i)
+  | Tlist l -> List.nth l i
+  | _ -> failwith ("jg_obj_nth:not array nor list")
 
 let jg_get_func ctx name =
   match jg_get_value ctx name with
@@ -264,20 +286,6 @@ let jg_output ?(autoescape=true) ?(safe=false) ctx value =
 	jg_apply_filters ctx value ctx.active_filters ~safe ~autoescape
   );
   ctx
-
-let rec jg_obj_lookup obj prop_name =
-  jg_force @@
-  match obj with
-    | Tobj(alist) -> (try List.assoc prop_name alist with Not_found -> Tnull)
-    | Thash(hash) -> (try Hashtbl.find hash prop_name with Not_found -> Tnull)
-    | Tpat(fn) -> (try fn prop_name with Not_found -> Tnull)
-    | Tlazy _ | Tvolatile _ -> jg_obj_lookup (jg_force obj) prop_name
-    | _ -> failwith ("jg_obj_lookup:not object when looking for '"  ^ prop_name ^ "'")
-
-let jg_obj_lookup_by_name ctx obj_name prop_name =
-  match jg_get_value ctx obj_name with
-    | (Tobj _ | Thash _ | Tpat _) as obj -> jg_obj_lookup obj prop_name
-    | _ -> (try Jg_stub.get_func obj_name prop_name with Not_found -> Tnull)
 
 let jg_obj_lookup_path obj path =
   List.fold_left (fun obj key -> jg_obj_lookup obj key) obj path
@@ -550,14 +558,6 @@ let rec jg_eq_eq_aux left right =
     | Tobj x1, Tobj x2 -> jg_obj_eq_eq left right
     | Tarray x1, Tarray x2 -> jg_array_eq_eq x1 x2
     | _, _ -> false
-
-(* Copied from Array module to ensure compatibility with 4.02 *)
-and array_iter2 f a b =
-  let open Array in
-  if length a <> length b then
-    invalid_arg "Array.iter2: arrays must have the same length"
-  else
-    for i = 0 to length a - 1 do f (unsafe_get a i) (unsafe_get b i) done
 
 and jg_array_eq_eq a1 a2 =
   try
@@ -930,19 +930,6 @@ let jg_striptags text kwargs =
       Tstr text'
     | _ -> failwith "invalid arg: not string(jg_striptags)"
 
-(* Copy of String.split_on_char which is available in 4.04 *)
-let string_split_on_char sep s =
-  let open String in
-  let r = ref [] in
-  let j = ref (length s) in
-  for i = length s - 1 downto 0 do
-    if unsafe_get s i = sep then begin
-      r := sub s (i + 1) (!j - i - 1) :: !r;
-      j := i
-    end
-  done;
-sub s 0 !j :: !r
-
 let jg_sort lst kwargs =
   let reverse = ref false in
   let attribute = ref "" in
@@ -1024,6 +1011,32 @@ let jg_groupby key value kwargs =
       | _ -> failwith "invalid arg: not list nor array(jg_groupby value)"
     end
   | _ -> failwith "invalid arg: not str(jg_groupby key)"
+
+let jg_max_min_aux is_max fst iter value kwargs =
+  let compare =
+    match kwargs with
+    | [("attribute", Tstr att)] ->
+      let path = string_split_on_char '.' att in
+      fun a b -> jg_compare (jg_obj_lookup_path a path) (jg_obj_lookup_path b path)
+    | _ -> jg_compare in
+  let compare = if is_max then compare else fun a b -> compare b a in
+  let result = ref fst in
+  iter (fun x -> if compare !result x = -1 then result := x) value;
+  !result
+
+let jg_max arg kwargs =
+  match arg with
+  | Tarray [||] | Tlist [] -> Tnull
+  | Tarray a -> jg_max_min_aux true a.(0) Array.iter a kwargs
+  | Tlist (hd :: tl) -> jg_max_min_aux true hd List.iter tl kwargs
+  | _ -> failwith "invalid arg: not array nor list(jg_max)"
+
+let jg_min arg kwargs =
+  match arg with
+  | Tarray [||] | Tlist [] -> Tnull
+  | Tarray a -> jg_max_min_aux false a.(0) Array.iter a kwargs
+  | Tlist (hd :: tl) -> jg_max_min_aux false hd List.iter tl kwargs
+  | _ -> failwith "invalid arg: not array nor list(jg_min)"
 
 let jg_test_divisibleby num target kwargs =
   match num, target with
@@ -1116,7 +1129,9 @@ let std_filters = [
   ("length", func_arg1 jg_length);
   ("list", func_arg1 jg_list);
   ("lower", func_arg1 jg_lower);
+  ("max", func_arg1 jg_max);
   ("md5", func_arg1 jg_md5);
+  ("min", func_arg1 jg_min);
   ("safe", func_arg1 jg_safe);
   ("strlen", func_arg1 jg_strlen);
   ("sum", func_arg1 jg_sum);
