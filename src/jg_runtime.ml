@@ -559,14 +559,6 @@ let rec jg_eq_eq_aux left right =
     | Tarray x1, Tarray x2 -> jg_array_eq_eq x1 x2
     | _, _ -> false
 
-(* Copied from Array module to ensure compatibility with 4.02 *)
-and array_iter2 f a b =
-  let open Array in
-  if length a <> length b then
-    invalid_arg "Array.iter2: arrays must have the same length"
-  else
-    for i = 0 to length a - 1 do f (unsafe_get a i) (unsafe_get b i) done
-
 and jg_array_eq_eq a1 a2 =
   try
     array_iter2
@@ -937,19 +929,6 @@ let jg_striptags text kwargs =
       let text' = Pcre.replace ~rex:reg ~templ:"" text in
       Tstr text'
     | _ -> failwith "invalid arg: not string(jg_striptags)"
-
-(* Copy of String.split_on_char which is available in 4.04 *)
-let string_split_on_char sep s =
-  let open String in
-  let r = ref [] in
-  let j = ref (length s) in
-  for i = length s - 1 downto 0 do
-    if unsafe_get s i = sep then begin
-      r := sub s (i + 1) (!j - i - 1) :: !r;
-      j := i
-    end
-  done;
-sub s 0 !j :: !r
 
 let jg_sort lst kwargs =
   let reverse = ref false in
