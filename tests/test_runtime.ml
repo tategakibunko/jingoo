@@ -211,6 +211,11 @@ let test_wordcount ctx =
   assert_equal (jg_wordcount (Tstr "日　本　語") kwargs) (Tint 3)
 ;;
 
+let test_trim ctx =
+  assert_equal (jg_trim (Tstr " a \n b c ") kwargs) (Tstr "a \n b c");
+  assert_equal (jg_trim (Tstr "　日　本\n　　語　　　") kwargs) (Tstr "日　本\n　　語")
+;;
+
 let test_round ctx =
   assert_equal (jg_round (Tstr "floor") (Tfloat 1.5) kwargs) (Tfloat 1.0);
   assert_equal (jg_round (Tstr "ceil") (Tfloat 1.5) kwargs) (Tfloat 2.0)
@@ -305,7 +310,7 @@ let test_title ctx =
   let text = Tstr "this is it!" in
   match jg_title text kwargs with
     | Tstr text' ->
-      assert_equal text' "This is it!"
+      assert_equal text' "This Is It!"
     | _ -> failwith "ouch"
 ;;
 
@@ -642,6 +647,7 @@ let suite = "runtime test" >::: [
   "test_random" >:: test_random;
   "test_slice" >:: test_slice;
   "test_wordcount" >:: test_wordcount;
+  "test_trim" >:: test_trim;
   "test_round" >:: test_round;
   "test_range" >:: test_range;
   "test_sum" >:: test_sum;
