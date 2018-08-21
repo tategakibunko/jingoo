@@ -598,6 +598,17 @@ let test_min_max ctx =
   assert_equal (jg_obj_lookup max_person "name") (Tstr "hana")
 ;;
 
+let test_nth ctx =
+  let list = Tlist [Tint 3; Tint 0; Tint 2] in
+  let ary = Tarray [| Tint 1; Tint 10; Tint 12 |] in
+  assert_equal (jg_nth list 0) (Tint 3);
+  assert_equal (jg_nth list 1) (Tint 0);
+  assert_equal (jg_nth list 2) (Tint 2);
+  assert_equal (jg_nth ary 0) (Tint 1);
+  assert_equal (jg_nth ary 1) (Tint 10);
+  assert_equal (jg_nth ary 2) (Tint 12);
+;;
+
 let suite = "runtime test" >::: [
   "test_escape" >:: test_escape;
   "test_string_of_tvalue" >:: test_string_of_tvalue;
@@ -661,5 +672,6 @@ let suite = "runtime test" >::: [
   "test_string" >:: test_string;
   "test_groupby" >:: test_groupby;
   "test_min_max" >:: test_min_max;
+  "test_nth" >:: test_nth;
 ]
 ;;
