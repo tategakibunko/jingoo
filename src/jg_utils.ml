@@ -30,13 +30,15 @@ module UTF8 = struct
     ignore @@ Uutf.encode encoder `End;
     Buffer.contents buf
 
-  let is_space =
-    let c1 = Uchar.of_char ' ' in
-    let c2 = Uchar.of_char '\n' in
-    let c3 = Uchar.of_char '\r' in
-    let c4 = Uchar.of_char '\t' in
-    let c5 = Uchar.of_int 12288 in (* Ideographic space *)
-    fun c -> c = c1 || c = c2 || c = c3 || c = c4 || c = c5
+  let space_characters =
+    [ Uchar.of_char ' '
+    ; Uchar.of_char '\n'
+    ; Uchar.of_char '\r'
+    ; Uchar.of_char '\t'
+    ; Uchar.of_int 12288 (* Ideographic space *)
+    ]
+
+  let is_space u = List.mem u space_characters
 
   (* cmap_utf_8 code code comes from
      http://erratique.ch/software/uucp/doc/Uucp.Case.html *)
@@ -98,7 +100,7 @@ module UTF8 = struct
     try
       Uutf.String.fold_utf_8
         (fun _ _ -> function
-           |  `Uchar u when not (fn u) -> raise Not_found
+           | `Uchar u when not (fn u) -> raise Not_found
            | _ -> () )
         () s ;
       true
@@ -110,6 +112,25 @@ module UTF8 = struct
 
   let is_upper =
     is_case_aux Uucp.Case.is_upper
+
+  let split ?(delim = space_characters) str =
+    let start = ref (-1) in
+    let acc =
+      Uutf.String.fold_utf_8
+        (fun acc i -> function
+           | `Uchar u when List.mem u delim && !start = -1 ->
+             acc
+           | `Uchar u when List.mem u delim ->
+             let acc = (!start, i - !start) :: acc in
+             start := -1 ;
+             acc
+           | _ ->
+             if !start = -1 then start := i ;
+             acc )
+        [] str
+    in
+    let acc = if !start = -1 then acc else (!start, String.length str - !start) :: acc in
+    List.rev_map (fun (a, b) -> String.sub str a b) acc
 
 end
 

@@ -977,7 +977,7 @@ let jg_wordwrap width break_long_words text kwargs =
 	  else
 	    iter (push_line lines @@ concat_line line word) "" 0 rest
 	| [] -> if line = "" then lines else push_line lines line in
-      let words = Pcre.split ~rex:(Pcre.regexp "[\\s\\t　]+" ~flags:[`UTF8]) text in
+      let words = Jg_utils.UTF8.split text in
       Tstr (iter "" "" 0 words)
     | _ -> failwith "invalid args:jg_wordwrap"
 
