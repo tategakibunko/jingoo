@@ -29,6 +29,109 @@ module UTF8 = struct
       ) sub_array;
     ignore @@ Uutf.encode encoder `End;
     Buffer.contents buf
+
+  let space_characters =
+    [ Uchar.of_char ' '
+    ; Uchar.of_char '\n'
+    ; Uchar.of_char '\r'
+    ; Uchar.of_char '\t'
+    ; Uchar.of_int 12288 (* Ideographic space *)
+    ]
+
+  let is_space u = List.mem u space_characters
+
+  (* cmap_utf_8 code code comes from
+     http://erratique.ch/software/uucp/doc/Uucp.Case.html *)
+  let cmap_utf_8 cmap s =
+    let b = Buffer.create (String.length s * 2) in
+    let rec add_map _ _ u =
+      let u = match u with `Malformed _ -> Uutf.u_rep | `Uchar u -> u in
+      match cmap u with
+      | `Self -> Uutf.Buffer.add_utf_8 b u
+      | `Uchars us -> List.iter (Uutf.Buffer.add_utf_8 b) us
+    in
+    Uutf.String.fold_utf_8 add_map () s;
+    Buffer.contents b
+
+  let lowercase s = cmap_utf_8 Uucp.Case.Map.to_lower s
+
+  let uppercase s = cmap_utf_8 Uucp.Case.Map.to_upper s
+
+  let capitalize s =
+    let first = ref true in
+    let cmap u =
+      if !first then (first := false ; Uucp.Case.Map.to_upper u)
+      else `Self
+    in
+    cmap_utf_8 cmap s
+
+  let titlecase s =
+    let up = ref true in
+    let cmap u =
+      if is_space u then (up := true ; `Self)
+      else if !up then (up := false ; Uucp.Case.Map.to_upper u)
+      else Uucp.Case.Map.to_lower u
+    in
+    cmap_utf_8 cmap s
+
+  let trim s =
+    let b = Buffer.create (String.length s) in
+    let start = ref true in
+    let ws = ref [] in
+    Uutf.String.fold_utf_8
+      (fun _ _ -> function
+        | `Malformed s ->
+          Buffer.add_string b s
+        | `Uchar u when is_space u && !start ->
+          ()
+        | `Uchar u when !start ->
+          start := false ;
+          Uutf.Buffer.add_utf_8 b u
+        | `Uchar u when is_space u ->
+          ws := u :: !ws
+        | `Uchar u ->
+          List.iter (Uutf.Buffer.add_utf_8 b) (List.rev !ws) ;
+          ws := [] ;
+          Uutf.Buffer.add_utf_8 b u)
+      () s ;
+    Buffer.contents b
+
+  let is_case_aux fn s =
+    try
+      Uutf.String.fold_utf_8
+        (fun _ _ -> function
+           | `Uchar u when not (fn u) -> raise Not_found
+           | _ -> () )
+        () s ;
+      true
+    with
+      Not_found -> false
+
+  let is_lower =
+    is_case_aux Uucp.Case.is_lower
+
+  let is_upper =
+    is_case_aux Uucp.Case.is_upper
+
+  let split ?(delim = space_characters) str =
+    let start = ref (-1) in
+    let acc =
+      Uutf.String.fold_utf_8
+        (fun acc i -> function
+           | `Uchar u when List.mem u delim && !start = -1 ->
+             acc
+           | `Uchar u when List.mem u delim ->
+             let acc = (!start, i - !start) :: acc in
+             start := -1 ;
+             acc
+           | _ ->
+             if !start = -1 then start := i ;
+             acc )
+        [] str
+    in
+    let acc = if !start = -1 then acc else (!start, String.length str - !start) :: acc in
+    List.rev_map (fun (a, b) -> String.sub str a b) acc
+
 end
 
 let strlen = UTF8.length
@@ -90,20 +193,6 @@ let escape_html str =
 
 let chomp str =
   Pcre.qreplace ~rex:(Pcre.regexp "\\n+$") ~templ:"" str
-
-let is_lower str =
-  try
-    String.iter (function 'A'..'Z' -> raise Not_found | _ -> ()) str ;
-    true
-  with
-    Not_found -> false
-
-let is_upper str =
-  try
-    String.iter (function 'a'..'z' -> raise Not_found | _ -> ()) str ;
-    true
-  with
-    Not_found -> false
 
 let rec take ?pad n lst =
   match n, lst, pad with

@@ -644,12 +644,12 @@ let jg_safe value kwargs =
 
 let jg_upper x kwargs =
   match x with
-    | Tstr str -> Tstr (String.uppercase str)
+    | Tstr str -> Tstr (Jg_utils.UTF8.uppercase str)
     | other -> Tstr (string_of_tvalue other)
 
 let jg_lower x kwargs =
   match x with
-    | Tstr str -> Tstr (String.lowercase str)
+    | Tstr str -> Tstr (Jg_utils.UTF8.lowercase str)
     | other -> Tstr (string_of_tvalue other)
 
 let jg_int x kwargs =
@@ -723,7 +723,7 @@ let jg_length x kwargs =
 let jg_md5 x kwargs =
   match x with
     | Tstr str ->
-      Tstr(str |> String.lowercase |> Digest.string |> Digest.to_hex)
+      Tstr(str |> Jg_utils.UTF8.lowercase |> Digest.string |> Digest.to_hex)
     | _ -> failwith "invalid arg: not string(jg_md5)"
 
 let jg_abs value kwargs =
@@ -766,7 +766,7 @@ let jg_center ?(defaults=[
 
 let jg_capitalize value kwargs =
   match value with
-    | Tstr str -> Tstr (String.capitalize str)
+    | Tstr str -> Tstr (Jg_utils.UTF8.capitalize str)
     | _ -> failwith "invalid args: not string(capitalize)"
 
 let jg_default default value kwargs =
@@ -841,7 +841,7 @@ let jg_sum lst kwargs =
 
 let jg_trim str kwargs =
   match str with
-    | Tstr str -> Tstr (String.trim str)
+    | Tstr str -> Tstr (Jg_utils.UTF8.trim str)
     | _ -> failwith "invalid args: not string(jg_trim)"
 
 let jg_list value kwargs =
@@ -873,8 +873,15 @@ let jg_sublist base count lst kwargs =
 let jg_wordcount str kwargs =
   match str with
     | Tstr str ->
-      Pcre.split ~rex:(Pcre.regexp "[\\s\\t　]+" ~flags:[`UTF8]) str |>
-	List.length |> fun count -> Tint count
+      let space = ref true in
+      let n = ref 0 in
+      Uutf.String.fold_utf_8
+        (fun _ _ -> function
+           | `Uchar u when Jg_utils.UTF8.is_space u -> space := true
+           | `Uchar u when !space -> space := false ; incr n
+           | _ -> ())
+        () str ;
+      Tint !n
     | _ -> failwith "invalid arg: not string(jg_word_count)"
 
 let jg_round how value kwargs =
@@ -915,11 +922,7 @@ let jg_urlize text kwargs =
 
 let jg_title text kwargs =
   match text with
-    | Tstr text ->
-      (match Pcre.split ~rex:(Pcre.regexp "[\\s\\t　]+" ~flags:[`UTF8]) text with
-	| head :: rest ->
-	  ((String.capitalize head) :: rest) |> String.concat " " |> fun text' -> Tstr text'
-	| _ -> Tstr text)
+    | Tstr text -> Tstr (Jg_utils.UTF8.titlecase text)
     | _ -> failwith "invalid arg: not string(jg_title)"
 
 let jg_striptags text kwargs =
@@ -974,7 +977,7 @@ let jg_wordwrap width break_long_words text kwargs =
 	  else
 	    iter (push_line lines @@ concat_line line word) "" 0 rest
 	| [] -> if line = "" then lines else push_line lines line in
-      let words = Pcre.split ~rex:(Pcre.regexp "[\\s\\t　]+" ~flags:[`UTF8]) text in
+      let words = Jg_utils.UTF8.split text in
       Tstr (iter "" "" 0 words)
     | _ -> failwith "invalid args:jg_wordwrap"
 
@@ -1059,12 +1062,12 @@ let jg_test_iterable x kwargs =
 
 let jg_test_lower x kwargs =
   match x with
-    | Tstr str -> Tbool(Jg_utils.is_lower str)
+    | Tstr str -> Tbool(Jg_utils.UTF8.is_lower str)
     | _ -> Tbool(false)
 
 let jg_test_upper x kwargs =
   match x with
-    | Tstr str -> Tbool(Jg_utils.is_upper str)
+    | Tstr str -> Tbool(Jg_utils.UTF8.is_upper str)
     | _ -> Tbool(false)
 
 let jg_test_number x kwargs =
