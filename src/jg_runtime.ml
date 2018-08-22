@@ -61,22 +61,6 @@ let unbox_pat = function
   | Tpat pat -> pat
   | _ -> failwith "invalid arg:not hahs(unbox_pat)"
 
-let string_of_tvalue = function
-  | Tint x -> string_of_int x
-  | Tfloat x -> string_of_float x
-  | Tstr x -> x
-  | Tbool x -> string_of_bool x
-  | Tobj x -> "<obj>"
-  | Thash x -> "<hash>"
-  | Tpat _ -> "<pat>"
-  | Tlist x -> "<list>"
-  | Tset x -> "<set>"
-  | Tfun _ -> "<fun>"
-  | Tnull -> ""
-  | Tarray _ -> "<array>"
-  | Tlazy _ -> "<lazy>"
-  | Tvolatile x -> "<volatile>"
-
 let type_string_of_tvalue = function
   | Tint x -> "int"
   | Tfloat x -> "float"
@@ -92,36 +76,6 @@ let type_string_of_tvalue = function
   | Tarray _ -> "array"
   | Tlazy _ -> "lazy"
   | Tvolatile _ -> "volatile"
-
-let dump_expr = function
-  | IdentExpr(str) -> spf "IdentExpr(%s)" str
-  | LiteralExpr(tvalue) -> spf "LiteralExpr(%s)" (string_of_tvalue tvalue)
-  | NotOpExpr(_) -> "NotOpExpr"
-  | NegativeOpExpr(_) -> "NegativeOpExpr"
-  | PlusOpExpr(_,_) -> "PlusOpExpr"
-  | MinusOpExpr(_,_) -> "MinusExpr"
-  | TimesOpExpr(_,_) -> "TimesOpExpr"
-  | PowerOpExpr(_,_) -> "PowerOpExpr"
-  | DivOpExpr(_,_) -> "DivOpExpr"
-  | ModOpExpr(_,_) -> "ModOpExpr"
-  | AndOpExpr(_,_) -> "AndOpExpr"
-  | OrOpExpr(_,_) -> "OrOpExpr"
-  | NotEqOpExpr(_,_) -> "NotEqOpExpr"
-  | EqEqOpExpr(_,_) -> "EqEqExpr"
-  | LtOpExpr(_,_) -> "LtOpExpr"
-  | GtOpExpr(_,_) -> "GtOpExpr"
-  | LtEqOpExpr(_,_) -> "LtEqOpExpr"
-  | GtEqOpExpr(_,_) -> "GtEqOpExpr"
-  | DotExpr(_,_) -> "DotExpr"
-  | BracketExpr(_,_) -> "BracketExpr"
-  | ListExpr(_) -> "ListExpr"
-  | SetExpr(_) -> "SetExpr"
-  | ObjExpr(_) -> "ObjExpr"
-  | InOpExpr(_,_) -> "InOpExpr"
-  | KeywordExpr(_,_) -> "KeywordExpr"
-  | AliasExpr(_,_) -> "AliasExpr"
-  | ApplyExpr(_,_) -> "ApplyExpr"
-  | TestOpExpr(_,_) -> "TestOpExpr"
 
 let is_iterable = function
   | Tlist _ | Tset _ | Thash _ | Tobj _ | Tarray _ | Tstr _ | Tnull-> true
@@ -196,7 +150,26 @@ let rec jg_force = function
   | Tvolatile x -> jg_force (x ())
   | x -> x
 
-let rec jg_bind_names ctx names values =
+let rec string_of_tvalue ?(default = "") = function
+  | Tint x -> string_of_int x
+  | Tfloat x -> string_of_float x
+  | Tstr x -> x
+  | Tbool x -> string_of_bool x
+  | Tobj _ as x -> string_of_obj "<obj>" x
+  | Thash _ as x -> string_of_obj "<hash>" x
+  | Tpat _ as x -> string_of_obj "<pat>" x
+  | Tnull -> default
+  | Tlist x -> "<list>"
+  | Tset x -> "<set>"
+  | Tfun _ -> "<fun>"
+  | Tarray _ -> "<array>"
+  | Tlazy _ -> "<lazy>"
+  | Tvolatile x -> "<volatile>"
+
+and string_of_obj default obj =
+  string_of_tvalue ~default @@ jg_obj_lookup obj "__str__"
+
+and jg_bind_names ctx names values =
   match names, values with
     | [name], value -> jg_set_value ctx name value
     | _, Tset values -> jg_set_values ctx names values
@@ -1202,3 +1175,33 @@ let jg_init_context ?(models=[]) output env =
     active_filters = [];
     output
   }
+
+let dump_expr = function
+  | IdentExpr(str) -> spf "IdentExpr(%s)" str
+  | LiteralExpr(tvalue) -> spf "LiteralExpr(%s)" (string_of_tvalue tvalue)
+  | NotOpExpr(_) -> "NotOpExpr"
+  | NegativeOpExpr(_) -> "NegativeOpExpr"
+  | PlusOpExpr(_,_) -> "PlusOpExpr"
+  | MinusOpExpr(_,_) -> "MinusExpr"
+  | TimesOpExpr(_,_) -> "TimesOpExpr"
+  | PowerOpExpr(_,_) -> "PowerOpExpr"
+  | DivOpExpr(_,_) -> "DivOpExpr"
+  | ModOpExpr(_,_) -> "ModOpExpr"
+  | AndOpExpr(_,_) -> "AndOpExpr"
+  | OrOpExpr(_,_) -> "OrOpExpr"
+  | NotEqOpExpr(_,_) -> "NotEqOpExpr"
+  | EqEqOpExpr(_,_) -> "EqEqExpr"
+  | LtOpExpr(_,_) -> "LtOpExpr"
+  | GtOpExpr(_,_) -> "GtOpExpr"
+  | LtEqOpExpr(_,_) -> "LtEqOpExpr"
+  | GtEqOpExpr(_,_) -> "GtEqOpExpr"
+  | DotExpr(_,_) -> "DotExpr"
+  | BracketExpr(_,_) -> "BracketExpr"
+  | ListExpr(_) -> "ListExpr"
+  | SetExpr(_) -> "SetExpr"
+  | ObjExpr(_) -> "ObjExpr"
+  | InOpExpr(_,_) -> "InOpExpr"
+  | KeywordExpr(_,_) -> "KeywordExpr"
+  | AliasExpr(_,_) -> "AliasExpr"
+  | ApplyExpr(_,_) -> "ApplyExpr"
+  | TestOpExpr(_,_) -> "TestOpExpr"
