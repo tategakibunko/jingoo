@@ -15,6 +15,7 @@ depends: [
   "ocamlfind" {build}
   "pcre"
   "uutf"
+  "uucp"
   "ounit" {test}
 ]
 available: [ocaml-version >= "4.02.0"]
