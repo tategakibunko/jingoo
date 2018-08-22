@@ -1151,6 +1151,19 @@ let std_filters = [
   ("string", func_arg1 jg_test_string);
 ]
 
+(* First version, only attributes *)
+let jg_map ctx list filter kwargs =
+  let fn =
+    match kwargs with
+    | [ ("attribute", Tstr path) ] ->
+      fun x -> jg_obj_lookup_path x (string_split_on_char '.' path)
+    | _ -> failwith "invalid arg: not array nor list(jg_map)"
+  in
+  match list with
+  | Tarray x -> Tarray (Array.map fn x)
+  | Tlist x -> Tlist (List.map fn x)
+  | _ -> failwith "invalid arg: not array nor list(jg_map)"
+
 let jg_load_extensions extensions =
   List.iter (fun ext ->
     try
@@ -1160,21 +1173,23 @@ let jg_load_extensions extensions =
   ) extensions
 
 let jg_init_context ?(models=[]) output env =
-  let model_frame = Hashtbl.create (2 * List.length models) in
+  let model_frame = Hashtbl.create (List.length models) in
   let top_frame = Hashtbl.create (List.length std_filters + List.length env.filters + 2) in
-  let rec set_values hash alist = List.fold_left (fun h (n, v) -> Hashtbl.add h n v; h) hash alist in
-  ignore @@ set_values model_frame models;
-  ignore @@ set_values top_frame std_filters;
-  ignore @@ set_values top_frame env.filters;
-  ignore @@ set_values top_frame [
-    ("jg_is_autoescape", Tbool env.autoescape);
-  ];
-  { frame_stack = [model_frame; top_frame];
-    macro_table = Hashtbl.create 10;
-    namespace_table = Hashtbl.create 10;
-    active_filters = [];
-    output
-  }
+  let ctx =
+    { frame_stack = [ model_frame ; top_frame ];
+      macro_table = Hashtbl.create 10;
+      namespace_table = Hashtbl.create 10;
+      active_filters = [];
+      output
+    }
+  in
+  let rec set_values hash alist = List.iter (fun (n, v) -> Hashtbl.add hash n v) alist in
+  set_values model_frame models;
+  set_values top_frame std_filters ;
+  set_values top_frame env.filters ;
+  Hashtbl.add top_frame "map" (func_arg2 @@ jg_map ctx) ;
+  Hashtbl.add top_frame "jg_is_autoescape" (Tbool env.autoescape) ;
+  ctx
 
 let dump_expr = function
   | IdentExpr(str) -> spf "IdentExpr(%s)" str
