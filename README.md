@@ -38,12 +38,12 @@ Jg_template.from_file "hello.jingoo" ~models:[("msg", Tstr "hello, world!")]
 1. custom filter definition.
 2. extension by dynlink module.
 
-see example directory for detail.
+see [examples](https://github.com/tategakibunko/jingoo/tree/master/example) for detail.
 
 
 ## cheatsheet
 
-see "example/cheatsheet.jingoo".
+see [cheatsheet.jingoo](https://github.com/tategakibunko/jingoo/blob/master/example/cheatsheet.jingoo).
 
 
 ## license
