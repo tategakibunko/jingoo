@@ -30,7 +30,7 @@ opam install jingoo
 ## simple usage
 
 ```ocaml
-Jg_template.from_file "hello.tmpl" ~models:[("msg", Tstr "hello, world!")]
+Jg_template.from_file "hello.jingoo" ~models:[("msg", Tstr "hello, world!")]
 ```
 
 ## advanced usage
@@ -43,7 +43,7 @@ see example directory for detail.
 
 ## cheatsheet
 
-see "example/cheatsheet.tmpl".
+see "example/cheatsheet.jingoo".
 
 
 ## license

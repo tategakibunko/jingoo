@@ -1,7 +1,7 @@
 open Jg_types
 open Jg_utils
 
-let file = ref "cheatsheet.tmpl"
+let file = ref "cheatsheet.jingoo"
 let count = ref 1000
   
 let () =

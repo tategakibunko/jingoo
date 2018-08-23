@@ -1,6 +1,6 @@
 open Jg_types
 
-let file = ref "cheatsheet.tmpl"
+let file = ref "cheatsheet.jingoo"
   
 let () =
   Arg.parse [

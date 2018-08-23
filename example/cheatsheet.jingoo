@@ -1,5 +1,5 @@
 {# you can extend base structure of template like this #}
-{% extends "base.tmpl" %}
+{% extends "base.jingoo" %}
 
 {# header content #}
 {% block header %}
@@ -28,7 +28,7 @@ this is footer!
 include test
 ============
 
-{% include "partial.tmpl" %}
+{% include "partial.jingoo" %}
 
 binop
 ======
@@ -225,11 +225,11 @@ Hi, I'm a programmer living in Japan.
 I love OCaml.
 {% endcall %}
 
-{% import "macro.tmpl" as hoge %}
+{% import "macro.jingoo" as hoge %}
 
 {{ hoge.hoge_macro(10,20) }}
 
-{% from "macro.tmpl" import hoge_macro, other_macro %}
+{% from "macro.jingoo" import hoge_macro, other_macro %}
 
 {{ hoge_macro(30,40) }}
 {{ other_macro(50,60) }}
@@ -346,9 +346,9 @@ eval
 rawinclude
 ==========
 
-contents of base.tmpl
+contents of base.jingoo
 ---------------------
-{% rawinclude "base.tmpl" %}
+{% rawinclude "base.jingoo" %}
 
 
 white-space-controll(1)
@@ -374,7 +374,7 @@ dot expr many
 
 obj2.child.name = {{obj2.child.name}}
 
-{% set tmpl_file = "partial.tmpl" %}
+{% set tmpl_file = "partial.jingoo" %}
 
 include by symbol
 =================

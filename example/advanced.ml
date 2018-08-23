@@ -2,7 +2,7 @@ open Jg_types
 
 let spf = Printf.sprintf
 let compiled = ref false
-let file = ref "cheatsheet.tmpl"
+let file = ref "cheatsheet.jingoo"
 
 (* define custom filter to_gmail *)
 let to_gmail ?(defaults=[
