@@ -129,7 +129,8 @@ filter test
 ===========
 
 upper test:{{ "must be upper"|upper }}
-word count for "hoge hage hige" = {{ "hoge hage hige"|wordcount}}
+word count for "hoge hage hige" = {{ "hoge hage hige"|wordcount }}
+word count for "hoge hage" = {{ "hoge hage"|wordcount }}
 
 func test
 =========

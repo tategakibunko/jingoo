@@ -30,15 +30,7 @@ module UTF8 = struct
     ignore @@ Uutf.encode encoder `End;
     Buffer.contents buf
 
-  let space_characters =
-    [ Uchar.of_char ' '
-    ; Uchar.of_char '\n'
-    ; Uchar.of_char '\r'
-    ; Uchar.of_char '\t'
-    ; Uchar.of_int 12288 (* Ideographic space *)
-    ]
-
-  let is_space u = List.mem u space_characters
+  let is_space = Uucp.White.is_white_space
 
   (* cmap_utf_8 code code comes from
      http://erratique.ch/software/uucp/doc/Uucp.Case.html *)
@@ -113,14 +105,14 @@ module UTF8 = struct
   let is_upper =
     is_case_aux Uucp.Case.is_upper
 
-  let split ?(delim = space_characters) str =
+  let split ?(is_delim = is_space) str =
     let start = ref (-1) in
     let acc =
       Uutf.String.fold_utf_8
         (fun acc i -> function
-           | `Uchar u when List.mem u delim && !start = -1 ->
+           | `Uchar u when is_delim u && !start = -1 ->
              acc
-           | `Uchar u when List.mem u delim ->
+           | `Uchar u when is_delim u ->
              let acc = (!start, i - !start) :: acc in
              start := -1 ;
              acc
