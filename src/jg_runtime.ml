@@ -124,26 +124,14 @@ let jg_arrayp = function
 let jg_push_frame ctx =
   {ctx with frame_stack = (Hashtbl.create 10) :: ctx.frame_stack}
 
-let jg_pop_frame ctx =
-  match ctx.frame_stack with
-    | [] -> ctx (* never happen *)
-    | [top_frame] -> ctx (* because top frame always remain *)
-    | frame :: rest -> {ctx with frame_stack = rest} (* other case, pop latest *)
-
 let jg_set_value ctx name value =
   match ctx.frame_stack with
-    | [] ->
-      let frame = Hashtbl.create 10 in
-      Hashtbl.add frame name value;
-      {ctx with frame_stack = frame :: []}
-    | frame :: rest ->
-      Hashtbl.add frame name value;
-      {ctx with frame_stack = frame :: rest}
+    | [] -> raise @@ Invalid_argument "jg_set_value"
+    | frame :: _ -> Hashtbl.add frame name value
 
 let jg_set_values ctx names values =
-  List.fold_left2 (fun ctx name value ->
-    jg_set_value ctx name value
-  ) ctx names (Jg_utils.take (List.length names) values ~pad:Tnull)
+  let values = Jg_utils.take (List.length names) values ~pad:Tnull in
+  List.iter2 (jg_set_value ctx) names values
 
 let rec jg_force = function
   | Tlazy x -> jg_force (Lazy.force x)
@@ -175,7 +163,7 @@ and jg_bind_names ctx names values =
     | _, Tset values -> jg_set_values ctx names values
     | _, (Tobj _ | Thash _ | Tpat _) ->
       jg_set_values ctx names (List.map (jg_obj_lookup values) names)
-    | _ -> ctx
+    | _ -> ()
 
 and jg_get_value ctx name =
   let rec get_value name = function
@@ -269,8 +257,8 @@ let jg_iter_mk_ctx ctx iterator itm len i =
       List.nth args (i mod args_len)
     ) in
   let ctx = jg_push_frame ctx in
-  let ctx = jg_bind_names ctx iterator itm in
-  let ctx =
+  let () = jg_bind_names ctx iterator itm in
+  let () =
     jg_set_value ctx "loop" @@
     Tpat (function
         | "index0" -> Tint i
@@ -329,9 +317,9 @@ let jg_eval_macro ?(caller=false) env ctx macro_name args kwargs macro f =
   let args_len = List.length args in
   let arg_names_len = List.length arg_names in
   let ctx' = jg_push_frame ctx in
-  let ctx' = jg_set_value ctx' "varargs" @@ Tlist (Jg_utils.after arg_names_len args) in
-  let ctx' = jg_set_value ctx' "kwargs" @@ Tobj kwargs in
-  let ctx' = jg_set_value ctx' macro_name @@ Tpat (function
+  let () = jg_set_value ctx' "varargs" @@ Tlist (Jg_utils.after arg_names_len args) in
+  let () = jg_set_value ctx' "kwargs" @@ Tobj kwargs in
+  let () = jg_set_value ctx' macro_name @@ Tpat (function
       | "name" -> Tstr macro_name
       | "arguments" -> Tlist (List.map box_string arg_names)
       | "defaults" -> Tobj defaults
@@ -340,18 +328,15 @@ let jg_eval_macro ?(caller=false) env ctx macro_name args kwargs macro f =
       | "caller" -> Tbool caller
       | _ -> raise Not_found
     ) in
-  let ctx' = List.fold_left2 (fun ctx' name value ->
-      jg_set_value ctx' name value
-    ) ctx' arg_names (Jg_utils.take arg_names_len args ~pad:Tnull) in
-  let ctx' = List.fold_left (fun ctx' (name, value) ->
-      jg_set_value ctx' name value
-    ) ctx' @@ List.map (fun (name, value) ->
-      try (name, List.assoc name kwargs) with Not_found -> (name, value)
-    ) defaults in
-  let ctx' = List.fold_left (fun ctx' (name, value) ->
-      try jg_set_value ctx' name @@ List.assoc name kwargs with Not_found ->
-	jg_set_value ctx' name value
-    ) ctx' defaults in
+  let () =
+    let values = Jg_utils.take arg_names_len args ~pad:Tnull in
+    List.iter2 (jg_set_value ctx') arg_names values in
+  let () =
+    List.iter
+      (fun (name, value) ->
+         let value = try List.assoc name kwargs with Not_found -> value in
+         jg_set_value ctx' name value )
+      defaults in
   let _ = f ctx' code in
   ctx
 

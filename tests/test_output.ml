@@ -7,7 +7,7 @@ let assert_interp ~test_ctxt ?(env=std_env) ?(models=[]) source expected =
   let output = Jg_template.from_string source ~env ~models in
   logf test_ctxt `Info "Source: %S" source;
   logf test_ctxt `Info "Output: %S" output;
-  assert_equal output expected
+  assert_equal ~printer:(fun x -> x) expected output
 ;;
 
 let assert_interp_raises ~test_ctxt ?(env=std_env) ?(models=[]) source error =
