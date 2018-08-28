@@ -608,15 +608,6 @@ let jg_gteq left right =
     | Tstr x1, Tstr x2 -> Tbool(x1>=x2)
     | _, _ -> failwith "jg_gteq:type error"
 
-(* Copied from Array module to ensure compatibility with 4.02 *)
-let array_exists p a =
-  let n = Array.length a in
-  let rec loop i =
-    if i = n then false
-    else if p (Array.unsafe_get a i) then true
-    else loop (succ i) in
-  loop 0
-
 let jg_inop left right =
   match left, right with
     | value, Tlist lst -> Tbool (List.exists (jg_eq_eq_aux value) lst)

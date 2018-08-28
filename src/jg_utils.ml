@@ -297,3 +297,11 @@ let string_split_on_char sep s =
   done;
 sub s 0 !j :: !r
 
+(* Copied from Array module to ensure compatibility with 4.02 *)
+let array_exists p a =
+  let n = Array.length a in
+  let rec loop i =
+    if i = n then false
+    else if p (Array.unsafe_get a i) then true
+    else loop (succ i) in
+  loop 0
