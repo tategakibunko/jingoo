@@ -624,9 +624,9 @@ let test_nth ctx =
 
 let test_map ctx =
   let tmp_ctx = jg_init_context (fun str -> ()) Jg_types.std_env in
-  let names = unbox_list @@ jg_map tmp_ctx test_persons [("attribute", Tstr "name")] in
+  let names = unbox_list @@ jg_map tmp_ctx test_persons Tnull [("attribute", Tstr "name")] in
   let names_expected = [Tstr "taro"; Tstr "jiro"; Tstr "hana"] in
-  let ranks = unbox_list @@ jg_map tmp_ctx test_persons [("attribute", Tstr "extra.rank")] in
+  let ranks = unbox_list @@ jg_map tmp_ctx test_persons Tnull [("attribute", Tstr "extra.rank")] in
   let ranks_expected = [Tint 3; Tint 12; Tint 5] in
   assert_equal (List.for_all2 (=) names names_expected) true;
   assert_equal (List.for_all2 (=) ranks ranks_expected) true

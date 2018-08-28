@@ -1167,7 +1167,7 @@ let std_filters = [
 ]
 
 (* First version, only attributes *)
-let jg_map ctx list kwargs =
+let jg_map ctx list filter kwargs =
   let fn =
     match kwargs with
     | [ ("attribute", Tstr path) ] ->
@@ -1200,6 +1200,6 @@ let jg_init_context ?(models=[]) output env =
   set_values model_frame models;
   set_values top_frame std_filters;
   set_values top_frame env.filters;
-  Hashtbl.add top_frame "map" (func_arg1 @@ jg_map ctx);
+  Hashtbl.add top_frame "map" (func_arg2 @@ jg_map ctx);
   Hashtbl.add top_frame "jg_is_autoescape" (Tbool env.autoescape);
   ctx
