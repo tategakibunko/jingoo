@@ -157,6 +157,36 @@ let rec string_of_tvalue ?(default = "") = function
 and string_of_obj default obj =
   string_of_tvalue ~default @@ jg_obj_lookup obj "__str__"
 
+and dump_expr = function
+  | IdentExpr(str) -> spf "IdentExpr(%s)" str
+  | LiteralExpr(tvalue) -> spf "LiteralExpr(%s)" (string_of_tvalue tvalue)
+  | NotOpExpr(_) -> "NotOpExpr"
+  | NegativeOpExpr(_) -> "NegativeOpExpr"
+  | PlusOpExpr(_,_) -> "PlusOpExpr"
+  | MinusOpExpr(_,_) -> "MinusExpr"
+  | TimesOpExpr(_,_) -> "TimesOpExpr"
+  | PowerOpExpr(_,_) -> "PowerOpExpr"
+  | DivOpExpr(_,_) -> "DivOpExpr"
+  | ModOpExpr(_,_) -> "ModOpExpr"
+  | AndOpExpr(_,_) -> "AndOpExpr"
+  | OrOpExpr(_,_) -> "OrOpExpr"
+  | NotEqOpExpr(_,_) -> "NotEqOpExpr"
+  | EqEqOpExpr(_,_) -> "EqEqExpr"
+  | LtOpExpr(_,_) -> "LtOpExpr"
+  | GtOpExpr(_,_) -> "GtOpExpr"
+  | LtEqOpExpr(_,_) -> "LtEqOpExpr"
+  | GtEqOpExpr(_,_) -> "GtEqOpExpr"
+  | DotExpr(_,_) -> "DotExpr"
+  | BracketExpr(_,_) -> "BracketExpr"
+  | ListExpr(_) -> "ListExpr"
+  | SetExpr(_) -> "SetExpr"
+  | ObjExpr(_) -> "ObjExpr"
+  | InOpExpr(_,_) -> "InOpExpr"
+  | KeywordExpr(_,_) -> "KeywordExpr"
+  | AliasExpr(_,_) -> "AliasExpr"
+  | ApplyExpr(_,_) -> "ApplyExpr"
+  | TestOpExpr(_,_) -> "TestOpExpr"
+
 and jg_bind_names ctx names values =
   match names, values with
     | [name], value -> jg_set_value ctx name value
@@ -1137,13 +1167,12 @@ let std_filters = [
 ]
 
 (* First version, only attributes *)
-let jg_map ctx list filter kwargs =
+let jg_map ctx list kwargs =
   let fn =
     match kwargs with
     | [ ("attribute", Tstr path) ] ->
       fun x -> jg_obj_lookup_path x (string_split_on_char '.' path)
-    | _ -> failwith "invalid arg: not array nor list(jg_map)"
-  in
+    | _ -> failwith "invalid arg: not array nor list(jg_map)" in
   match list with
   | Tarray x -> Tarray (Array.map fn x)
   | Tlist x -> Tlist (List.map fn x)
@@ -1160,48 +1189,17 @@ let jg_load_extensions extensions =
 let jg_init_context ?(models=[]) output env =
   let model_frame = Hashtbl.create (List.length models) in
   let top_frame = Hashtbl.create (List.length std_filters + List.length env.filters + 2) in
-  let ctx =
-    { frame_stack = [ model_frame ; top_frame ];
-      macro_table = Hashtbl.create 10;
-      namespace_table = Hashtbl.create 10;
-      active_filters = [];
-      output
-    }
-  in
+  let ctx = {
+    frame_stack = [ model_frame ; top_frame ];
+    macro_table = Hashtbl.create 10;
+    namespace_table = Hashtbl.create 10;
+    active_filters = [];
+    output
+  } in
   let rec set_values hash alist = List.iter (fun (n, v) -> Hashtbl.add hash n v) alist in
   set_values model_frame models;
-  set_values top_frame std_filters ;
-  set_values top_frame env.filters ;
-  Hashtbl.add top_frame "map" (func_arg2 @@ jg_map ctx) ;
-  Hashtbl.add top_frame "jg_is_autoescape" (Tbool env.autoescape) ;
+  set_values top_frame std_filters;
+  set_values top_frame env.filters;
+  Hashtbl.add top_frame "map" (func_arg1 @@ jg_map ctx);
+  Hashtbl.add top_frame "jg_is_autoescape" (Tbool env.autoescape);
   ctx
-
-let dump_expr = function
-  | IdentExpr(str) -> spf "IdentExpr(%s)" str
-  | LiteralExpr(tvalue) -> spf "LiteralExpr(%s)" (string_of_tvalue tvalue)
-  | NotOpExpr(_) -> "NotOpExpr"
-  | NegativeOpExpr(_) -> "NegativeOpExpr"
-  | PlusOpExpr(_,_) -> "PlusOpExpr"
-  | MinusOpExpr(_,_) -> "MinusExpr"
-  | TimesOpExpr(_,_) -> "TimesOpExpr"
-  | PowerOpExpr(_,_) -> "PowerOpExpr"
-  | DivOpExpr(_,_) -> "DivOpExpr"
-  | ModOpExpr(_,_) -> "ModOpExpr"
-  | AndOpExpr(_,_) -> "AndOpExpr"
-  | OrOpExpr(_,_) -> "OrOpExpr"
-  | NotEqOpExpr(_,_) -> "NotEqOpExpr"
-  | EqEqOpExpr(_,_) -> "EqEqExpr"
-  | LtOpExpr(_,_) -> "LtOpExpr"
-  | GtOpExpr(_,_) -> "GtOpExpr"
-  | LtEqOpExpr(_,_) -> "LtEqOpExpr"
-  | GtEqOpExpr(_,_) -> "GtEqOpExpr"
-  | DotExpr(_,_) -> "DotExpr"
-  | BracketExpr(_,_) -> "BracketExpr"
-  | ListExpr(_) -> "ListExpr"
-  | SetExpr(_) -> "SetExpr"
-  | ObjExpr(_) -> "ObjExpr"
-  | InOpExpr(_,_) -> "InOpExpr"
-  | KeywordExpr(_,_) -> "KeywordExpr"
-  | AliasExpr(_,_) -> "AliasExpr"
-  | ApplyExpr(_,_) -> "ApplyExpr"
-  | TestOpExpr(_,_) -> "TestOpExpr"

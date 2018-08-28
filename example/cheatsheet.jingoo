@@ -499,6 +499,12 @@ max of [10, 20, 30] = {{max(list)}}
 [10,20,30][1] = {{[10,20,30][1]}}
 [10,20,30][2] = {{[10,20,30][2]}}
 
+[PR#53] map
+========================
+
+names = {% for name in map(persons, attribute="name") %}{{name}} {% endfor %}
+ranks = {% for rank in map(persons, attribute="extra.rank") %}{{rank}} {% endfor %}
+
 ========================
 
 {% if error.count != 0 %}
