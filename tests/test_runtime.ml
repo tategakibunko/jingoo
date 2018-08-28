@@ -6,6 +6,19 @@ open Jg_runtime
 let kwargs = []
 ;;
 
+let test_persons = Tlist [
+  Tobj [("name", Tstr "taro"); ("age", Tint 12); ("extra", Tobj [
+    ("rank", Tint 3);
+  ])];
+  Tobj [("name", Tstr "jiro"); ("age", Tint 10); ("extra", Tobj [
+    ("rank", Tint 12);
+  ])];
+  Tobj [("name", Tstr "hana"); ("age", Tint 13); ("extra", Tobj [
+    ("rank", Tint 5);
+  ])];
+]
+;;
+
 let tval_equal t1 t2 =
   match jg_eq_eq t1 t2 with
     | Tbool ret -> ret
@@ -588,15 +601,10 @@ let test_groupby ctx =
   
 let test_min_max ctx =
   let numbers = Tlist [Tint 3; Tint 1; Tint 2] in
-  let persons = Tlist [
-    Tobj [("name", Tstr "taro"); ("age", Tint 12)];
-    Tobj [("name", Tstr "jiro"); ("age", Tint 10)];
-    Tobj [("name", Tstr "hana"); ("age", Tint 13)];
-  ] in
   let min_number = jg_min numbers [] in
   let max_number = jg_max numbers [] in
-  let min_person = jg_min persons [("attribute", Tstr "age")] in
-  let max_person = jg_max persons [("attribute", Tstr "age")] in
+  let min_person = jg_min test_persons [("attribute", Tstr "age")] in
+  let max_person = jg_max test_persons [("attribute", Tstr "age")] in
   assert_equal min_number (Tint 1);
   assert_equal max_number (Tint 3);
   assert_equal (jg_obj_lookup min_person "name") (Tstr "jiro");
@@ -612,6 +620,16 @@ let test_nth ctx =
   assert_equal (jg_nth ary 0) (Tint 1);
   assert_equal (jg_nth ary 1) (Tint 10);
   assert_equal (jg_nth ary 2) (Tint 12);
+;;
+
+let test_map ctx =
+  let tmp_ctx = jg_init_context (fun str -> ()) Jg_types.std_env in
+  let names = unbox_list @@ jg_map tmp_ctx test_persons [("attribute", Tstr "name")] in
+  let names_expected = [Tstr "taro"; Tstr "jiro"; Tstr "hana"] in
+  let ranks = unbox_list @@ jg_map tmp_ctx test_persons [("attribute", Tstr "extra.rank")] in
+  let ranks_expected = [Tint 3; Tint 12; Tint 5] in
+  assert_equal (List.for_all2 (=) names names_expected) true;
+  assert_equal (List.for_all2 (=) ranks ranks_expected) true
 ;;
 
 let suite = "runtime test" >::: [
@@ -679,5 +697,6 @@ let suite = "runtime test" >::: [
   "test_groupby" >:: test_groupby;
   "test_min_max" >:: test_min_max;
   "test_nth" >:: test_nth;
+  "test_map" >:: test_map;
 ]
 ;;

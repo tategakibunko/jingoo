@@ -146,7 +146,8 @@ and eval_statement env ctx = function
     jg_output ctx (value_of_expr env ctx expr) ~autoescape:env.autoescape ~safe:(is_safe_expr expr)
 
   | SetStatement(SetExpr(ident_list), expr) ->
-    jg_bind_names ctx (ident_names_of ident_list) (value_of_expr env ctx expr)
+    jg_bind_names ctx (ident_names_of ident_list) (value_of_expr env ctx expr) ;
+    ctx
 
   | SetStatement(DotExpr(IdentExpr ns, v), expr) ->
     Hashtbl.add
@@ -222,10 +223,10 @@ and eval_statement env ctx = function
   | WithStatement(binds, ast) ->
     let kwargs = kwargs_of env ctx binds in
     let names, values = List.split kwargs in
-    let ctx = jg_push_frame ctx in
-    let ctx = jg_set_values ctx names values in
-    let ctx = List.fold_left (eval_statement env) ctx ast in
-    jg_pop_frame ctx
+    let ctx' = jg_push_frame ctx in
+    let () = jg_set_values ctx' names values in
+    ignore @@ List.fold_left (eval_statement env) ctx' ast ;
+    ctx
 
   | AutoEscapeStatement(expr, ast) ->
     let ctx =

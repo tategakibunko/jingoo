@@ -61,22 +61,6 @@ let unbox_pat = function
   | Tpat pat -> pat
   | _ -> failwith "invalid arg:not hahs(unbox_pat)"
 
-let string_of_tvalue = function
-  | Tint x -> string_of_int x
-  | Tfloat x -> string_of_float x
-  | Tstr x -> x
-  | Tbool x -> string_of_bool x
-  | Tobj x -> "<obj>"
-  | Thash x -> "<hash>"
-  | Tpat _ -> "<pat>"
-  | Tlist x -> "<list>"
-  | Tset x -> "<set>"
-  | Tfun _ -> "<fun>"
-  | Tnull -> ""
-  | Tarray _ -> "<array>"
-  | Tlazy _ -> "<lazy>"
-  | Tvolatile x -> "<volatile>"
-
 let type_string_of_tvalue = function
   | Tint x -> "int"
   | Tfloat x -> "float"
@@ -92,36 +76,6 @@ let type_string_of_tvalue = function
   | Tarray _ -> "array"
   | Tlazy _ -> "lazy"
   | Tvolatile _ -> "volatile"
-
-let dump_expr = function
-  | IdentExpr(str) -> spf "IdentExpr(%s)" str
-  | LiteralExpr(tvalue) -> spf "LiteralExpr(%s)" (string_of_tvalue tvalue)
-  | NotOpExpr(_) -> "NotOpExpr"
-  | NegativeOpExpr(_) -> "NegativeOpExpr"
-  | PlusOpExpr(_,_) -> "PlusOpExpr"
-  | MinusOpExpr(_,_) -> "MinusExpr"
-  | TimesOpExpr(_,_) -> "TimesOpExpr"
-  | PowerOpExpr(_,_) -> "PowerOpExpr"
-  | DivOpExpr(_,_) -> "DivOpExpr"
-  | ModOpExpr(_,_) -> "ModOpExpr"
-  | AndOpExpr(_,_) -> "AndOpExpr"
-  | OrOpExpr(_,_) -> "OrOpExpr"
-  | NotEqOpExpr(_,_) -> "NotEqOpExpr"
-  | EqEqOpExpr(_,_) -> "EqEqExpr"
-  | LtOpExpr(_,_) -> "LtOpExpr"
-  | GtOpExpr(_,_) -> "GtOpExpr"
-  | LtEqOpExpr(_,_) -> "LtEqOpExpr"
-  | GtEqOpExpr(_,_) -> "GtEqOpExpr"
-  | DotExpr(_,_) -> "DotExpr"
-  | BracketExpr(_,_) -> "BracketExpr"
-  | ListExpr(_) -> "ListExpr"
-  | SetExpr(_) -> "SetExpr"
-  | ObjExpr(_) -> "ObjExpr"
-  | InOpExpr(_,_) -> "InOpExpr"
-  | KeywordExpr(_,_) -> "KeywordExpr"
-  | AliasExpr(_,_) -> "AliasExpr"
-  | ApplyExpr(_,_) -> "ApplyExpr"
-  | TestOpExpr(_,_) -> "TestOpExpr"
 
 let is_iterable = function
   | Tlist _ | Tset _ | Thash _ | Tobj _ | Tarray _ | Tstr _ | Tnull-> true
@@ -170,39 +124,76 @@ let jg_arrayp = function
 let jg_push_frame ctx =
   {ctx with frame_stack = (Hashtbl.create 10) :: ctx.frame_stack}
 
-let jg_pop_frame ctx =
-  match ctx.frame_stack with
-    | [] -> ctx (* never happen *)
-    | [top_frame] -> ctx (* because top frame always remain *)
-    | frame :: rest -> {ctx with frame_stack = rest} (* other case, pop latest *)
-
 let jg_set_value ctx name value =
   match ctx.frame_stack with
-    | [] ->
-      let frame = Hashtbl.create 10 in
-      Hashtbl.add frame name value;
-      {ctx with frame_stack = frame :: []}
-    | frame :: rest ->
-      Hashtbl.add frame name value;
-      {ctx with frame_stack = frame :: rest}
+    | [] -> raise @@ Invalid_argument "jg_set_value"
+    | frame :: _ -> Hashtbl.add frame name value
 
 let jg_set_values ctx names values =
-  List.fold_left2 (fun ctx name value ->
-    jg_set_value ctx name value
-  ) ctx names (Jg_utils.take (List.length names) values ~pad:Tnull)
+  let values = Jg_utils.take (List.length names) values ~pad:Tnull in
+  List.iter2 (jg_set_value ctx) names values
 
 let rec jg_force = function
   | Tlazy x -> jg_force (Lazy.force x)
   | Tvolatile x -> jg_force (x ())
   | x -> x
 
-let rec jg_bind_names ctx names values =
+let rec string_of_tvalue ?(default = "") = function
+  | Tint x -> string_of_int x
+  | Tfloat x -> string_of_float x
+  | Tstr x -> x
+  | Tbool x -> string_of_bool x
+  | Tobj _ as x -> string_of_obj "<obj>" x
+  | Thash _ as x -> string_of_obj "<hash>" x
+  | Tpat _ as x -> string_of_obj "<pat>" x
+  | Tnull -> default
+  | Tlist x -> "<list>"
+  | Tset x -> "<set>"
+  | Tfun _ -> "<fun>"
+  | Tarray _ -> "<array>"
+  | Tlazy _ -> "<lazy>"
+  | Tvolatile x -> "<volatile>"
+
+and string_of_obj default obj =
+  string_of_tvalue ~default @@ jg_obj_lookup obj "__str__"
+
+and dump_expr = function
+  | IdentExpr(str) -> spf "IdentExpr(%s)" str
+  | LiteralExpr(tvalue) -> spf "LiteralExpr(%s)" (string_of_tvalue tvalue)
+  | NotOpExpr(_) -> "NotOpExpr"
+  | NegativeOpExpr(_) -> "NegativeOpExpr"
+  | PlusOpExpr(_,_) -> "PlusOpExpr"
+  | MinusOpExpr(_,_) -> "MinusExpr"
+  | TimesOpExpr(_,_) -> "TimesOpExpr"
+  | PowerOpExpr(_,_) -> "PowerOpExpr"
+  | DivOpExpr(_,_) -> "DivOpExpr"
+  | ModOpExpr(_,_) -> "ModOpExpr"
+  | AndOpExpr(_,_) -> "AndOpExpr"
+  | OrOpExpr(_,_) -> "OrOpExpr"
+  | NotEqOpExpr(_,_) -> "NotEqOpExpr"
+  | EqEqOpExpr(_,_) -> "EqEqExpr"
+  | LtOpExpr(_,_) -> "LtOpExpr"
+  | GtOpExpr(_,_) -> "GtOpExpr"
+  | LtEqOpExpr(_,_) -> "LtEqOpExpr"
+  | GtEqOpExpr(_,_) -> "GtEqOpExpr"
+  | DotExpr(_,_) -> "DotExpr"
+  | BracketExpr(_,_) -> "BracketExpr"
+  | ListExpr(_) -> "ListExpr"
+  | SetExpr(_) -> "SetExpr"
+  | ObjExpr(_) -> "ObjExpr"
+  | InOpExpr(_,_) -> "InOpExpr"
+  | KeywordExpr(_,_) -> "KeywordExpr"
+  | AliasExpr(_,_) -> "AliasExpr"
+  | ApplyExpr(_,_) -> "ApplyExpr"
+  | TestOpExpr(_,_) -> "TestOpExpr"
+
+and jg_bind_names ctx names values =
   match names, values with
     | [name], value -> jg_set_value ctx name value
     | _, Tset values -> jg_set_values ctx names values
     | _, (Tobj _ | Thash _ | Tpat _) ->
       jg_set_values ctx names (List.map (jg_obj_lookup values) names)
-    | _ -> ctx
+    | _ -> ()
 
 and jg_get_value ctx name =
   let rec get_value name = function
@@ -296,8 +287,8 @@ let jg_iter_mk_ctx ctx iterator itm len i =
       List.nth args (i mod args_len)
     ) in
   let ctx = jg_push_frame ctx in
-  let ctx = jg_bind_names ctx iterator itm in
-  let ctx =
+  let () = jg_bind_names ctx iterator itm in
+  let () =
     jg_set_value ctx "loop" @@
     Tpat (function
         | "index0" -> Tint i
@@ -356,9 +347,9 @@ let jg_eval_macro ?(caller=false) env ctx macro_name args kwargs macro f =
   let args_len = List.length args in
   let arg_names_len = List.length arg_names in
   let ctx' = jg_push_frame ctx in
-  let ctx' = jg_set_value ctx' "varargs" @@ Tlist (Jg_utils.after arg_names_len args) in
-  let ctx' = jg_set_value ctx' "kwargs" @@ Tobj kwargs in
-  let ctx' = jg_set_value ctx' macro_name @@ Tpat (function
+  let () = jg_set_value ctx' "varargs" @@ Tlist (Jg_utils.after arg_names_len args) in
+  let () = jg_set_value ctx' "kwargs" @@ Tobj kwargs in
+  let () = jg_set_value ctx' macro_name @@ Tpat (function
       | "name" -> Tstr macro_name
       | "arguments" -> Tlist (List.map box_string arg_names)
       | "defaults" -> Tobj defaults
@@ -367,18 +358,15 @@ let jg_eval_macro ?(caller=false) env ctx macro_name args kwargs macro f =
       | "caller" -> Tbool caller
       | _ -> raise Not_found
     ) in
-  let ctx' = List.fold_left2 (fun ctx' name value ->
-      jg_set_value ctx' name value
-    ) ctx' arg_names (Jg_utils.take arg_names_len args ~pad:Tnull) in
-  let ctx' = List.fold_left (fun ctx' (name, value) ->
-      jg_set_value ctx' name value
-    ) ctx' @@ List.map (fun (name, value) ->
-      try (name, List.assoc name kwargs) with Not_found -> (name, value)
-    ) defaults in
-  let ctx' = List.fold_left (fun ctx' (name, value) ->
-      try jg_set_value ctx' name @@ List.assoc name kwargs with Not_found ->
-	jg_set_value ctx' name value
-    ) ctx' defaults in
+  let () =
+    let values = Jg_utils.take arg_names_len args ~pad:Tnull in
+    List.iter2 (jg_set_value ctx') arg_names values in
+  let () =
+    List.iter
+      (fun (name, value) ->
+         let value = try List.assoc name kwargs with Not_found -> value in
+         jg_set_value ctx' name value )
+      defaults in
   let _ = f ctx' code in
   ctx
 
@@ -1178,6 +1166,18 @@ let std_filters = [
   ("string", func_arg1 jg_test_string);
 ]
 
+(* First version, only attributes *)
+let jg_map ctx list kwargs =
+  let fn =
+    match kwargs with
+    | [ ("attribute", Tstr path) ] ->
+      fun x -> jg_obj_lookup_path x (string_split_on_char '.' path)
+    | _ -> failwith "invalid arg: not array nor list(jg_map)" in
+  match list with
+  | Tarray x -> Tarray (Array.map fn x)
+  | Tlist x -> Tlist (List.map fn x)
+  | _ -> failwith "invalid arg: not array nor list(jg_map)"
+
 let jg_load_extensions extensions =
   List.iter (fun ext ->
     try
@@ -1187,18 +1187,19 @@ let jg_load_extensions extensions =
   ) extensions
 
 let jg_init_context ?(models=[]) output env =
-  let model_frame = Hashtbl.create (2 * List.length models) in
+  let model_frame = Hashtbl.create (List.length models) in
   let top_frame = Hashtbl.create (List.length std_filters + List.length env.filters + 2) in
-  let rec set_values hash alist = List.fold_left (fun h (n, v) -> Hashtbl.add h n v; h) hash alist in
-  ignore @@ set_values model_frame models;
-  ignore @@ set_values top_frame std_filters;
-  ignore @@ set_values top_frame env.filters;
-  ignore @@ set_values top_frame [
-    ("jg_is_autoescape", Tbool env.autoescape);
-  ];
-  { frame_stack = [model_frame; top_frame];
+  let ctx = {
+    frame_stack = [ model_frame ; top_frame ];
     macro_table = Hashtbl.create 10;
     namespace_table = Hashtbl.create 10;
     active_filters = [];
     output
-  }
+  } in
+  let rec set_values hash alist = List.iter (fun (n, v) -> Hashtbl.add hash n v) alist in
+  set_values model_frame models;
+  set_values top_frame std_filters;
+  set_values top_frame env.filters;
+  Hashtbl.add top_frame "map" (func_arg1 @@ jg_map ctx);
+  Hashtbl.add top_frame "jg_is_autoescape" (Tbool env.autoescape);
+  ctx

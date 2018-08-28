@@ -490,15 +490,20 @@ must be bob(1) ken(2): {% for p in sort(persons, attribute="extra.rank") %}{{p.n
 min of [10, 20, 30] = {{min(list)}}
 max of [10, 20, 30] = {{max(list)}}
 
-younguest person = {{min(persons, attribute="age").name}}(must be bob)
-oldest person = {{max(persons, attribute="age").name}}(must be ken)
-
-min rank = {{min(persons, attribute="extra.rank").extra.rank}}(must be 1)
-max rank = {{max(persons, attribute="extra.rank").extra.rank}}(must be 2)
+{{assert(min(persons, attribute="age").name == "bob")}}
+{{assert(max(persons, attribute="age").name == "ken")}}
+{{assert(min(persons, attribute="extra.rank").extra.rank == 1)}}
+{{assert(max(persons, attribute="extra.rank").extra.rank == 2)}}
 
 [10,20,30][0] = {{[10,20,30][0]}}
 [10,20,30][1] = {{[10,20,30][1]}}
 [10,20,30][2] = {{[10,20,30][2]}}
+
+[PR#53] map
+========================
+
+names = {% for name in map(persons, attribute="name") %}{{name}} {% endfor %}
+ranks = {% for rank in map(persons, attribute="extra.rank") %}{{rank}} {% endfor %}
 
 ========================
 
