@@ -144,6 +144,7 @@ stmt:
 | CALL opt_args ident LPAREN expr_list RPAREN stmts ENDCALL { pel "call sts"; CallStatement($3, $2, $5, $7) }
 | CALL error { raise @@ SyntaxError "call error" }
 | IF if_chain else_part ENDIF { pel "if sts"; IfStatement($2, $3) }
+| IF if_chain ELSE ENDIF { pel "if sts empty else"; IfStatement($2, []) }
 | IF error { raise @@ SyntaxError "if" }
 | FOR ident_list IN expr stmts ENDFOR { pel "for sts"; ForStatement(SetExpr($2), $4, $5) }
 | FOR expr IN expr stmts ENDFOR { pel "for sts"; ForStatement($2, $4, $5) }

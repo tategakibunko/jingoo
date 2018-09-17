@@ -43,6 +43,14 @@ let test_if test_ctxt =
   assert_interp ~test_ctxt source ~models:["x", Tint 4] "three";
 ;;
 
+let test_if_empty_else test_ctxt =
+  let source =
+    "{% if x == 1 %}one{% else %}{% endif %}"
+  in
+  assert_interp ~test_ctxt source ~models:["x", Tint 1] "one";
+  assert_interp ~test_ctxt source ~models:["x", Tint 2] "";
+;;
+
 let test_and_or test_ctxt =
   assert_interp ~test_ctxt "{% if undefined and undefined.foo %}foo{% endif %}" "";
   assert_interp ~test_ctxt
@@ -214,6 +222,7 @@ let suite = "runtime test" >::: [
   "test_expand_safe" >:: test_expand_safe;
   "test_expand_filter" >:: test_expand_filter;
   "test_if" >:: test_if;
+  "test_if_empty_else" >:: test_if_empty_else;
   "test_and_or" >:: test_and_or;
   "test_for" >:: test_for;
   "test_loop_index" >:: test_loop_index;
