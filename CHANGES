@@ -12,6 +12,7 @@ o [PR#48] sort filter supports reverse and attribute keyword arguments.
 o [PR#49] min, max, nth support.
 o [PR#50] Improved UTF8 support.
 o [PR#53] map support.
+* [PR#54] Add support for empty else and a test for it.
 o [ISSUE#52] Rename default template extension from *.tmpl to *.jingoo.
 
 version: 1.2.18, 2018-07-24
