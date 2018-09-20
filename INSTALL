@@ -2,7 +2,7 @@
 Dependencies
 ============
 
-1. ocaml(>=4.02.0)
+1. ocaml(>=4.02.3)
 2. findlib
 3. pcre(pcre-ocaml)
 4. uutf(>=0.9.4)
