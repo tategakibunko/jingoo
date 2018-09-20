@@ -4,7 +4,7 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
-version: 1.2.19
+version: 1.2.19, 2018-09-20
 ===========================
 o [PR#43] Added ast_mapper in order to implement optimization passes.
 o [PR#46,47] groupby filter support.
