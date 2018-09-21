@@ -88,7 +88,7 @@ let rec value_of_expr env ctx = function
     (match callable with
      | Tfun fn ->
        (match nargs with
-	| [] -> Tfun (fun args _ -> fn args kwargs)
+	| [] -> Tfun (fun ?(kwargs=[]) args -> fn args ~kwargs:[])
 	| _ -> jg_apply callable nargs ~kwargs ~name)
      | _ ->
        (match jg_get_macro ctx name with
