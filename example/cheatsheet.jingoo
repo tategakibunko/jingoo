@@ -502,8 +502,9 @@ max of [10, 20, 30] = {{max(list)}}
 [PR#53] map
 ========================
 
-names = {% for name in persons | map(attribute="name") %}{{name}} {% endfor %}
-ranks = {% for rank in persons | map(attribute="extra.rank") %}{{rank}} {% endfor %}
+{# map(list|array, filter, attribute=?), now filter is not supported, so we set it as null. #}
+names = {% for name in map(persons, null, attribute="name") %}{{name}} {% endfor %}
+ranks = {% for rank in map(persons, null, attribute="extra.rank") %}{{rank}} {% endfor %}
 
 ========================
 
