@@ -40,7 +40,7 @@ and tvalue =
   | Tpat of (string -> tvalue)
   | Tlist of tvalue list
   | Tset of tvalue list
-  | Tfun of (args -> kwargs -> tvalue)
+  | Tfun of (?kwargs:kwargs -> args -> tvalue)
   | Tarray of tvalue array
   | Tlazy of tvalue Lazy.t
   | Tvolatile of (unit -> tvalue)
