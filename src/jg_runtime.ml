@@ -618,34 +618,34 @@ let jg_get_kvalue ?(defaults=[]) name kwargs =
   try List.assoc name kwargs with Not_found ->
     (try List.assoc name defaults with Not_found -> Tnull)
 
-let jg_safe value kwargs =
+let jg_safe ?(kwargs=[]) value =
   value
 
-let jg_upper x kwargs =
+let jg_upper ?(kwargs=[]) x =
   match x with
     | Tstr str -> Tstr (Jg_utils.UTF8.uppercase str)
     | other -> Tstr (string_of_tvalue other)
 
-let jg_lower x kwargs =
+let jg_lower ?(kwargs=[]) x =
   match x with
     | Tstr str -> Tstr (Jg_utils.UTF8.lowercase str)
     | other -> Tstr (string_of_tvalue other)
 
-let jg_int x kwargs =
+let jg_int ?(kwargs=[]) x =
   match x with
     | Tint x -> Tint x
     | Tfloat x -> Tint (int_of_float  x)
     | Tstr s -> Tint (int_of_string s)
     | _ -> failwith "invalid arg:not number(jg_int)"
 
-let jg_float x kwargs =
+let jg_float ?(kwargs=[]) x =
   match x with
     | Tfloat x -> Tfloat x
     | Tint x -> Tfloat (float_of_int x)
     | Tstr s -> Tfloat (float_of_string s)
     | _ -> failwith "invalid arg:not number(jg_float)"
 
-let jg_join join_str lst kwargs =
+let jg_join ?(kwargs=[]) join_str lst =
   match join_str, lst with
     | Tstr str, Tlist lst
     | Tstr str, Tset lst ->
@@ -661,7 +661,7 @@ let jg_join join_str lst kwargs =
       in Tstr (Buffer.contents buf)
     | _ -> failwith "invalid arg:jg_join"
 
-let jg_split pat text kwargs =
+let jg_split ?(kwargs=[]) pat text =
   match pat, text with
     | Tstr pat, Tstr text ->
       let lst =
@@ -671,7 +671,7 @@ let jg_split pat text kwargs =
 
   | _ -> failwith "invalid args: split"
 
-let jg_substring base count str kwargs =
+let jg_substring ?(kwargs=[]) base count str =
   match base, count, str with
     | Tint base, Tint count, Tstr str ->
       Tstr (substring base count str)
@@ -679,19 +679,19 @@ let jg_substring base count str kwargs =
       Tstr ""
     | _ -> failwith "invalid args: substring"
 
-let jg_truncate len str kwargs =
+let jg_truncate ?(kwargs=[]) len str =
   match len, str with
     | Tint len, Tstr str ->
       Tstr (substring 0 len str)
 
     | _ -> failwith "invalid args: truncate"
 
-let jg_strlen x kwargs =
+let jg_strlen ?(kwargs=[]) x =
   match x with
     | Tstr str -> Tint (Jg_utils.strlen str)
     | _ -> failwith "invalid args: strlen"
 
-let jg_length x kwargs =
+let jg_length ?(kwargs=[]) x =
   match x with
     | Tlist lst -> Tint (List.length lst)
     | Tset lst -> Tint (List.length lst)
@@ -1074,31 +1074,35 @@ let jg_test_sequence ?(kwargs=[]) target =
 let jg_test_string ?(kwargs=[]) target =
   jg_strp target
 
-let func_arg0 f = Tfun (fun ?(kwargs=[]) args ->
-  f ~kwargs
-)
-
-let func_arg1 (f: ?kwargs:kwargs -> tvalue -> tvalue) =
+let rec func_arg1 (f: ?kwargs:kwargs -> tvalue -> tvalue) =
   Tfun (fun ?(kwargs=[]) args ->
     match args with
     | a1 :: rest -> f a1 ~kwargs
-    | _ -> Tnull
+    | [] ->
+       let f' = f ~kwargs in
+       func_arg1 (fun ?kwargs a1 -> f' a1)
   )
 
-let rec func_arg2 (f: ?kwargs:kwargs -> tvalue -> tvalue -> tvalue) =
+let func_arg2 (f: ?kwargs:kwargs -> tvalue -> tvalue -> tvalue) =
   Tfun (fun ?(kwargs=[]) args ->
     match args with
     | a1 :: a2 :: rest -> f a1 a2 ~kwargs
-    | a1 :: rest -> Tfun (fun ?(kwargs=[]) 
+    | a1 :: rest ->
+       let f' = f a1 ~kwargs in
+       func_arg1 (fun ?kwargs a2 -> f' a2)
     | _ -> Tnull
   )
 
-let func_arg3 f =
+let func_arg3 (f: ?kwargs:kwargs -> tvalue -> tvalue -> tvalue -> tvalue) =
   Tfun (fun ?(kwargs=[]) args ->
     match args with
     | a1 :: a2 :: a3 :: rest -> f a1 a2 a3 ~kwargs
-    | a1 :: a2 :: rest -> func_arg1 (f a1 a2 ~kwargs)
-    | a1 :: rest -> func_arg2 (f a1 ~kwargs)
+    | a1 :: a2 :: rest ->
+       let f' = f a1 a2 ~kwargs in
+       func_arg1 (fun ?kwargs a3 -> f' a3)
+    | a1 :: rest ->
+       let f' = f a1 ~kwargs in
+       func_arg2 (fun ?kwargs a2 a3 -> f' a2 a3)
     | _ -> Tnull
   )
 
@@ -1132,13 +1136,13 @@ let std_filters = [
   ("xmlattr", func_arg1 jg_xmlattr);
 
   ("attr", func_arg2 jg_attr);
-  ("batch", func_arg2 jg_batch);
+  ("batch", func_arg2 (jg_batch ~defaults:[("fill_with", Tnull)]));
   ("default", func_arg2 jg_default);
   ("d", func_arg2 jg_default); (* alias for default *)
   ("fmt_float", func_arg2 jg_fmt_float);
   ("join", func_arg2 jg_join);
   ("split", func_arg2 jg_split);
-  ("slice", func_arg2 jg_slice);
+  ("slice", func_arg2 (jg_slice ~defaults:[("fill_with", Tnull)]));
   ("truncate", func_arg2 jg_truncate);
   ("range", func_arg2 jg_range);
   ("round", func_arg2 jg_round);
@@ -1161,7 +1165,7 @@ let std_filters = [
 ]
 
 (* First version, only attributes *)
-let jg_map ctx list filter kwargs =
+let jg_map ?(kwargs=[]) (ctx:context) filter list =
   let fn =
     match kwargs with
     | [ ("attribute", Tstr path) ] ->
@@ -1194,6 +1198,10 @@ let jg_init_context ?(models=[]) output env =
   set_values model_frame models;
   set_values top_frame std_filters;
   set_values top_frame env.filters;
-  Hashtbl.add top_frame "map" (func_arg2 @@ jg_map ctx);
+
+  (* workaround for type inference error *)
+  let jg_map_aux ?(kwargs=[]) filter list = jg_map ctx filter list ~kwargs in
+
+  Hashtbl.add top_frame "map" (func_arg2 jg_map_aux);
   Hashtbl.add top_frame "jg_is_autoescape" (Tbool env.autoescape);
   ctx

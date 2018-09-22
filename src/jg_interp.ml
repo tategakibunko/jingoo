@@ -61,8 +61,8 @@ let rec value_of_expr env ctx = function
      | _ -> Tbool true)
   | TestOpExpr(IdentExpr(name), IdentExpr("none")) -> jg_test_none ctx name
   | TestOpExpr(IdentExpr(name), IdentExpr("escaped")) -> jg_test_escaped ctx
-  | TestOpExpr(IdentExpr(name), IdentExpr("upper")) -> jg_test_upper (jg_get_value ctx name) []
-  | TestOpExpr(IdentExpr(name), IdentExpr("lower")) -> jg_test_lower (jg_get_value ctx name) []
+  | TestOpExpr(IdentExpr(name), IdentExpr("upper")) -> jg_test_upper (jg_get_value ctx name)
+  | TestOpExpr(IdentExpr(name), IdentExpr("lower")) -> jg_test_lower (jg_get_value ctx name)
   | TestOpExpr(target, test) -> jg_apply (value_of_expr env ctx test) [value_of_expr env ctx target]
 
   | ObjExpr(expr_list) ->
@@ -86,14 +86,11 @@ let rec value_of_expr env ctx = function
     let kwargs = kwargs_of env ctx args in
     let callable = value_of_expr env ctx expr in
     (match callable with
-     | Tfun fn ->
-       (match nargs with
-	| [] -> Tfun (fun ?(kwargs=[]) args -> fn args ~kwargs:[])
-	| _ -> jg_apply callable nargs ~kwargs ~name)
-     | _ ->
+    | Tfun fn -> jg_apply callable nargs ~kwargs ~name
+    | _ ->
        (match jg_get_macro ctx name with
-	| Some macro -> ignore @@ eval_macro env ctx name nargs kwargs macro; Tnull
-	| None -> Tnull))
+       | Some macro -> ignore @@ eval_macro env ctx name nargs kwargs macro; Tnull
+       | None -> Tnull))
 
   | expr -> failwith @@ spf "syntax error: value_of_expr:%s" (dump_expr expr)
 

@@ -5,15 +5,12 @@ let compiled = ref false
 let file = ref "cheatsheet.jingoo"
 
 (* define custom filter to_gmail *)
-let to_gmail ?(defaults=[
-]) value kwargs =
+let to_gmail ?(kwargs=[]) value =
   let id = Jg_runtime.string_of_tvalue value in
   Tstr (spf "%s@gmail.com" id)
 
 (* define custom filter to_mail more complex *)
-let to_mail ?(defaults=[
-  ("domain", Tstr "gmail.com");
-]) value kwargs =
+let to_mail ?(kwargs=[]) ?(defaults=[]) value =
   let id = Jg_runtime.string_of_tvalue value in
   let domain = Jg_runtime.string_of_tvalue (Jg_runtime.jg_get_kvalue "domain" kwargs ~defaults) in
   Tstr (spf "%s@%s" id domain)
@@ -30,7 +27,9 @@ let () =
       (* add own filter *)
       filters = [
 	("to_gmail", Jg_runtime.func_arg1 to_gmail);
-	("to_mail", Jg_runtime.func_arg1 to_mail);
+	("to_mail", Jg_runtime.func_arg1 (to_mail ~defaults:[
+          ("domain", Tstr "gmail.com");
+        ]));
       ];
 
       (* load own extension *)
