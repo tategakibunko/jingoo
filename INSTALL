@@ -6,7 +6,8 @@ Dependencies
 2. findlib
 3. pcre(pcre-ocaml)
 4. uutf(>=0.9.4)
-5. ounit (>=2.0.0, for test)
+5. uucp
+6. ounit (>=2.0.0, for test)
 
 Important notice
 ================
