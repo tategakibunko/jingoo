@@ -1,5 +1,4 @@
 dist
-opam
 .gitignore
 *.txt
 *.sh
