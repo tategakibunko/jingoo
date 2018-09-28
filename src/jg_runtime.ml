@@ -21,46 +21,6 @@ let box_pat fn = Tpat fn
 let box_lazy z = Tlazy z
 let box_fun z = Tfun z
 
-let unbox_int = function
-  | Tint x -> x
-  | _ -> failwith "invalid arg:not int(unbox_int)"
-
-let unbox_float = function
-  | Tfloat f -> f
-  | _ -> failwith "invalid arg:not float(unbox_float)"
-
-let unbox_string = function
-  | Tstr s -> s
-  | _ -> failwith "invalid arg:not string(unbox_string)"
-
-let unbox_bool = function
-  | Tbool b -> b
-  | _ -> failwith "invalid arg:not bool(unbox_bool)"
-
-let unbox_list = function
-  | Tlist lst -> lst
-  | _ -> failwith "invalid arg:not list(unbox_list)"
-
-let unbox_set = function
-  | Tset lst -> lst
-  | _ -> failwith "invalid arg:not set(unbox_set)"
-
-let unbox_array = function
-  | Tarray lst -> lst
-  | _ -> failwith "invalid arg:not list(unbox_list)"
-
-let unbox_obj = function
-  | Tobj alist -> alist
-  | _ -> failwith "invalid arg:not obj(unbox_obj)"
-
-let unbox_hash = function
-  | Thash hash -> hash
-  | _ -> failwith "invalid arg:not hahs(unbox_hash)"
-
-let unbox_pat = function
-  | Tpat pat -> pat
-  | _ -> failwith "invalid arg:not hahs(unbox_pat)"
-
 let type_string_of_tvalue = function
   | Tint x -> "int"
   | Tfloat x -> "float"
@@ -76,6 +36,63 @@ let type_string_of_tvalue = function
   | Tarray _ -> "array"
   | Tlazy _ -> "lazy"
   | Tvolatile _ -> "volatile"
+
+let failwith_type_error_1 name x =
+  failwith @@
+  Printf.sprintf "type error: %s(%s)" name (type_string_of_tvalue x)
+
+let failwith_type_error_2 name a b =
+  failwith @@
+  Printf.sprintf "type error: %s(%s, %s)"
+    name (type_string_of_tvalue a) (type_string_of_tvalue b)
+
+let failwith_type_error_3 name a b c =
+  failwith @@
+  Printf.sprintf "type error: %s(%s, %s, %s)"
+    name
+    (type_string_of_tvalue a)
+    (type_string_of_tvalue b)
+    (type_string_of_tvalue c)
+
+let unbox_int = function
+  | Tint x -> x
+  | x -> failwith_type_error_1 "unbox_int" x
+
+let unbox_float = function
+  | Tfloat f -> f
+  | x -> failwith_type_error_1 "unbox_float" x
+
+let unbox_string = function
+  | Tstr s -> s
+  | x -> failwith_type_error_1 "unbox_string" x
+
+let unbox_bool = function
+  | Tbool b -> b
+  | x -> failwith_type_error_1 "unbox_bool" x
+
+let unbox_list = function
+  | Tlist lst -> lst
+  | x -> failwith_type_error_1 "unbox_list" x
+
+let unbox_set = function
+  | Tset lst -> lst
+  | x -> failwith_type_error_1 "unbox_set" x
+
+let unbox_array = function
+  | Tarray lst -> lst
+  | x -> failwith_type_error_1 "unbox_array" x
+
+let unbox_obj = function
+  | Tobj alist -> alist
+  | x -> failwith_type_error_1 "unbox_obj" x
+
+let unbox_hash = function
+  | Thash hash -> hash
+  | x -> failwith_type_error_1 "unbox_hash" x
+
+let unbox_pat = function
+  | Tpat pat -> pat
+  | x -> failwith_type_error_1 "unbox_pat" x
 
 let is_iterable = function
   | Tlist _ | Tset _ | Thash _ | Tobj _ | Tarray _ | Tstr _ | Tnull-> true
@@ -223,7 +240,7 @@ let jg_nth value i =
   match value with
   | Tarray a -> a.(i)
   | Tlist l -> List.nth l i
-  | _ -> failwith ("jg_obj_nth:not array nor list")
+  | _ -> failwith_type_error_1 "jg_nth" value
 
 let jg_get_func ctx name =
   match jg_get_value ctx name with
@@ -370,15 +387,14 @@ let jg_eval_macro ?(caller=false) env ctx macro_name args kwargs macro f =
   let _ = f ctx' code in
   ctx
 
+let jg_test_defined_aux ctx name =
+  jg_get_value ctx name <> Tnull
+
 let jg_test_defined ctx name =
-  match jg_get_value ctx name with
-    | Tnull -> Tbool(false)
-    | _ -> Tbool(true)
+  Tbool (jg_test_defined_aux ctx name)
 
 let jg_test_undefined ctx name =
-  match jg_test_defined ctx name with
-    | Tbool status -> Tbool (not status)
-    | _ -> failwith "invalid test:jg_test_defined"
+  Tbool (not @@ jg_test_defined_aux ctx name)
 
 let jg_test_obj_defined ctx obj_name prop_name =
   match jg_get_value ctx obj_name with
@@ -401,7 +417,7 @@ let jg_test_none ctx name =
 let jg_negative = function
   | Tint x -> Tint(-x)
   | Tfloat x -> Tfloat(-.x)
-  | _ -> failwith "jg_negative:type error"
+  | x -> failwith_type_error_1 "jg_negative" x
 
 let rec jg_is_true = function
   | Tbool x -> x
@@ -436,7 +452,7 @@ let jg_plus left right =
     | Tstr x1, Tint x2 -> Tstr (x1 ^ string_of_int x2)
     | Tstr x1, Tfloat x2 -> Tstr (x1 ^ string_of_float x2)
 
-    | _, _ -> failwith "jg_plus:type error"
+    | _, _ -> failwith_type_error_2 "jg_plus" left right
 
 let jg_minus left right =
   match left, right with
@@ -444,7 +460,7 @@ let jg_minus left right =
     | Tfloat x1, Tfloat x2 -> Tfloat(x1-.x2)
     | Tint x1, Tfloat x2 -> Tfloat(float_of_int x1-.x2)
     | Tfloat x1, Tint x2 -> Tfloat(x1-.float_of_int x2)
-    | _, _ -> failwith "jg_minus:type error"
+    | _, _ -> failwith_type_error_2 "jg_minus" left right
 
 let jg_times left right =
   match left, right with
@@ -452,7 +468,7 @@ let jg_times left right =
     | Tfloat x1, Tfloat x2 -> Tfloat(x1*.x2)
     | Tint x1, Tfloat x2 -> Tfloat(float_of_int x1*.x2)
     | Tfloat x1, Tint x2 -> Tfloat(x1*.float_of_int x2)
-    | _, _ -> failwith "jg_times:type error"
+    | _, _ -> failwith_type_error_2 "jg_times" left right
 
 let jg_power left right =
   let rec power m n a =
@@ -461,23 +477,22 @@ let jg_power left right =
     else power m (n - 1) (m *. a) in
   match left, right with
     | Tint x1, Tint x2 -> Tfloat (power (float_of_int x1) x2 1.0)
-    | _, _ -> failwith "jg_powew:type error"
+    | _, _ -> failwith_type_error_2 "jg_power" left right
 
 let jg_div left right =
   match left, right with
-    | _, Tint 0 -> failwith "jg_div:zero division error"
-    | _, Tfloat 0.0 -> failwith "jg_div:zero division error"
+    | _, Tint 0 | _, Tfloat 0.0 -> failwith "jg_div:zero division error"
     | Tint x1, Tint x2 -> Tint(x1/x2)
     | Tfloat x1, Tfloat x2 -> Tfloat(x1/.x2)
     | Tint x1, Tfloat x2-> Tfloat(float_of_int x1/.x2)
     | Tfloat x1, Tint x2 -> Tfloat(x1/.float_of_int x2)
-    | _, _ -> failwith "jg_div:type error"
+    | _, _ -> failwith_type_error_2 "jg_div" left right
 
 let jg_mod left right =
   match left, right with
     | _, Tint 0 -> failwith "jg_mod:zero division error"
     | Tint x1, Tint x2 -> Tint(x1 mod x2)
-    | _, _ -> failwith "jg_mod:type error"
+    | _, _ -> failwith_type_error_2 "jg_mod" left right
 
 let jg_and left right =
   Tbool(jg_is_true left && jg_is_true right)
@@ -585,28 +600,28 @@ let jg_lt left right =
     | Tint x1, Tint x2 -> Tbool(x1<x2)
     | Tfloat x1, Tfloat x2 -> Tbool(x1<x2)
     | Tstr x1, Tstr x2 -> Tbool(x1<x2)
-    | _, _ -> failwith "jg_lt:type error"
+    | _, _ -> failwith_type_error_2 "jg_lt" left right
 
 let jg_gt left right =
   match left, right with
     | Tint x1, Tint x2 -> Tbool(x1>x2)
     | Tfloat x1, Tfloat x2 -> Tbool(x1>x2)
     | Tstr x1, Tstr x2 -> Tbool(x1>x2)
-    | _, _ -> failwith "jg_gt:type error"
+    | _, _ -> failwith_type_error_2 "jg_gt" left right
 
 let jg_lteq left right =
   match left, right with
     | Tint x1, Tint x2 -> Tbool(x1<=x2)
     | Tfloat x1, Tfloat x2 -> Tbool(x1<=x2)
     | Tstr x1, Tstr x2 -> Tbool(x1<=x2)
-    | _, _ -> failwith "jg_lteq:type error"
+    | _, _ -> failwith_type_error_2 "jg_lteq" left right
 
 let jg_gteq left right =
   match left, right with
     | Tint x1, Tint x2 -> Tbool(x1>=x2)
     | Tfloat x1, Tfloat x2 -> Tbool(x1>=x2)
     | Tstr x1, Tstr x2 -> Tbool(x1>=x2)
-    | _, _ -> failwith "jg_gteq:type error"
+    | _, _ -> failwith_type_error_2 "jg_gteq" left right
 
 let jg_inop left right =
   match left, right with
@@ -636,14 +651,14 @@ let jg_int ?(kwargs=[]) x =
     | Tint x -> Tint x
     | Tfloat x -> Tint (int_of_float  x)
     | Tstr s -> Tint (int_of_string s)
-    | _ -> failwith "invalid arg:not number(jg_int)"
+    | _ -> failwith_type_error_1 "jg_int" x
 
 let jg_float ?(kwargs=[]) x =
   match x with
     | Tfloat x -> Tfloat x
     | Tint x -> Tfloat (float_of_int x)
     | Tstr s -> Tfloat (float_of_string s)
-    | _ -> failwith "invalid arg:not number(jg_float)"
+    | _ -> failwith_type_error_1 "jg_float" x
 
 let jg_join ?(kwargs=[]) join_str lst =
   match join_str, lst with
@@ -659,7 +674,7 @@ let jg_join ?(kwargs=[]) join_str lst =
              Buffer.add_string buf (string_of_tvalue v) )
           array
       in Tstr (Buffer.contents buf)
-    | _ -> failwith "invalid arg:jg_join"
+    | _ -> failwith_type_error_2 "jg_join" join_str lst
 
 let jg_split ?(kwargs=[]) pat text =
   match pat, text with
@@ -668,8 +683,7 @@ let jg_split ?(kwargs=[]) pat text =
 	Pcre.split ~rex:(Pcre.regexp pat) text |>
 	  List.map (fun str -> Tstr str) in
       Tlist lst
-
-  | _ -> failwith "invalid args: split"
+  | _ -> failwith_type_error_2 "jg_split" pat text
 
 let jg_substring ?(kwargs=[]) base count str =
   match base, count, str with
@@ -677,19 +691,18 @@ let jg_substring ?(kwargs=[]) base count str =
       Tstr (substring base count str)
     | Tint _, Tint _, Tnull ->
       Tstr ""
-    | _ -> failwith "invalid args: substring"
+    | _ -> failwith_type_error_3 "jg_substring" base count str
 
 let jg_truncate ?(kwargs=[]) len str =
   match len, str with
     | Tint len, Tstr str ->
       Tstr (substring 0 len str)
-
-    | _ -> failwith "invalid args: truncate"
+    | _ -> failwith_type_error_2 "jg_truncate" len str
 
 let jg_strlen ?(kwargs=[]) x =
   match x with
     | Tstr str -> Tint (Jg_utils.strlen str)
-    | _ -> failwith "invalid args: strlen"
+    | _ -> failwith_type_error_1 "jg_strlen" x
 
 let jg_length ?(kwargs=[]) x =
   match x with
@@ -697,18 +710,18 @@ let jg_length ?(kwargs=[]) x =
     | Tset lst -> Tint (List.length lst)
     | Tstr str -> Tint (Jg_utils.strlen str)
     | Tarray arr -> Tint (Array.length arr)
-    | _ -> failwith "invalid args: not list(length)"
+    | _ -> failwith_type_error_1 "jg_length" x
 
 let jg_md5 ?(kwargs=[]) x =
   match x with
     | Tstr str ->
       Tstr(str |> Jg_utils.UTF8.lowercase |> Digest.string |> Digest.to_hex)
-    | _ -> failwith "invalid arg: not string(jg_md5)"
+    | _ -> failwith_type_error_1 "jg_md5" x
 
 let jg_abs ?(kwargs:kwargs=[]) value =
   match value with
     | Tint x -> Tint (abs x)
-    | _ -> failwith "type error: not integer(abs)"
+    | _ -> failwith_type_error_1 "jg_abs" value
 
 let jg_attr ?(kwargs=[]) obj prop =
   match obj, prop with
@@ -736,7 +749,7 @@ let jg_batch ?(kwargs=[]) ?(defaults=[
       batch [] (List.length lst) lst
     | Tint slice_count, Tarray ary ->
        failwith "not supported yet."
-    | _ -> failwith "invalid args: batch"
+    | _ -> failwith_type_error_2 "jg_batch" count value
 
 let jg_center ?(kwargs=[]) ?(defaults=[
   ("width", Tint 80)
@@ -746,7 +759,7 @@ let jg_center ?(kwargs=[]) ?(defaults=[
 let jg_capitalize ?(kwargs=[]) value =
   match value with
     | Tstr str -> Tstr (Jg_utils.UTF8.capitalize str)
-    | _ -> failwith "invalid args: not string(capitalize)"
+    | _ -> failwith_type_error_1 "jg_capitalize" value
 
 let jg_default ?(kwargs=[]) default value =
   match value with
@@ -769,7 +782,7 @@ let jg_reverse ?(kwargs=[]) lst =
     | Tarray a ->
       let len = Array.length a in
       Tarray (Array.init len (fun i -> Array.get a (len - 1 - i)))
-    | _ -> failwith "invalid args: not list(jg_reverse)"
+    | _ -> failwith_type_error_1 "jg_reverse" lst
 
 let jg_last ?(kwargs=[]) lst =
   match lst with
@@ -781,7 +794,7 @@ let jg_last ?(kwargs=[]) lst =
         | _ :: tl -> last tl in
       last lst
     | Tarray a -> Array.get a (Array.length a - 1)
-    | _ -> failwith "invalid args: not list(jg_last)"
+    | _ -> failwith_type_error_1 "jg_last" lst
 
 let jg_random ?(kwargs=[]) lst =
   let knuth a =
@@ -796,35 +809,35 @@ let jg_random ?(kwargs=[]) lst =
   match lst with
     | Tlist l -> Tlist (Array.to_list @@ knuth @@ Array.of_list l)
     | Tarray a -> Tarray (knuth @@ Array.copy a)
-    | _ -> failwith "invalid args: not list or array(jg_random)"
+    | _ -> failwith_type_error_1 "jg_random" lst
 
 let jg_replace ?(kwargs=[]) src dst str =
   match src, dst, str with
     | Tstr src, Tstr dst, Tstr str ->
       Tstr (Pcre.replace ~rex:(Pcre.regexp src ~flags:[`UTF8]) ~templ:dst str)
-    | _ -> failwith "invalid arg:not string(jg_replace)"
+    | _ -> failwith_type_error_3 "jg_replace" src dst str
 
 let jg_add a b = match a, b with
   | Tint a, Tint b -> Tint (a + b)
   | Tfloat a, Tfloat b -> Tfloat (a +. b)
   | Tint a, Tfloat b
   | Tfloat b, Tint a -> Tfloat (float_of_int a +. b)
-  | _ -> failwith "invalid args:non numerical list(jg_add)"
+  | _ -> failwith_type_error_2 "jg_add" a b
 
 let jg_sum ?(kwargs=[]) lst =
   match lst with
   | Tset l
   | Tlist l -> List.fold_left jg_add (Tint 0) l
   | Tarray a -> Array.fold_left jg_add (Tint 0) a
-  | _ -> failwith "invalid args: not list(jg_sum)"
+  | _ -> failwith_type_error_1 "jg_sum" lst
 
 let jg_trim ?(kwargs=[]) str =
   match str with
     | Tstr str -> Tstr (Jg_utils.UTF8.trim str)
-    | _ -> failwith "invalid args: not string(jg_trim)"
+    | _ -> failwith_type_error_1 "jg_trim" str
 
 let jg_list ?(kwargs=[]) value =
-  match  value with
+  match value with
     | Tlist lst | Tset lst -> Tlist lst
     | Tstr str ->
       let len = strlen str in
@@ -836,7 +849,7 @@ let jg_list ?(kwargs=[]) value =
 	  iter (s1 :: ret) (i+1) in
       Tlist (iter [] 0)
     | Tarray a -> Tlist (Array.to_list a)
-    | _ -> failwith "invalid_arg:can't make sequence(jg_list)"
+    | _ -> failwith_type_error_1 "jg_list" value
 
 let jg_slice ?(kwargs=[]) ?(defaults=[
   ("fill_with", Tnull);
@@ -847,7 +860,7 @@ let jg_sublist ?(kwargs=[]) base count lst =
   match base, count, lst with
     | Tint base, Tint count, Tlist lst -> Tlist (after base lst |> take count)
     | Tint base, Tnull, Tlist lst -> Tlist (after base lst)
-    | _ -> failwith "lnvalid args:jg_sublist"
+    | _ -> failwith_type_error_3 "jg_sublist" base count lst
 
 let jg_wordcount ?(kwargs=[]) str =
   match str with
@@ -861,7 +874,7 @@ let jg_wordcount ?(kwargs=[]) str =
            | _ -> ())
         () str ;
       Tint !n
-    | _ -> failwith "invalid arg: not string(jg_word_count)"
+    | _ -> failwith_type_error_1 "jg_word_count" str
 
 let jg_round ?(kwargs=[]) how value =
   match how, value with
@@ -871,14 +884,14 @@ let jg_round ?(kwargs=[]) how value =
     | Tstr other, Tfloat x ->
       failwith @@
       spf "invalid args:round method %s not supported(jg_round)" other
-    | _ -> failwith "invalid args:jg_round"
+    | _ -> failwith_type_error_2 "jg_round" how value
 
 let jg_fmt_float ?(kwargs=[]) digit_count value =
   match digit_count, value with
     | Tint digit_count, Tfloat value ->
       let fmt = Scanf.format_from_string (spf "%%.%df" digit_count) "%f" in
       Tfloat (float_of_string @@ spf fmt value)
-    | _, _ -> failwith "invalid args:fmt_float(digit_count, float_value)"
+    | _, _ -> failwith_type_error_2 "jg_fmt_float(count, value)" digit_count value
 
 let jg_range ?(kwargs=[]) start stop =
   match start, stop with
@@ -890,19 +903,19 @@ let jg_range ?(kwargs=[]) start stop =
 	let next i = if start < stop then i + 1 else i - 1 in
 	let rec iter ret i = if is_end i then List.rev ret else iter ((Tint i) :: ret) (next i) in
 	Tlist (iter [] start)
-    | _ -> failwith "invalid args: not int(jg_range)"
+    | _ -> failwith_type_error_2 "jg_range(start, stop)" start stop
 
 let jg_urlize ?(kwargs=[]) text =
   match text with
     | Tstr text ->
       let reg = Pcre.regexp "((http|ftp|https):\\/\\/[\\w\\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\.,@?^=%&amp;:/~\\+#]*[\\w\\-\\@?^=%&amp;/~\\+#])?)" in
       Tstr (Pcre.replace ~rex:reg ~templ:"<a href='$1'>$1</a>" text)
-    | _ -> failwith "invalid arg: not string(jg_urlize)"
+    | _ -> failwith_type_error_1 "jg_urlize" text
 
 let jg_title ?(kwargs=[]) text =
   match text with
     | Tstr text -> Tstr (Jg_utils.UTF8.titlecase text)
-    | _ -> failwith "invalid arg: not string(jg_title)"
+    | _ -> failwith_type_error_1 "jg_title" text
 
 let jg_striptags ?(kwargs=[]) text =
   match text with
@@ -910,7 +923,7 @@ let jg_striptags ?(kwargs=[]) text =
       let reg = Pcre.regexp "<\\/?[^>]+>" ~flags:[`UTF8] in
       let text' = Pcre.replace ~rex:reg ~templ:"" text in
       Tstr text'
-    | _ -> failwith "invalid arg: not string(jg_striptags)"
+    | _ -> failwith_type_error_1 "jg_striptags" text
 
 let jg_sort ?(kwargs=[]) lst =
   let reverse = ref false in
@@ -927,14 +940,14 @@ let jg_sort ?(kwargs=[]) lst =
   match lst with
     | Tlist l -> Tlist (List.sort compare l)
     | Tarray a -> Tarray (let a = Array.copy a in Array.sort compare a ; a)
-    | x -> failwith @@ spf "invalid_arg:can't sort %s (jg_sort)" (type_string_of_tvalue x)
+    | _ -> failwith_type_error_1 "jg_sort" lst
 
 let jg_xmlattr ?(kwargs=[]) obj =
   match obj with
     | Tobj alist ->
       List.map (fun (name, value) -> spf "%s='%s'" name (string_of_tvalue value)) alist |>
 	String.concat " " |> box_string
-    | _ -> failwith "invalid_arg:not obj(jg_xmlattr)"
+    | _ -> failwith_type_error_1 "jg_xmlattr" obj
 
 let jg_wordwrap ?(kwargs=[]) width break_long_words text =
   match width, break_long_words, text with
@@ -958,7 +971,7 @@ let jg_wordwrap ?(kwargs=[]) width break_long_words text =
 	| [] -> if line = "" then lines else push_line lines line in
       let words = Jg_utils.UTF8.split text in
       Tstr (iter "" "" 0 words)
-    | _ -> failwith "invalid args:jg_wordwrap"
+    | _ -> failwith_type_error_3 "jg_wordwrap" width break_long_words text
 
 module JgHashtbl = Hashtbl.Make (struct
     type t = Jg_types.tvalue
@@ -985,14 +998,10 @@ let jg_groupby_aux key length iter collection =
     h []
 
 let jg_groupby ?(kwargs=[]) key value =
-  match key with
-  | Tstr key -> begin
-      match value with
-      | Tarray ary -> jg_groupby_aux key (Array.length ary) Array.iter ary
-      | Tlist list -> jg_groupby_aux key (List.length list) List.iter list
-      | _ -> failwith "invalid arg: not list nor array(jg_groupby value)"
-    end
-  | _ -> failwith "invalid arg: not str(jg_groupby key)"
+  match key, value with
+  | Tstr key, Tarray ary -> jg_groupby_aux key (Array.length ary) Array.iter ary
+  | Tstr key, Tlist list -> jg_groupby_aux key (List.length list) List.iter list
+  | _ -> failwith_type_error_2 "jg_groupby" key value
 
 let jg_max_min_aux is_max fst iter value kwargs =
   let compare =
@@ -1011,14 +1020,14 @@ let jg_max ?(kwargs=[]) arg =
   | Tarray [||] | Tlist [] -> Tnull
   | Tarray a -> jg_max_min_aux true a.(0) Array.iter a kwargs
   | Tlist (hd :: tl) -> jg_max_min_aux true hd List.iter tl kwargs
-  | _ -> failwith "invalid arg: not array nor list(jg_max)"
+  | _ -> failwith_type_error_1 "jg_max" arg
 
 let jg_min ?(kwargs=[]) arg =
   match arg with
   | Tarray [||] | Tlist [] -> Tnull
   | Tarray a -> jg_max_min_aux false a.(0) Array.iter a kwargs
   | Tlist (hd :: tl) -> jg_max_min_aux false hd List.iter tl kwargs
-  | _ -> failwith "invalid arg: not array nor list(jg_min)"
+  | _ -> failwith_type_error_1 "jg_min" arg
 
 let jg_test_divisibleby ?(kwargs=[]) num target =
   match num, target with
@@ -1170,11 +1179,11 @@ let jg_map ?(kwargs=[]) (ctx:context) filter list =
     match kwargs with
     | [ ("attribute", Tstr path) ] ->
       fun x -> jg_obj_lookup_path x (string_split_on_char '.' path)
-    | _ -> failwith "invalid arg: not array nor list(jg_map)" in
+    | _ -> failwith "invalid arg: (jg_map:attribute)" in
   match list with
   | Tarray x -> Tarray (Array.map fn x)
   | Tlist x -> Tlist (List.map fn x)
-  | _ -> failwith "invalid arg: not array nor list(jg_map)"
+  | _ -> failwith_type_error_1 "jg_map" list
 
 let jg_load_extensions extensions =
   List.iter (fun ext ->
