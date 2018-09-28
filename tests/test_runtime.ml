@@ -76,13 +76,21 @@ let test_obj_eq_eq ctx =
 
 let test_batch ctx =
   let lst = jg_range (Tint 0) (Tint 9) in
+  let ary = Tarray (Array.of_list (unbox_list lst)) in
   let batched_list = jg_batch (Tint 4) lst ~kwargs:[("fill_with", Tstr "x")] in
+  let batched_ary = jg_batch (Tint 4) ary ~kwargs:[("fill_with", Tstr "x")] in
   let expect_list = Tlist [
     Tlist [(Tint 0); (Tint 1); (Tint 2); (Tint 3)];
     Tlist [(Tint 4); (Tint 5); (Tint 6); (Tint 7)];
     Tlist [(Tint 8); (Tint 9); (Tstr "x"); (Tstr "x")];
   ] in
-  assert_equal (jg_eq_eq batched_list expect_list) (Tbool true)
+  let expect_ary = Tarray [|
+    Tarray [| (Tint 0); (Tint 1); (Tint 2); (Tint 3) |];
+    Tarray [| (Tint 4); (Tint 5); (Tint 6); (Tint 7) |];
+    Tarray [| (Tint 8); (Tint 9); (Tstr "x"); (Tstr "x") |];
+  |] in
+  assert_equal (jg_eq_eq batched_list expect_list) (Tbool true);
+  assert_equal (jg_eq_eq batched_ary expect_ary) (Tbool true)
 ;;
 
 let test_capitalize ctx =
