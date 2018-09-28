@@ -4,6 +4,10 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.2.21
+===========================
+o [PR#55] type error messages enhancement.
+
 version: 1.2.20, 2018-09-25
 ===========================
 ! Enabled to create curried function with keyword arguments.
