@@ -74,22 +74,26 @@ let test_obj_eq_eq ctx =
   assert_equal (jg_obj_eq_eq obj1 obj4) true;
 ;;
 
-let test_batch ctx =
+let test_batch_list ctx =
   let lst = jg_range (Tint 0) (Tint 9) in
-  let ary = Tarray (Array.of_list (unbox_list lst)) in
   let batched_list = jg_batch (Tint 4) lst ~kwargs:[("fill_with", Tstr "x")] in
-  let batched_ary = jg_batch (Tint 4) ary ~kwargs:[("fill_with", Tstr "x")] in
   let expect_list = Tlist [
     Tlist [(Tint 0); (Tint 1); (Tint 2); (Tint 3)];
     Tlist [(Tint 4); (Tint 5); (Tint 6); (Tint 7)];
     Tlist [(Tint 8); (Tint 9); (Tstr "x"); (Tstr "x")];
   ] in
+  assert_equal (jg_eq_eq batched_list expect_list) (Tbool true)
+;;
+
+let test_batch_array ctx =
+  let lst = jg_range (Tint 0) (Tint 9) in
+  let ary = Tarray (Array.of_list (unbox_list lst)) in
+  let batched_ary = jg_batch (Tint 4) ary ~kwargs:[("fill_with", Tstr "x")] in
   let expect_ary = Tarray [|
     Tarray [| (Tint 0); (Tint 1); (Tint 2); (Tint 3) |];
     Tarray [| (Tint 4); (Tint 5); (Tint 6); (Tint 7) |];
     Tarray [| (Tint 8); (Tint 9); (Tstr "x"); (Tstr "x") |];
   |] in
-  assert_equal (jg_eq_eq batched_list expect_list) (Tbool true);
   assert_equal (jg_eq_eq batched_ary expect_ary) (Tbool true)
 ;;
 
@@ -649,7 +653,8 @@ let suite = "runtime test" >::: [
   "test_and" >:: test_and;
   "test_or" >:: test_or;
   "test_eq_eq" >:: test_eq_eq;
-  "test_batch" >:: test_batch;
+  "test_batch_list" >:: test_batch_list;
+  "test_batch_array" >:: test_batch_array;
   "test_list_eq_eq" >:: test_list_eq_eq;
   "test_obj_eq_eq" >:: test_obj_eq_eq;
   "test_capitalize" >:: test_capitalize;

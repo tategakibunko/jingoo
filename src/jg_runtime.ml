@@ -747,9 +747,15 @@ let jg_batch ?(kwargs=[]) ?(defaults=[
 	else
 	  box_list @@ List.rev ret in
       batch [] (List.length lst) lst
-    | Tint slice_count, Tarray ary ->
-       failwith "not supported yet."
-    | _ -> failwith_type_error_2 "jg_batch" count value
+    | Tint c, Tarray arr ->
+      let len1 = Array.length arr in
+      let len2 = len1 / c + (if len1 mod c = 0 then 0 else 1) in
+      box_array @@
+      Array.init len2 @@ fun i ->
+      if i / c + c < len1
+      then box_array (Array.sub arr (i / c) c)
+      else box_array (Array.init c (fun j -> if i + j < len1 then arr.(i + j) else Tnull))
+    | _ -> failwith "invalid args: batch"
 
 let jg_center ?(kwargs=[]) ?(defaults=[
   ("width", Tint 80)
@@ -854,7 +860,9 @@ let jg_list ?(kwargs=[]) value =
 let jg_slice ?(kwargs=[]) ?(defaults=[
   ("fill_with", Tnull);
 ]) len value =
-  jg_batch len (jg_list value) ~kwargs
+  match value with
+  | Tlist _ | Tarray _ -> jg_batch len value ~kwargs
+  | _ -> jg_batch len (jg_list value) ~kwargs
 
 let jg_sublist ?(kwargs=[]) base count lst =
   match base, count, lst with
