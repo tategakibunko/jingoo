@@ -3,6 +3,26 @@ open Jg_utils
 open Jg_types
 open Jg_runtime
 
+let assert_equal =
+  let rec printer = function
+    | Tint x -> Printf.sprintf "Tint %d" x
+    | Tfloat x -> Printf.sprintf "Tfloat %f" x
+    | Tstr x -> Printf.sprintf "Tstr \"%s\"" (String.escaped x)
+    | Tbool x -> Printf.sprintf "Tbool %b" x
+    | Tobj _ -> Printf.sprintf "<Tobj>"
+    | Thash _ -> Printf.sprintf "<Thash>"
+    | Tlist x -> Printf.sprintf "Tlist [ %s ]" (String.concat ";" @@ List.map printer x)
+    | Tpat _ -> Printf.sprintf "<Tpat>"
+    | Tset _ -> Printf.sprintf "<Tset>"
+    | Tfun _ -> Printf.sprintf "<Tfun>"
+    | Tnull -> Printf.sprintf "Tnull"
+    | Tarray x -> Printf.sprintf "Tarray [| %s |]" (String.concat ";" @@ List.map printer @@ Array.to_list x)
+    | Tlazy l -> Printf.sprintf "Tlazy"
+    | Tvolatile v -> Printf.sprintf "Tvolatile"
+  in
+  let cmp a b = jg_eq_eq a b = Tbool true in
+  assert_equal ~cmp ~printer
+
 let test_persons = Tlist [
   Tobj [("name", Tstr "taro"); ("age", Tint 12); ("extra", Tobj [
     ("rank", Tint 3);
@@ -30,12 +50,12 @@ let test_escape ctx =
 ;;
 
 let test_string_of_tvalue ctx =
-  assert_equal "a" (string_of_tvalue (Tstr "a"));
-  assert_equal "1" (string_of_tvalue (Tint 1));
-  assert_equal "1." (string_of_tvalue (Tfloat 1.0));
-  assert_equal "1.2" (string_of_tvalue (Tfloat 1.2));
-  assert_equal "<obj>" (string_of_tvalue (Tobj [("name", Tstr "value")]));
-  assert_equal "<list>" (string_of_tvalue (Tlist [Tint 0; Tint 1]));
+  OUnit2.assert_equal "a" (string_of_tvalue (Tstr "a"));
+  OUnit2.assert_equal "1" (string_of_tvalue (Tint 1));
+  OUnit2.assert_equal "1." (string_of_tvalue (Tfloat 1.0));
+  OUnit2.assert_equal "1.2" (string_of_tvalue (Tfloat 1.2));
+  OUnit2.assert_equal "<obj>" (string_of_tvalue (Tobj [("name", Tstr "value")]));
+  OUnit2.assert_equal "<list>" (string_of_tvalue (Tlist [Tint 0; Tint 1]));
 ;;
 
 let test_plus ctx =
@@ -59,9 +79,9 @@ let test_list_eq_eq ctx =
   let lst2 = [Tint 0; Tint 1; Tint 2] in
   let lst3 = [Tint 0; Tint 1; Tint 3] in
   let lst4 = [Tint 0; Tint 1] in
-  assert_equal (jg_list_eq_eq lst1 lst2) true;
-  assert_equal (jg_list_eq_eq lst1 lst3) false;
-  assert_equal (jg_list_eq_eq lst1 lst4) false;
+  OUnit2.assert_equal ~cmp:jg_list_eq_eq lst1 lst2;
+  OUnit2.assert_equal (jg_list_eq_eq lst1 lst3) false;
+  OUnit2.assert_equal (jg_list_eq_eq lst1 lst4) false;
 ;;
 
 let test_obj_eq_eq ctx =
@@ -69,9 +89,9 @@ let test_obj_eq_eq ctx =
   let obj2 = Tobj [("name", Tstr "john"); ("age", Tint 20)] in
   let obj3 = Tobj [("name", Tstr "mary"); ("age", Tint 22)] in
   let obj4 = Tobj [("age", Tint 20); ("name", Tstr "john")] in
-  assert_equal (jg_obj_eq_eq obj1 obj2) true;
-  assert_equal (jg_obj_eq_eq obj1 obj3) false;
-  assert_equal (jg_obj_eq_eq obj1 obj4) true;
+  OUnit2.assert_equal ~cmp:jg_obj_eq_eq obj1 obj2 ;
+  OUnit2.assert_equal (jg_obj_eq_eq obj1 obj3) false;
+  OUnit2.assert_equal ~cmp:jg_obj_eq_eq obj1 obj4;
 ;;
 
 let test_batch_list ctx =
@@ -82,7 +102,7 @@ let test_batch_list ctx =
     Tlist [(Tint 4); (Tint 5); (Tint 6); (Tint 7)];
     Tlist [(Tint 8); (Tint 9); (Tstr "x"); (Tstr "x")];
   ] in
-  assert_equal (jg_eq_eq batched_list expect_list) (Tbool true)
+  assert_equal expect_list batched_list
 ;;
 
 let test_batch_array ctx =
@@ -94,7 +114,7 @@ let test_batch_array ctx =
     Tarray [| (Tint 4); (Tint 5); (Tint 6); (Tint 7) |];
     Tarray [| (Tint 8); (Tint 9); (Tstr "x"); (Tstr "x") |];
   |] in
-  assert_equal (jg_eq_eq batched_ary expect_ary) (Tbool true)
+  assert_equal expect_ary batched_ary
 ;;
 
 let test_capitalize ctx =
@@ -212,7 +232,7 @@ let test_random ctx =
   let lst = iter [] 1 in
   let lst'= unbox_list @@ jg_random (Tlist lst) in
   let is_eq_eq = List.for_all2 (=) lst lst' in
-  assert_equal is_eq_eq false
+  OUnit2.assert_equal is_eq_eq false
 ;;
 
 let test_slice ctx =
@@ -321,75 +341,57 @@ let test_eq_eq ctx =
 ;;
 
 let test_urlize ctx =
-  let text = Tstr "go to http://yahoo.co.jp" in
-  match jg_urlize text with
-    | Tstr text' ->
-      assert_equal text' "go to <a href='http://yahoo.co.jp'>http://yahoo.co.jp</a>"
-    | _ -> failwith "ouch"
+  assert_equal
+    (Tstr "go to <a href='http://yahoo.co.jp'>http://yahoo.co.jp</a>")
+    (jg_urlize @@ Tstr "go to http://yahoo.co.jp")
 ;;
 
 let test_title ctx =
-  let text = Tstr "this is it!" in
-  match jg_title text with
-    | Tstr text' ->
-      assert_equal text' "This Is It!"
-    | _ -> failwith "ouch"
+  assert_equal
+    (Tstr "This Is It!")
+    (jg_title @@ Tstr "this is it!")
 ;;
 
 let test_striptags ctx =
-  let text = Tstr "<p class='indent'>hogehoge</p> higehige <b>hagehage</b>" in
-  match jg_striptags text with
-    | Tstr text' ->
-      assert_equal text' "hogehoge higehige hagehage"
-    | _ -> failwith "ouch"
+  assert_equal
+    (Tstr "hogehoge higehige hagehage")
+    (jg_striptags @@ Tstr "<p class='indent'>hogehoge</p> higehige <b>hagehage</b>")
 ;;
 
 let test_sort_int_list ctx =
-  let lst = Tlist [Tint 3; Tint 1; Tint 2] in
-  match jg_sort lst with
-    | Tlist lst' ->
-      assert_equal lst' [Tint 1; Tint 2; Tint 3]
-    | _ -> failwith "ouch"
+  assert_equal
+    (Tlist [Tint 1; Tint 2; Tint 3])
+    (jg_sort @@ Tlist [Tint 3; Tint 1; Tint 2])
 ;;
 
 let test_sort_int_array ctx =
-  let ary = Tarray [| Tint 3; Tint 1; Tint 2 |] in
-  match jg_sort ary with
-  | Tarray ary' ->
-     assert_equal ary' [| Tint 1; Tint 2; Tint 3 |]
-  | _ -> failwith "ouch"
+  assert_equal
+    (Tarray [| Tint 1; Tint 2; Tint 3 |])
+    (jg_sort @@ Tarray [| Tint 3; Tint 1; Tint 2 |])
 ;;
 
 let test_sort_float_list ctx =
-  let lst = Tlist [Tfloat 3.0; Tfloat 1.1; Tfloat 2.2] in
-  match jg_sort lst with
-    | Tlist lst' ->
-      assert_equal lst' [Tfloat 1.1; Tfloat 2.2; Tfloat 3.0]
-    | _ -> failwith "ouch"
+  assert_equal
+    (Tlist [Tfloat 1.1; Tfloat 2.2; Tfloat 3.0])
+    (jg_sort @@ Tlist [Tfloat 3.0; Tfloat 1.1; Tfloat 2.2])
 ;;
 
 let test_sort_float_array ctx =
-  let ary = Tarray [| Tfloat 3.0; Tfloat 1.1; Tfloat 2.2 |] in
-  match jg_sort ary with
-    | Tarray ary' ->
-      assert_equal ary' [| Tfloat 1.1; Tfloat 2.2; Tfloat 3.0 |]
-    | _ -> failwith "ouch"
+  assert_equal
+    (Tarray [| Tfloat 1.1; Tfloat 2.2; Tfloat 3.0 |])
+    (jg_sort @@ Tarray [| Tfloat 3.0; Tfloat 1.1; Tfloat 2.2 |])
 ;;
 
 let test_sort_string_list ctx =
-  let lst = Tlist [Tstr "baba"; Tstr "aa"; Tstr "caca"] in
-  match jg_sort lst with
-    | Tlist lst' ->
-      assert_equal lst' [Tstr "aa"; Tstr "baba"; Tstr "caca"]
-    | _ -> failwith "ouch"
+  assert_equal
+    (Tlist [Tstr "aa"; Tstr "baba"; Tstr "caca"])
+    (jg_sort @@ Tlist [Tstr "baba"; Tstr "aa"; Tstr "caca"] )
 ;;
 
 let test_sort_rev ctx =
-  let lst = Tlist [Tint 3; Tint 1; Tint 2] in
-  match jg_sort lst ~kwargs:[("reverse", Tbool true)] with
-  | Tlist lst' ->
-     assert_equal lst' [Tint 3; Tint 2; Tint 1]
-  | _ -> failwith "ouch"
+  assert_equal
+    (Tlist [Tint 3; Tint 2; Tint 1])
+    (jg_sort (Tlist [Tint 3; Tint 1; Tint 2]) ~kwargs:[("reverse", Tbool true)])
 ;;
 
 let test_sort_attr ctx =
@@ -409,23 +411,20 @@ let test_sort_attr ctx =
   let reverse_sorted = jg_sort persons ~kwargs:[("attribute", Tstr "info.age"); ("reverse", Tbool true)] |> unbox_list in
   let reverse_expected = [name_is "ken"; name_is "bob"] in
   let check_person checker person = checker person in
-  assert_equal (List.for_all2 check_person forward_expected forward_sorted) true;
-  assert_equal (List.for_all2 check_person reverse_expected reverse_sorted) true;
+  OUnit2.assert_equal (List.for_all2 check_person forward_expected forward_sorted) true;
+  OUnit2.assert_equal (List.for_all2 check_person reverse_expected reverse_sorted) true;
 ;;
 
 let test_sort_string_array ctx =
-  let ary = Tarray [| Tstr "baba"; Tstr "aa"; Tstr "caca" |] in
-  match jg_sort ary with
-  | Tarray ary' ->
-     assert_equal ary' [| Tstr "aa"; Tstr "baba"; Tstr "caca" |]
-  | _ -> failwith "ouch"
+  assert_equal
+    (Tarray [| Tstr "aa"; Tstr "baba"; Tstr "caca" |])
+    (jg_sort @@ Tarray [| Tstr "baba"; Tstr "aa"; Tstr "caca" |])
 ;;
 
 let test_list ctx =
-  match jg_list (Tstr "hoge") with
-    | Tlist lst ->
-      assert_equal lst [Tstr "h"; Tstr "o"; Tstr "g"; Tstr "e"]
-    | _ -> failwith "ouch"
+  assert_equal
+    (Tlist [Tstr "h"; Tstr "o"; Tstr "g"; Tstr "e"])
+    (jg_list @@ Tstr "hoge")
 ;;
 
 let test_xmlattr ctx =
@@ -434,10 +433,9 @@ let test_xmlattr ctx =
     ("id", Tstr "taro");
     ("width", Tint 300);
   ] in
-  match jg_xmlattr obj with
-    | Tstr str ->
-      assert_equal str "class='profile' id='taro' width='300'"
-    | _ -> failwith "ouch"
+  assert_equal
+    (Tstr "class='profile' id='taro' width='300'")
+    (jg_xmlattr obj)
 ;;
 
 let test_wordwrap ctx =
@@ -445,48 +443,46 @@ let test_wordwrap ctx =
     "this is it!!";
     "hoge hogehogehoge";
   ] in
-  (match jg_wordwrap (Tint 12) (Tbool true) (Tstr text) with
-    | Tstr text ->
-      assert_equal text "this is it!!\nhoge hogehog\nehoge"
-    | _ -> failwith "ouch");
-  (match jg_wordwrap (Tint 12) (Tbool false) (Tstr text) with
-    | Tstr text ->
-      assert_equal text "this is it!!\nhoge hogehogehoge"
-    | _ -> failwith "ouch")
+  assert_equal
+    (Tstr "this is it!!\nhoge hogehog\nehoge")
+    (jg_wordwrap (Tint 12) (Tbool true) (Tstr text));
+  assert_equal
+    (Tstr "this is it!!\nhoge hogehogehoge")
+    (jg_wordwrap (Tint 12) (Tbool false) (Tstr text));
 ;;
 
 let test_sublist ctx =
   let lst = Tlist [Tint 0; Tint 1; Tint 2; Tint 3] in
-  (match jg_sublist (Tint 0) (Tint 4) lst with
-    | Tlist lst -> assert_equal lst [Tint 0; Tint 1; Tint 2; Tint 3]
-    | _ -> failwith "ouch");
-  (match jg_sublist (Tint 0) (Tint 3) lst with
-    | Tlist lst -> assert_equal lst [Tint 0; Tint 1; Tint 2]
-    | _ -> failwith "ouch");
-  (match jg_sublist (Tint 0) (Tint 2) lst with
-    | Tlist lst -> assert_equal lst [Tint 0; Tint 1]
-    | _ -> failwith "ouch");
-  (match jg_sublist (Tint 0) (Tint 1) lst with
-    | Tlist lst -> assert_equal lst [Tint 0]
-    | _ -> failwith "ouch");
-  (match jg_sublist (Tint 0) (Tint 0) lst with
-    | Tlist lst -> assert_equal lst []
-    | _ -> failwith "ouch");
-  (match jg_sublist (Tint 1) (Tint 0) lst with
-    | Tlist lst -> assert_equal lst []
-    | _ -> failwith "ouch");
-  (match jg_sublist (Tint 1) (Tint 1) lst with
-    | Tlist lst -> assert_equal lst [Tint 1]
-    | _ -> failwith "ouch");
-  (match jg_sublist (Tint 1) (Tint 2) lst with
-    | Tlist lst -> assert_equal lst [Tint 1; Tint 2]
-    | _ -> failwith "ouch");
-  (match jg_sublist (Tint 1) (Tint 3) lst with
-    | Tlist lst -> assert_equal lst [Tint 1; Tint 2; Tint 3]
-    | _ -> failwith "ouch");
-  (match jg_sublist (Tint 1) (Tint 4) lst with
-    | Tlist lst -> assert_equal lst [Tint 1; Tint 2; Tint 3]
-    | _ -> failwith "ouch");
+  assert_equal
+    (Tlist [Tint 0; Tint 1; Tint 2; Tint 3])
+    (jg_sublist (Tint 0) (Tint 4) lst);
+  assert_equal
+    (Tlist [Tint 0; Tint 1; Tint 2])
+    (jg_sublist (Tint 0) (Tint 3) lst);
+  assert_equal
+    (Tlist [Tint 0; Tint 1])
+    (jg_sublist (Tint 0) (Tint 2) lst);
+  assert_equal
+    (Tlist [Tint 0])
+    (jg_sublist (Tint 0) (Tint 1) lst);
+  assert_equal
+    (Tlist [])
+    (jg_sublist (Tint 0) (Tint 0) lst);
+  assert_equal
+    (Tlist [])
+    (jg_sublist (Tint 1) (Tint 0) lst);
+  assert_equal
+    (Tlist [Tint 1])
+    (jg_sublist (Tint 1) (Tint 1) lst);
+  assert_equal
+    (Tlist [Tint 1; Tint 2])
+    (jg_sublist (Tint 1) (Tint 2) lst);
+  assert_equal
+    (Tlist [Tint 1; Tint 2; Tint 3])
+    (jg_sublist (Tint 1) (Tint 3) lst);
+  assert_equal
+    (Tlist [Tint 1; Tint 2; Tint 3])
+    (jg_sublist (Tint 1) (Tint 4) lst);
 ;;
 
 let test_fmt_float ctx =
@@ -602,10 +598,10 @@ let test_groupby ctx =
     full_name_is ~first_name:"Hana" ~last_name:"Breton";
   ] in
   let check_person checker person = checker person in
-  assert_equal (List.for_all2 check_person females_expected females) true;
-  assert_equal (List.for_all2 check_person males_expected males) true;
-  assert_equal (List.for_all2 check_person english_speakers_expected english_speakers) true;
-  assert_equal (List.for_all2 check_person french_speakers_expected french_speakers) true
+  OUnit2.assert_equal (List.for_all2 check_person females_expected females) true;
+  OUnit2.assert_equal (List.for_all2 check_person males_expected males) true;
+  OUnit2.assert_equal (List.for_all2 check_person english_speakers_expected english_speakers) true;
+  OUnit2.assert_equal (List.for_all2 check_person french_speakers_expected french_speakers) true
 ;;
   
 let test_min_max ctx =
@@ -637,8 +633,8 @@ let test_map ctx =
   let names_expected = [Tstr "taro"; Tstr "jiro"; Tstr "hana"] in
   let ranks = unbox_list @@ jg_map tmp_ctx Tnull test_persons ~kwargs:[("attribute", Tstr "extra.rank")] in
   let ranks_expected = [Tint 3; Tint 12; Tint 5] in
-  assert_equal (List.for_all2 (=) names names_expected) true;
-  assert_equal (List.for_all2 (=) ranks ranks_expected) true
+  OUnit2.assert_equal (List.for_all2 (=) names names_expected) true;
+  OUnit2.assert_equal (List.for_all2 (=) ranks ranks_expected) true
 ;;
 
 let suite = "runtime test" >::: [
