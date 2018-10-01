@@ -736,14 +736,15 @@ let jg_attr ?(kwargs=[]) obj prop =
 let jg_batch ?(kwargs=[]) ?(defaults=[
   ("fill_with", Tnull)
 ]) count value =
-  let fill_value = match jg_get_kvalue "fill_with" kwargs ~defaults with Tnull -> None | other -> Some other in
+  let fill_value = jg_get_kvalue "fill_with" kwargs ~defaults in
   match count, value with
     | Tint slice_count, Tlist lst ->
       let rec batch ret left_count rest =
 	if left_count > slice_count then
 	  batch ((box_list @@ take slice_count rest) :: ret) (left_count - slice_count) (after slice_count rest)
 	else if left_count > 0 then
-	  batch ((box_list @@ take slice_count rest ?pad:fill_value) :: ret) 0 []
+          let pad = match fill_value with Tnull -> None | other -> Some other in
+          batch ((box_list @@ take slice_count rest ?pad) :: ret) 0 []
 	else
 	  box_list @@ List.rev ret in
       batch [] (List.length lst) lst
@@ -752,9 +753,9 @@ let jg_batch ?(kwargs=[]) ?(defaults=[
       let len2 = len1 / c + (if len1 mod c = 0 then 0 else 1) in
       box_array @@
       Array.init len2 @@ fun i ->
-      if i / c + c < len1
-      then box_array (Array.sub arr (i / c) c)
-      else box_array (Array.init c (fun j -> if i + j < len1 then arr.(i + j) else Tnull))
+      if i * c + c < len1
+      then box_array (Array.sub arr (i * c) c)
+      else box_array (Array.init c (fun j -> if i * c + j < len1 then arr.(i * c + j) else fill_value))
     | _ -> failwith "invalid args: batch"
 
 let jg_center ?(kwargs=[]) ?(defaults=[
