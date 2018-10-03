@@ -8,6 +8,7 @@ version: 1.2.21
 ===========================
 o [PR#55] type error messages enhancement.
 o [PR#56] Implemented jg_batch for arrays.
+! [ISSUE#57] Removed mutex lock.
 
 version: 1.2.20, 2018-09-25
 ===========================
