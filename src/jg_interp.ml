@@ -369,15 +369,11 @@ and from_file
     ?(env=std_env) ?(models=[]) ~output
     ?(ctx = init_context ~env ~models ~output ())
     file_name =
-  Jg_utils.with_lock (fun () ->
-    eval_aux ~env ~ctx @@
-      ast_from_file ~env file_name
-  ) ~on_error:(fun () -> Parsing.clear_parser ())
+  eval_aux ~env ~ctx @@
+    ast_from_file ~env file_name
 
 and from_string ?(env=std_env) ?(models=[]) ?file_path ~output
     ?(ctx = init_context ~env ~models ~output ())
     source =
-  Jg_utils.with_lock (fun () ->
-    eval_aux ~env ~ctx @@
-      ast_from_string ~env source
-  ) ~on_error:(fun () -> Parsing.clear_parser ())
+  eval_aux ~env ~ctx @@
+    ast_from_string ~env source

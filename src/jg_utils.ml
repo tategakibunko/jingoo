@@ -246,28 +246,6 @@ let rec get_file_path ?(template_dirs=[]) file_name =
 	else
 	  get_file_path file_name ~template_dirs:rest
 
-type mutex_pair = {
-  mutable lock: unit -> unit;
-  mutable unlock: unit -> unit
-}
-
-let lock_unlock = {
-  lock = (fun () -> ());
-  unlock = (fun () -> ())
-}
-
-let with_lock ?(on_error = ignore) fn =
-  try
-    let () = lock_unlock.lock() in
-    let result = fn () in
-    let () = lock_unlock.unlock() in
-    result
-  with
-    exn ->
-      on_error ();
-      lock_unlock.unlock ();
-      raise exn
-
 module Maybe = struct
   let return x = Some x
   let bind x f =

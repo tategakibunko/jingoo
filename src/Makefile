@@ -22,9 +22,9 @@ LIB_CMI:=$(foreach s,$(LIB_ML), $(basename $(notdir $(s))).cmi)
 
 all: byte opt
 
-byte: jg_parser.ml jg_lexer.ml jingoo.cma jingoo_mt.cmo
+byte: jg_parser.ml jg_lexer.ml jingoo.cma
 
-opt: jingoo.cmxa jingoo_mt.cmx compiler
+opt: jingoo.cmxa compiler
 
 jg_parser.ml: $(MLY)
 	$(YAC) $(MLY)
@@ -40,17 +40,11 @@ jingoo.cmxa: $(LIB_SRCS)
 	$(OCAMLOPT) -package $(PKG) -c $(LIB_SRCS)
 	$(OCAMLOPT) -package $(PKG) -o $@ -a $(LIB_CMX)
 
-jingoo_mt.cmo: jingoo_mt.ml
-	$(OCAMLC) -thread -c $<
-
-jingoo_mt.cmx: jingoo_mt.ml
-	$(OCAMLOPT) -thread -c $<
-
 compiler: jingoo.cmxa jg_cmdline.ml
 	$(OCAMLOPT) -o $@ -linkpkg -package $(PKG) jingoo.cmxa jg_cmdline.ml
 
 install: all
-	ocamlfind install jingoo *.a *.cma *.cmi *.cmx jingoo_mt.cmo jingoo_mt.o jg_types.mli jg_template.mli jg_stub.mli META -optional *.cmxa jingoo_mt.cmx
+	ocamlfind install jingoo *.a *.cma *.cmi *.cmx jg_types.mli jg_template.mli jg_stub.mli META -optional *.cmxa
 
 uninstall:
 	ocamlfind remove jingoo
