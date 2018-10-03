@@ -340,13 +340,11 @@ and init_context ?(env=std_env) ?(models=[]) ~output () =
   jg_init_context ~models output env
 
 and ast_from_lexbuf ~env filename lexbuf =
-  Jg_utils.with_lock (fun () ->
-    Parsing.clear_parser ();
-    Jg_lexer.reset_context ();
-    Jg_lexer.init_lexer_pos filename lexbuf;
-    let ast = Jg_parser.input Jg_lexer.main lexbuf in
-    ast
-  ) ~on_error:(fun () -> Parsing.clear_parser ())
+  Parsing.clear_parser ();
+  Jg_lexer.reset_context ();
+  Jg_lexer.init_lexer_pos filename lexbuf;
+  let ast = Jg_parser.input Jg_lexer.main lexbuf in
+  ast
 
 and ast_from_file ~env filename =
   let filename = get_file_path env filename in
@@ -371,11 +369,15 @@ and from_file
     ?(env=std_env) ?(models=[]) ~output
     ?(ctx = init_context ~env ~models ~output ())
     file_name =
-  eval_aux ~env ~ctx @@
-  ast_from_file ~env file_name
+  Jg_utils.with_lock (fun () ->
+    eval_aux ~env ~ctx @@
+      ast_from_file ~env file_name
+  ) ~on_error:(fun () -> Parsing.clear_parser ())
 
 and from_string ?(env=std_env) ?(models=[]) ?file_path ~output
     ?(ctx = init_context ~env ~models ~output ())
     source =
-  eval_aux ~env ~ctx @@
-  ast_from_string ~env source
+  Jg_utils.with_lock (fun () ->
+    eval_aux ~env ~ctx @@
+      ast_from_string ~env source
+  ) ~on_error:(fun () -> Parsing.clear_parser ())
