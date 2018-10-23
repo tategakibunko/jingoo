@@ -166,7 +166,6 @@ if_chain:
 else_part:
 /* empty */ { pel "else part empty"; [] }
 | ELSE stmts { pel "else part"; $2 }
-| ELSE error { raise @@ SyntaxError "else_part" }
 ;
 
 as_part:
