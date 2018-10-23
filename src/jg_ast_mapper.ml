@@ -16,10 +16,9 @@ and statement self stmt : statement = match stmt with
   | ExpandStatement e ->
     ExpandStatement (self.expression self e)
 
-  | IfStatement (cond_branch, ast) ->
-    IfStatement ( List.map (fun (e, ast) -> ( self.expression self e
-                                            , self.ast self ast) ) cond_branch
-                , self.ast self ast)
+  | IfStatement (branches) ->
+    IfStatement (List.map (fun (e, ast) -> ( (match e with Some e -> Some (self.expression self e) | None -> None)
+                                           , self.ast self ast) ) branches)
 
   | ForStatement (e1, e2, ast) ->
     ForStatement ( self.expression self e1, self.expression self e2, self.ast self ast)
