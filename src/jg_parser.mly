@@ -143,8 +143,7 @@ stmt:
 | MACRO error { raise @@ SyntaxError "macro" }
 | CALL opt_args ident LPAREN expr_list RPAREN stmts ENDCALL { pel "call sts"; CallStatement($3, $2, $5, $7) }
 | CALL error { raise @@ SyntaxError "call error" }
-| IF if_chain else_part ENDIF { pel "if sts"; IfStatement($2, $3) }
-| IF if_chain ELSE ENDIF { pel "if sts empty else"; IfStatement($2, []) }
+| IF if_chain { pel "if sts"; IfStatement($2) }
 | IF error { raise @@ SyntaxError "if" }
 | FOR ident_list IN expr stmts ENDFOR { pel "for sts"; ForStatement(SetExpr($2), $4, $5) }
 | FOR expr IN expr stmts ENDFOR { pel "for sts"; ForStatement($2, $4, $5) }
@@ -158,14 +157,14 @@ stmt:
 ;
 
 if_chain:
-  expr stmts { pel "if chain"; [($1, $2)] }
-| expr stmts ELSEIF if_chain { pel "if chain2"; ($1, $2) :: $4 }
-| expr stmts ELSEIF error { raise @@ SyntaxError "if_chain" }
-;
-
-else_part:
-/* empty */ { pel "else part empty"; [] }
-| ELSE stmts { pel "else part"; $2 }
+| expr stmts ENDIF { pel "if_chain" ; [ (Some $1, $2) ] }
+| expr ENDIF { pel "empty if_chain" ; [ Some $1, [] ] }
+| expr stmts ELSEIF if_chain { pel "if_chain +" ; (Some $1, $2) :: $4 }
+| expr ELSEIF if_chain { pel "empty if_chain +" ; (Some $1, []) :: $3 }
+| expr stmts ELSE ENDIF { pel "if_chain + empty else" ; [ Some $1, $2 ] }
+| expr ELSE ENDIF { pel "empty if_chain + empty else" ; [ Some $1, [] ] }
+| expr ELSE stmts ENDIF { pel "empty if_chain + else" ; [ (Some $1, []) ; (None, $3) ] }
+| expr stmts ELSE stmts ENDIF { pel "if_chain + else" ; [ (Some $1, $2) ; (None, $4) ] }
 ;
 
 as_part:

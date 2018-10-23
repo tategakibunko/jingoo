@@ -509,6 +509,17 @@ ranks = {% for rank in persons | map(null, attribute="extra.rank") %}{{rank}} {%
 names = {% for name in map(null, persons, attribute="name") %}{{name}} {% endfor %}
 ranks = {% for rank in map(null, persons, attribute="extra.rank") %}{{rank}} {% endfor %}
 
+[PR#60] Empty if/elif/else parts
+========================
+
+{% if false %}{% elif false %}{% else %}Empty `if` and `elif` are allowed{% endif %}
+{% if false %}{{ assert (false) }}{% endif %}
+{% if true %}{% else %}{{ assert (false) }}{% endif %}
+{% if false %}{% elif true %}{% else %}{{ assert (false) }}{% endif %}
+
+{% if true %}Empty `else` are allowed{% else %}{% endif %}
+{% if false %}{{ assert (false) }}{% else %}{% endif %}
+
 ========================
 
 {% if error.count != 0 %}

@@ -156,12 +156,15 @@ and eval_statement env ctx = function
     let ctx = List.fold_left (eval_statement env) ctx ast in
     jg_pop_filter ctx
 
-  | IfStatement(if_elseif_conds, false_ast) ->
+  | IfStatement (branches) ->
     let rec select_case = function
-      | (expr, ast) :: rest when jg_is_true (value_of_expr env ctx expr) -> ast
-      | h :: rest -> select_case rest
-      | [] -> false_ast in
-    List.fold_left (eval_statement env) ctx @@ select_case if_elseif_conds
+      | (None, ast) :: _ -> ast
+      | (Some cond, ast) :: tl ->
+        if jg_is_true (value_of_expr env ctx cond) then ast
+        else select_case tl
+      | [] -> []
+    in
+    List.fold_left (eval_statement env) ctx @@ select_case branches
 
   | ForStatement(iterator, iterable_expr, ast) ->
     let iterator =

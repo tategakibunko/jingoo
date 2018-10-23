@@ -124,7 +124,7 @@ and ast = statement list
 and statement =
     TextStatement of string
   | ExpandStatement of expression
-  | IfStatement of (cond_branch list) * else_statements
+  | IfStatement of branch list
   | ForStatement of expression * expression * ast
   | IncludeStatement of expression * with_context
   | RawIncludeStatement of expression
@@ -172,8 +172,7 @@ and expression =
   | InOpExpr of expression * expression
 
 and with_context = bool
-and cond_branch = expression * ast
-and else_statements = ast
+and branch = expression option * ast
 and arguments = expression list
 
 val std_env : environment
