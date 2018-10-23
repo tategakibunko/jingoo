@@ -21,6 +21,7 @@ and context = {
   macro_table : (string, macro) Hashtbl.t;
   namespace_table : (string, frame) Hashtbl.t;
   active_filters : string list;
+  serialize: bool;
   output : string -> unit
 }
 
@@ -68,6 +69,7 @@ and statement =
   | AutoEscapeStatement of expression * ast
   | NamespaceStatement of string * (string * expression) list
   | Statements of ast
+  | FunctionStatement of expression * arguments * ast
 
 and expression =
     IdentExpr of string

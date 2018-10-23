@@ -28,6 +28,8 @@
 %token INCLUDE
 %token MACRO
 %token ENDMACRO
+%token FUNCTION
+%token ENDFUNCTION
 %token BLOCK
 %token ENDBLOCK
 %token FILTER
@@ -141,6 +143,8 @@ stmt:
 | FROM error{ raise @@ SyntaxError "from import error" }
 | MACRO ident LPAREN expr_list RPAREN stmts ENDMACRO { pel "macro sts"; MacroStatement($2, $4, $6) }
 | MACRO error { raise @@ SyntaxError "macro" }
+| FUNCTION ident LPAREN expr_list RPAREN stmts ENDFUNCTION { pel "function sts"; FunctionStatement($2, $4, $6) }
+| FUNCTION error { raise @@ SyntaxError "function" }
 | CALL opt_args ident LPAREN expr_list RPAREN stmts ENDCALL { pel "call sts"; CallStatement($3, $2, $5, $7) }
 | CALL error { raise @@ SyntaxError "call error" }
 | IF if_chain { pel "if sts"; IfStatement($2) }

@@ -60,6 +60,7 @@ and context = {
   macro_table : (string, macro) Hashtbl.t;
   namespace_table : (string, frame) Hashtbl.t;
   active_filters : string list;
+  serialize: bool;
   output : string -> unit;
 }
 
@@ -92,7 +93,7 @@ and kwargs = (string * tvalue) list
    Arguments of function are defined as "tvalue list".
    And it's important to know that the filtered target is the LAST argument of filter function.
    For example, consider following expansion of "x" with filter function "foo" (with no keyword arguments)
-   
+
    {{ x|foo(10,20) }}
 
    The filter function "foo" takes 3 arguments, and internally, this is evaluated like this.
@@ -108,7 +109,7 @@ and kwargs = (string * tvalue) list
    For example, built-in function "slice" catch two args(slice_length, target_list), and one keyword argument(fill_with).
    and following code slice the list with length 4 and fill 0 for rest space of splitted list.
 
-     slice(4, [1,2,3,4,5], fill_with=0) 
+     slice(4, [1,2,3,4,5], fill_with=0)
 
    It return list of list [[1,2,3,4], [5,0,0,0]], works well.
 
@@ -140,6 +141,7 @@ and statement =
   | AutoEscapeStatement of expression * ast
   | NamespaceStatement of string * (string * expression) list
   | Statements of ast
+  | FunctionStatement of expression * arguments * ast
 
 and expression =
     IdentExpr of string

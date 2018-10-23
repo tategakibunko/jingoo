@@ -186,6 +186,8 @@ rule main = parse
   | "endfilter" as s { token_or_str (s, ENDFILTER) main lexbuf }
   | "macro" as s { token_or_str (s, MACRO) main lexbuf }
   | "endmacro" as s { token_or_str (s, ENDMACRO) main lexbuf }
+  | "function" as s { token_or_str (s, FUNCTION) main lexbuf }
+  | "endfunction" as s { token_or_str (s, ENDFUNCTION) main lexbuf }
   | "call" as s { token_or_str (s, CALL) main lexbuf }
   | "endcall" as s { token_or_str (s, ENDCALL) main lexbuf }
   | "import" as s { token_or_str (s, IMPORT) main lexbuf }

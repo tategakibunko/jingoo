@@ -286,13 +286,15 @@ let jg_apply_filters ?(autoescape=true) ?(safe=false) ctx text filters =
   if safe || not autoescape then text else jg_escape_html text
 
 let jg_output ?(autoescape=true) ?(safe=false) ctx value =
-  (match ctx.active_filters, safe, value with
-    | [], true, Tstr text -> ctx.output text
-    | [], true, value -> ctx.output @@ string_of_tvalue value
-    | _ ->
-      ctx.output @@ string_of_tvalue @@
-	jg_apply_filters ctx value ctx.active_filters ~safe ~autoescape
-  );
+  if ctx.serialize then ctx.output @@ Marshal.to_string value []
+  else
+    begin
+      match ctx.active_filters, safe, value with
+      | [], true, value -> ctx.output @@ string_of_tvalue value
+      | _ ->
+        ctx.output @@ string_of_tvalue @@
+        jg_apply_filters ctx value ctx.active_filters ~safe ~autoescape
+    end ;
   ctx
 
 let jg_obj_lookup_path obj path =
@@ -359,6 +361,20 @@ let jg_iter ctx iterator f iterable =
     List.iteri (fun i itm -> f @@ jg_iter_mk_ctx ctx iterator itm len i) l
   | _ -> ()
 
+let jg_eval_aux env ctx args kwargs macro f =
+  let Macro (arg_names, defaults, code) = macro in
+  let arg_names_len = List.length arg_names in
+  let () =
+    let values = Jg_utils.take arg_names_len args ~pad:Tnull in
+    List.iter2 (jg_set_value ctx) arg_names values in
+  let () =
+    List.iter
+      (fun (name, value) ->
+         let value = try List.assoc name kwargs with Not_found -> value in
+         jg_set_value ctx name value )
+      defaults in
+  f ctx code
+
 let jg_eval_macro ?(caller=false) env ctx macro_name args kwargs macro f =
   let Macro (arg_names, defaults, code) = macro in
   let args_len = List.length args in
@@ -375,16 +391,7 @@ let jg_eval_macro ?(caller=false) env ctx macro_name args kwargs macro f =
       | "caller" -> Tbool caller
       | _ -> raise Not_found
     ) in
-  let () =
-    let values = Jg_utils.take arg_names_len args ~pad:Tnull in
-    List.iter2 (jg_set_value ctx') arg_names values in
-  let () =
-    List.iter
-      (fun (name, value) ->
-         let value = try List.assoc name kwargs with Not_found -> value in
-         jg_set_value ctx' name value )
-      defaults in
-  let _ = f ctx' code in
+  ignore @@ jg_eval_aux env ctx' args kwargs macro f;
   ctx
 
 let jg_test_defined_aux ctx name =
@@ -1211,6 +1218,7 @@ let jg_init_context ?(models=[]) output env =
     macro_table = Hashtbl.create 10;
     namespace_table = Hashtbl.create 10;
     active_filters = [];
+    serialize = false;
     output
   } in
   let rec set_values hash alist = List.iter (fun (n, v) -> Hashtbl.add hash n v) alist in
