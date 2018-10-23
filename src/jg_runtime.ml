@@ -37,6 +37,14 @@ let type_string_of_tvalue = function
   | Tlazy _ -> "lazy"
   | Tvolatile _ -> "volatile"
 
+let failwith_type_error name args =
+  failwith @@
+  Printf.sprintf "type error: %s(%s)" name @@
+  String.concat "," @@
+  List.map
+    (fun (k, v) -> (if k <> "" then "" else k ^ "=") ^ type_string_of_tvalue v)
+    args
+
 let failwith_type_error_1 name x =
   failwith @@
   Printf.sprintf "type error: %s(%s)" name (type_string_of_tvalue x)
@@ -996,12 +1004,19 @@ module JgHashtbl = Hashtbl.Make (struct
     let hash = Hashtbl.hash
   end)
 
-let jg_groupby_aux key length iter collection =
-  let path = string_split_on_char '.' key in
+let fun_or_attribute ~kwargs ~arg =
+  match arg with
+  | Tfun fn -> fun x -> fn ~kwargs [x]
+  | _ -> match kwargs with
+    | [ ("attribute", Tstr path) ] ->
+      fun x -> jg_obj_lookup_path x (string_split_on_char '.' path)
+    | _ -> raise Not_found
+
+let jg_groupby_aux fn length iter collection =
   let h = JgHashtbl.create length in
   iter
     (fun obj ->
-      let k = jg_obj_lookup_path obj path in
+      let k = fn obj in
       if JgHashtbl.mem h k then
         JgHashtbl.replace h k (obj :: JgHashtbl.find h k)
       else
@@ -1014,11 +1029,25 @@ let jg_groupby_aux key length iter collection =
       | _ -> raise Not_found) :: acc)
     h []
 
-let jg_groupby ?(kwargs=[]) key value =
-  match key, value with
-  | Tstr key, Tarray ary -> jg_groupby_aux key (Array.length ary) Array.iter ary
-  | Tstr key, Tlist list -> jg_groupby_aux key (List.length list) List.iter list
-  | _ -> failwith_type_error_2 "jg_groupby" key value
+let jg_groupby ?(kwargs=[]) fn list =
+  try
+    let f = fun_or_attribute ~kwargs ~arg:fn in
+    match list with
+    | Tarray ary -> jg_groupby_aux f (Array.length ary) Array.iter ary
+    | Tlist list -> jg_groupby_aux f (List.length list) List.iter list
+    | _ -> failwith_type_error_2 "jg_groupby" fn list
+  with Not_found ->
+    failwith_type_error "jg_groupby" @@ ("", fn) :: ("", list) :: kwargs
+
+let jg_map ?(kwargs=[]) fn list =
+  try
+    let f = fun_or_attribute ~kwargs ~arg:fn in
+    match list with
+    | Tarray x -> Tarray (Array.map f x)
+    | Tlist x -> Tlist (List.map f x)
+    | _ -> failwith_type_error_2 "jg_map" fn list
+  with Not_found ->
+    failwith_type_error "jg_map" @@ ("", fn) :: ("", list) :: kwargs
 
 let jg_max_min_aux is_max fst iter value kwargs =
   let compare =
@@ -1173,6 +1202,7 @@ let std_filters = [
   ("range", func_arg2 jg_range);
   ("round", func_arg2 jg_round);
   ("groupby", func_arg2 jg_groupby);
+  ("map", func_arg2 jg_map);
 
   ("replace", func_arg3 jg_replace);
   ("substring", func_arg3 jg_substring);
@@ -1189,18 +1219,6 @@ let std_filters = [
   ("sequence", func_arg1 jg_test_sequence);
   ("string", func_arg1 jg_test_string);
 ]
-
-(* First version, only attributes *)
-let jg_map ?(kwargs=[]) (ctx:context) filter list =
-  let fn =
-    match kwargs with
-    | [ ("attribute", Tstr path) ] ->
-      fun x -> jg_obj_lookup_path x (string_split_on_char '.' path)
-    | _ -> failwith "invalid arg: (jg_map:attribute)" in
-  match list with
-  | Tarray x -> Tarray (Array.map fn x)
-  | Tlist x -> Tlist (List.map fn x)
-  | _ -> failwith_type_error_1 "jg_map" list
 
 let jg_load_extensions extensions =
   List.iter (fun ext ->
@@ -1226,9 +1244,5 @@ let jg_init_context ?(models=[]) output env =
   set_values top_frame std_filters;
   set_values top_frame env.filters;
 
-  (* workaround for type inference error *)
-  let jg_map_aux ?(kwargs=[]) filter list = jg_map ctx filter list ~kwargs in
-
-  Hashtbl.add top_frame "map" (func_arg2 jg_map_aux);
   Hashtbl.add top_frame "jg_is_autoescape" (Tbool env.autoescape);
   ctx

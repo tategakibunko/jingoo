@@ -569,6 +569,7 @@ let test_string ctx =
 ;;
 
 let test_groupby ctx =
+  let tmp_ctx = jg_init_context (fun str -> ()) Jg_types.std_env in
   let person ~gender ~first_name ~last_name ~native_lang ~second_lang =
     Tpat (function
     | "gender" -> Tstr gender
@@ -586,8 +587,8 @@ let test_groupby ctx =
     person ~gender:"F" ~first_name:"Hana" ~last_name:"Breton" ~native_lang:"French" ~second_lang:"German";
     person ~gender:"M" ~first_name:"Arlen" ~last_name:"Aubrey" ~native_lang:"English" ~second_lang:"French";
   ] in
-  let groups_by_gender = unbox_list @@ jg_groupby (Tstr "gender") persons in
-  let groups_by_lang_native = unbox_list @@ jg_groupby (Tstr "lang.native") persons in
+  let groups_by_gender = unbox_list @@ jg_groupby tmp_ctx (Tstr "gender") persons in
+  let groups_by_lang_native = unbox_list @@ jg_groupby tmp_ctx (Tstr "lang.native") persons in
   let get_group grouper groups =
     List.find (function
     | Tpat fn -> unbox_string (fn "grouper") = grouper

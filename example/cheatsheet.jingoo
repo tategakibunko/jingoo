@@ -460,7 +460,7 @@ hoge == "ok" and hage == "ng"
 ========================
 
 <ul>
-{%- for group in persons_to_group | groupby ('gender') %}
+{%- for group in persons_to_group | groupby (attribute='gender', null) %}
     <li>
       Gender: {{ group.grouper }}
       <ul>
@@ -502,7 +502,6 @@ max of [10, 20, 30] = {{max(list)}}
 [PR#53] map
 ========================
 
-{# map(filter, list|array, attribute=?), now filter is not supported, so we set it as null. #}
 names = {% for name in persons | map(null, attribute="name") %}{{name}} {% endfor %}
 ranks = {% for rank in persons | map(null, attribute="extra.rank") %}{{rank}} {% endfor %}
 
@@ -529,6 +528,13 @@ obj(1,2) = {{ obj(1,2) }} {{ assert ( (obj(1,2)).a == 1 && (obj(1,2)).b == 2) }}
 {% function inv (reverse=false, x, y) %}{% if reverse %}{{ {a:y,b:x} }}{% else %}{{ {a:x,b:y} }}{% endif %}{% endfunction %}
 (inv('a','b')).a = {{ (inv('a','b')).a }} {{ assert ( (inv('a','b')).a == 'a') }}
 (inv(reverse=true,'a','b')).a = {{ (inv(reverse=true,'a','b')).a }} {{ assert ( (inv(reverse=true,'a','b')).a == 'b') }}
+
+{% function add_val (val=0, x) -%}
+  {{ [ x, (x + val) ] }}
+{%- endfunction %}
+{% for x in [-1,0,1,2] | map (add_val, val=-2) -%}
+  add_val(val=-2,{{x[0]}}) = {{x[1]}} {{ assert (lt1(x[1])) }}
+{% endfor %}
 
 [PR#60] Empty if/elif/else parts
 ========================
