@@ -9,6 +9,7 @@ version: 1.2.21
 o [PR#55] type error messages enhancement.
 o [PR#56] Implemented jg_batch for arrays.
 o [PR#58] Added .gitattribute to provide .jingoo syntax highlight on github.
+o [PR#59] Added function ~ endfunction syntax.
 * [PR#60] Fix empty if branch trouble.
 ! [ISSUE#57] Removed mutex lock.
 
