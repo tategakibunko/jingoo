@@ -22,8 +22,8 @@
 let get_template_dirs = function
   | "" -> []
   | dirs ->
-    let dirs = Pcre.qreplace ~rex:(Pcre.regexp "[\\s\\t]+") ~templ:"" dirs in
-    Pcre.split ~rex:(Pcre.regexp ",") dirs
+    let dirs = Re.replace_string (Re.Pcre.regexp "[\\s\\t]+") ~by:"" dirs in
+    Re.split (Re.Pcre.regexp ",") dirs
 
 let () =
   let usage = "jingoo -input [input_file]" in
@@ -36,12 +36,12 @@ let () =
     ("-input", Arg.String (fun str -> filename := str), "input filename");
     ("-interp", Arg.String (fun str -> tmplname := str), "interp template_file with no models");
   ] ignore usage;
-  
+
   try
     output_string stdout (Jg_template.from_file !tmplname ~models:[])
   with
     | Jg_types.SyntaxError(msg) ->
       Printf.printf "syntax error:%s\n" msg
-	
+
     | exn ->
       print_endline (Printexc.to_string exn)

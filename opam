@@ -14,7 +14,7 @@ remove: ["ocamlfind" "remove" "jingoo"]
 depends: [
   "ocaml" {>= "4.02.3"}
   "ocamlfind" {build}
-  "pcre"
+  "re"
   "uutf"
   "uucp"
   "ounit" {test}

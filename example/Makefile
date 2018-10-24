@@ -1,5 +1,5 @@
 PPRINT:=camlp4 pr_o.cmo pa_o.cmo
-PKG:=pcre,unix,uutf,dynlink,uucp
+PKG:=re,unix,uutf,dynlink,uucp
 CMPL:=ocamlfind ocamlopt -g -package $(PKG) -linkpkg -I ../src ../src/jingoo.cmxa
 JG_CMPL:=../src/compiler
 TARGET:= my_ext.cmxs simple advanced bench
