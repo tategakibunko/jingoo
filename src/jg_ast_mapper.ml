@@ -49,6 +49,11 @@ and statement self stmt : statement = match stmt with
                    , List.map (self.expression self) args
                    , self.ast self ast)
 
+  | FunctionStatement (e, args, ast) ->
+    FunctionStatement ( self.expression self e
+                      , List.map (self.expression self) args
+                      , self.ast self ast)
+
   | FilterStatement (e, ast) ->
     FilterStatement (self.expression self e, self.ast self ast)
 

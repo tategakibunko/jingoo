@@ -74,11 +74,11 @@ let rec value_of_expr env ctx = function
 
   | ApplyExpr(IdentExpr("eval"), [expr]) ->
     let buffer = Buffer.create 256 in
-    let ctx = {ctx with output = Buffer.add_string buffer } in
+    let ctx = {ctx with serialize = true ; output = Buffer.add_string buffer } in
     let str = string_of_tvalue @@ value_of_expr env ctx expr in
     let ast = ast_from_string ~env str in
     let _ = List.fold_left (eval_statement env) ctx ast in
-    Tstr (Buffer.contents buffer)
+    (Marshal.from_string (Buffer.contents buffer) 0 : tvalue)
 
   | ApplyExpr(expr, args) ->
     let name = apply_name_of expr in
@@ -88,7 +88,7 @@ let rec value_of_expr env ctx = function
     (match callable with
     | Tfun fn -> jg_apply callable nargs ~kwargs ~name
     | _ ->
-       (match jg_get_macro ctx name with
+      (match jg_get_macro ctx name with
        | Some macro -> ignore @@ eval_macro env ctx name nargs kwargs macro; Tnull
        | None -> Tnull))
 
@@ -245,6 +245,23 @@ and eval_statement env ctx = function
     let h = Hashtbl.create size in
     List.iter (fun (k, v) -> Hashtbl.add h k (value_of_expr env ctx v)) assign;
     Hashtbl.add ctx.namespace_table ns h;
+    ctx
+
+  | FunctionStatement(IdentExpr(name), def_args, ast) ->
+    let arg_names = ident_names_of def_args in
+    let kwargs = kwargs_of env ctx def_args in
+    let macro = Macro (arg_names, kwargs, ast) in
+    let fn =
+      let buffer = Buffer.create 256 in
+      Tfun (fun ?(kwargs=[]) args ->
+          Buffer.reset buffer ;
+          let ctx = { ctx with serialize = true ; output = Buffer.add_string buffer } in
+          let ctx = jg_push_frame ctx in
+          ignore (jg_eval_aux env ctx args kwargs macro @@ fun ctx ast ->
+                  List.fold_left (eval_statement env) ctx ast) ;
+          (Marshal.from_string (Buffer.contents buffer) 0 : tvalue)
+        ) in
+    jg_set_value ctx name fn ;
     ctx
 
   | _ -> ctx

@@ -460,7 +460,7 @@ hoge == "ok" and hage == "ng"
 ========================
 
 <ul>
-{%- for group in persons_to_group | groupby ('gender') %}
+{%- for group in persons_to_group | groupby (attribute='gender', null) %}
     <li>
       Gender: {{ group.grouper }}
       <ul>
@@ -502,12 +502,39 @@ max of [10, 20, 30] = {{max(list)}}
 [PR#53] map
 ========================
 
-{# map(filter, list|array, attribute=?), now filter is not supported, so we set it as null. #}
 names = {% for name in persons | map(null, attribute="name") %}{{name}} {% endfor %}
 ranks = {% for rank in persons | map(null, attribute="extra.rank") %}{{rank}} {% endfor %}
 
 names = {% for name in map(null, persons, attribute="name") %}{{name}} {% endfor %}
 ranks = {% for rank in map(null, persons, attribute="extra.rank") %}{{rank}} {% endfor %}
+
+[PR#59] functions
+========================
+
+{% function incr (i) %}{{i+1}}{% endfunction %}
+incr(1) = {{ incr (1) }} {{ assert (incr (1) == 2) }}
+incr(-1) = {{ incr (-1) }} {{ assert (incr (-1) == 0) }}
+
+{% function lt1 (i) %}{{ i < 1 }}{% endfunction %}
+lt1(1) = {{ lt1 (1) }} {{ assert (not lt1 (1)) }}
+lt1(-1) = {{ lt1 (-1) }} {{ assert (lt1 (-1)) }}
+
+{% function obj (x, y) %}{{ {a:x,b:y} }}{% endfunction %}
+{a:'x',b:'y'} = {{ {a:'x',b:'y'} }}
+obj(1,2) = {{ obj(1,2) }} {{ assert ( (obj(1,2)).a == 1 && (obj(1,2)).b == 2) }}
+(obj('a','b')).a = {{ (obj('a','b')).a }} {{ assert ( (obj('a','b')).a == 'a') }}
+(obj('a','b')).b = {{ (obj('a','b')).b }} {{ assert ( (obj('a','b')).b == 'b') }}
+
+{% function inv (reverse=false, x, y) %}{% if reverse %}{{ {a:y,b:x} }}{% else %}{{ {a:x,b:y} }}{% endif %}{% endfunction %}
+(inv('a','b')).a = {{ (inv('a','b')).a }} {{ assert ( (inv('a','b')).a == 'a') }}
+(inv(reverse=true,'a','b')).a = {{ (inv(reverse=true,'a','b')).a }} {{ assert ( (inv(reverse=true,'a','b')).a == 'b') }}
+
+{% function add_val (val=0, x) -%}
+  {{ [ x, (x + val) ] }}
+{%- endfunction %}
+{% for x in [-1,0,1,2] | map (add_val, val=-2) -%}
+  add_val(val=-2,{{x[0]}}) = {{x[1]}} {{ assert (lt1(x[1])) }}
+{% endfor %}
 
 [PR#60] Empty if/elif/else parts
 ========================
