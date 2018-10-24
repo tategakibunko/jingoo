@@ -955,12 +955,14 @@ let jg_title ?(kwargs=[]) text =
     | Tstr text -> Tstr (Jg_utils.UTF8.titlecase text)
     | _ -> failwith_type_error_1 "jg_title" text
 
+let jg_striptags_regexp =
+  let open Re in
+  lazy (compile @@ seq [ char '<' ; opt (char '?') ; rep1 (compl [ char '>' ]) ; char '>' ])
+
 let jg_striptags ?(kwargs=[]) text =
   match text with
     | Tstr text ->
-      let reg = Re.Pcre.regexp "<\\/?[^>]+>" in
-      let text' = Re.replace_string reg ~by:"" text in
-      Tstr text'
+      Tstr (Re.replace_string (Lazy.force jg_striptags_regexp) ~by:"" text)
     | _ -> failwith_type_error_1 "jg_striptags" text
 
 let jg_sort ?(kwargs=[]) lst =
