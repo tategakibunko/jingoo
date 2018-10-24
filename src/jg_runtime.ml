@@ -239,7 +239,7 @@ let jg_obj_lookup_by_name ctx obj_name prop_name =
 let jg_nth value i =
   match value with
   | Tarray a -> a.(i)
-  | Tlist l -> List.nth l i
+  | Tset l | Tlist l -> List.nth l i
   | _ -> failwith_type_error_1 "jg_nth" value
 
 let jg_get_func ctx name =
