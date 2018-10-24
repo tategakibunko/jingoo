@@ -12,14 +12,10 @@ build: [
 install: [make "install"]
 remove: ["ocamlfind" "remove" "jingoo"]
 depends: [
-  "ocaml" {>= "4.02.3"}
+  "ocaml" { >= "4.02.3" }
   "ocamlfind" {build}
   "re"
-  "uutf"
+  "uutf" { >= "0.9.4" }
   "uucp"
-  "ounit" {test}
+  "ounit" { test & >= "2.0.0" }
 ]
-url {
-  src: "https://github.com/tategakibunko/jingoo/archive/v1.2.21.tar.gz"
-  checksum: "md5="
-}
