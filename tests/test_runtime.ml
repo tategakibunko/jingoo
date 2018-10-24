@@ -366,8 +366,11 @@ let test_eq_eq ctx =
 
 let test_urlize ctx =
   assert_equal_tvalue
-    (Tstr "go to <a href=\"http://yahoo.co.jp\">http://yahoo.co.jp</a>")
-    (jg_urlize @@ Tstr "go to http://yahoo.co.jp")
+    (Tstr "go to <a href=\"http://yahoo.co.jp\">http://yahoo.co.jp</a>.")
+    (jg_urlize @@ Tstr "go to http://yahoo.co.jp.") ;
+  assert_equal_tvalue
+    (Tstr "want to go to <a href=\"http://user@foo:8080/bar/?baz=0\">http://user@foo:8080/bar/?baz=0</a>?")
+    (jg_urlize @@ Tstr "want to go to http://user@foo:8080/bar/?baz=0?") ;
 ;;
 
 let test_title ctx =

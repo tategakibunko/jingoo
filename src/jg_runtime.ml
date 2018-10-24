@@ -930,11 +930,23 @@ let jg_range ?(kwargs=[]) start stop =
 	Tlist (iter [] start)
     | _ -> failwith_type_error_2 "jg_range(start, stop)" start stop
 
+let jg_urlize_regexp =
+  let open Re in
+  lazy (compile @@
+        group @@
+        seq
+          [ alt [ str "http" ; str "https" ; str "ftp" ; str "file" ]
+          ; str "://"
+          ; rep (alt [ alnum ; set "._-@:~/\\" ])
+          ; opt (seq [ char '?' ; rep (alt [ alnum ; set "._-@:!/\\" ; set "%+=&" ]) ])
+          ; opt (seq [ char '#' ; rep (alt [ alnum ; set "._-" ]) ])
+          ; compl [ set ":.?" ]
+          ])
+
 let jg_urlize ?(kwargs=[]) text =
   match text with
     | Tstr text ->
-      let reg = Re.Pcre.regexp "((http|ftp|https):\\/\\/[\\w\\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\.,@?^=%&amp;:/~\\+#]*[\\w\\-\\@?^=%&amp;/~\\+#])?)" in
-      Tstr (Re.replace reg text
+      Tstr (Re.replace (Lazy.force jg_urlize_regexp) text
               ~f:(fun g -> let h = Re.Group.get g 1 in "<a href=\"" ^ h ^ "\">" ^ h ^ "</a>") )
     | _ -> failwith_type_error_1 "jg_urlize" text
 
