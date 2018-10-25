@@ -523,7 +523,7 @@ let rec jg_compare_list
     | _, [] -> 1
     | x1 :: acc1, x2 :: acc2 ->
       match jg_compare (filter x1) (filter x2) with
-      | 0 -> compare acc1 acc2
+      | 0 -> jg_compare_list ~filter acc1 acc2
       | c -> c
 
 and jg_compare_obj left right = match left, right with
@@ -968,14 +968,16 @@ let jg_striptags ?(kwargs=[]) text =
 let jg_sort ?(kwargs=[]) lst =
   let reverse = ref false in
   let attribute = ref "" in
+  let jg_compare = ref jg_compare in
   List.iter (function ("reverse", Tbool true) -> reverse := true
                     | ("attribute", Tstr name) -> attribute := name
+                    | ("compare", Tfun fn) -> jg_compare := fun a b -> unbox_int (fn [ a ; b ])
                     | (kw, _) -> failwith kw) kwargs;
   let compare = match !attribute with
-    | "" -> jg_compare
+    | "" -> !jg_compare
     | att ->
       let path = string_split_on_char '.' att in
-      fun a b -> jg_compare (jg_obj_lookup_path a path) (jg_obj_lookup_path b path) in
+      fun a b -> !jg_compare (jg_obj_lookup_path a path) (jg_obj_lookup_path b path) in
   let compare = if !reverse then fun a b -> compare b a else compare in
   match lst with
     | Tlist l -> Tlist (List.sort compare l)
@@ -1231,6 +1233,7 @@ let std_filters = [
   ("number", func_arg1 jg_test_number);
   ("odd", func_arg1 jg_test_odd);
   ("sameas", func_arg2 jg_test_sameas);
+  ("compare", func_arg2 (fun ?kwargs a b -> box_int @@ jg_compare a b));
   ("sequence", func_arg1 jg_test_sequence);
   ("string", func_arg1 jg_test_string);
 ]
