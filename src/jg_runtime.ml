@@ -515,29 +515,11 @@ let jg_and left right =
 let jg_or left right =
   Tbool(jg_is_true left || jg_is_true right)
 
-let rec jg_compare_list
-  : 'a . filter:('a -> tvalue) -> 'a list -> 'a list -> int =
-  fun ~filter x1 x2 -> match x1, x2 with
-    | [], [] -> 0
-    | [], _ -> -1
-    | _, [] -> 1
-    | x1 :: acc1, x2 :: acc2 ->
-      match jg_compare (filter x1) (filter x2) with
-      | 0 -> compare acc1 acc2
-      | c -> c
+let rec jg_compare ?(kwargs=[]) left right =
+  Tint (jg_compare_aux left right)
 
-and jg_compare_obj left right = match left, right with
-  | Tobj x1, Tobj x2 ->
-    jg_compare_list ~filter:snd
-      (List.sort (fun (a, _) (b, _) -> compare a b) x1)
-      (List.sort (fun (a, _) (b, _) -> compare a b) x2)
-  | Thash x1, Thash x2 ->
-    let x1 = Hashtbl.fold (fun k v acc -> (k, v) :: acc) x1 [] in
-    let x2 = Hashtbl.fold (fun k v acc -> (k, v) :: acc) x2 [] in
-    jg_compare_obj (Tobj x1) (Tobj x2)
-  | _ -> -1
-
-and jg_compare left right = match left, right with
+and jg_compare_aux left right =
+  match left, right with
   | Tint x1, Tint x2 -> compare x1 x2
   | Tfloat x1, Tfloat x2 -> compare x1 x2
   | Tstr x1, Tstr x2 -> strcmp x1 x2
@@ -552,7 +534,7 @@ and jg_compare left right = match left, right with
       | 0 ->
         let rec loop i =
           if i = l1 then 0
-          else match jg_compare x1.(i) x2.(i) with
+          else match jg_compare_aux x1.(i) x2.(i) with
             | 0 -> loop (i + 1)
             | c -> c
         in loop 0
@@ -564,6 +546,28 @@ and jg_compare left right = match left, right with
       with Not_found -> jg_compare_obj left right
     end
   | _, _ -> -1
+
+and jg_compare_list
+  : 'a . filter:('a -> tvalue) -> 'a list -> 'a list -> int =
+  fun ~filter x1 x2 -> match x1, x2 with
+    | [], [] -> 0
+    | [], _ -> -1
+    | _, [] -> 1
+    | x1 :: acc1, x2 :: acc2 ->
+      match jg_compare_aux (filter x1) (filter x2) with
+      | 0 -> jg_compare_list ~filter acc1 acc2
+      | c -> c
+
+and jg_compare_obj left right = match left, right with
+  | Tobj x1, Tobj x2 ->
+    jg_compare_list ~filter:snd
+      (List.sort (fun (a, _) (b, _) -> compare a b) x1)
+      (List.sort (fun (a, _) (b, _) -> compare a b) x2)
+  | Thash x1, Thash x2 ->
+    let x1 = Hashtbl.fold (fun k v acc -> (k, v) :: acc) x1 [] in
+    let x2 = Hashtbl.fold (fun k v acc -> (k, v) :: acc) x2 [] in
+    jg_compare_obj (Tobj x1) (Tobj x2)
+  | _ -> -1
 
 let rec jg_eq_eq_aux left right =
   match left, right with
@@ -968,14 +972,16 @@ let jg_striptags ?(kwargs=[]) text =
 let jg_sort ?(kwargs=[]) lst =
   let reverse = ref false in
   let attribute = ref "" in
+  let jg_compare = ref jg_compare_aux in
   List.iter (function ("reverse", Tbool true) -> reverse := true
                     | ("attribute", Tstr name) -> attribute := name
+                    | ("compare", Tfun fn) -> jg_compare := fun a b -> unbox_int (fn [ a ; b ])
                     | (kw, _) -> failwith kw) kwargs;
   let compare = match !attribute with
-    | "" -> jg_compare
+    | "" -> !jg_compare
     | att ->
       let path = string_split_on_char '.' att in
-      fun a b -> jg_compare (jg_obj_lookup_path a path) (jg_obj_lookup_path b path) in
+      fun a b -> !jg_compare (jg_obj_lookup_path a path) (jg_obj_lookup_path b path) in
   let compare = if !reverse then fun a b -> compare b a else compare in
   match lst with
     | Tlist l -> Tlist (List.sort compare l)
@@ -1015,7 +1021,7 @@ let jg_wordwrap ?(kwargs=[]) width break_long_words text =
 
 module JgHashtbl = Hashtbl.Make (struct
     type t = Jg_types.tvalue
-    let equal a b = jg_compare a b = 0
+    let equal a b = jg_compare_aux a b = 0
     let hash = Hashtbl.hash
   end)
 
@@ -1069,8 +1075,8 @@ let jg_max_min_aux is_max fst iter value kwargs =
     match kwargs with
     | [("attribute", Tstr att)] ->
       let path = string_split_on_char '.' att in
-      fun a b -> jg_compare (jg_obj_lookup_path a path) (jg_obj_lookup_path b path)
-    | _ -> jg_compare in
+      fun a b -> jg_compare_aux (jg_obj_lookup_path a path) (jg_obj_lookup_path b path)
+    | _ -> jg_compare_aux in
   let compare = if is_max then compare else fun a b -> compare b a in
   let result = ref fst in
   iter (fun x -> if compare !result x = -1 then result := x) value;
@@ -1231,6 +1237,7 @@ let std_filters = [
   ("number", func_arg1 jg_test_number);
   ("odd", func_arg1 jg_test_odd);
   ("sameas", func_arg2 jg_test_sameas);
+  ("compare", func_arg2 jg_compare);
   ("sequence", func_arg1 jg_test_sequence);
   ("string", func_arg1 jg_test_string);
 ]

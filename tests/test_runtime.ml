@@ -442,6 +442,22 @@ let test_sort_attr ctx =
   assert_equal (List.for_all2 check_person reverse_expected reverse_sorted) true;
 ;;
 
+let test_sort_compare ctx =
+  let data = Tlist [
+    Tset [Tstr "A"; Tint 0];
+    Tset [Tstr "Z"; Tint 2];
+    Tset [Tstr "b"; Tint 1]
+  ] in
+  let lower_fst_cmp = function
+    | [a; b] -> jg_compare (jg_lower (jg_nth a 0)) (jg_lower (jg_nth b 0))
+    | _ -> failwith "invalid args" in
+  let jg_lower_fst_cmp = Tfun (fun ?kwargs values -> lower_fst_cmp values) in
+  assert_equal_tvalue (jg_sort data) data;
+  assert_equal_tvalue
+    (jg_sort ~kwargs:[("compare", jg_lower_fst_cmp)] data)
+    (Tlist [Tset [Tstr "A"; Tint 0]; Tset [Tstr "b"; Tint 1]; Tset [Tstr "Z"; Tint 2]])
+;;
+
 let test_sort_string_array ctx =
   assert_equal_tvalue
     (Tarray [| Tstr "aa"; Tstr "baba"; Tstr "caca" |])
@@ -716,6 +732,7 @@ let suite = "runtime test" >::: [
   "test_sort_string_array" >:: test_sort_string_array;
   "test_sort_rev" >:: test_sort_rev;
   "test_sort_attr" >:: test_sort_attr;
+  "test_sort_compare" >:: test_sort_compare;
   "test_xmlattr" >:: test_xmlattr;
   "test_wordwrap" >:: test_wordwrap;
   "test_sublist" >:: test_sublist;

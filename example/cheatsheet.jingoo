@@ -547,6 +547,16 @@ obj(1,2) = {{ obj(1,2) }} {{ assert ( (obj(1,2)).a == 1 && (obj(1,2)).b == 2) }}
 {% if true %}Empty `else` are allowed{% else %}{% endif %}
 {% if false %}{{ assert (false) }}{% else %}{% endif %}
 
+[PR#62] Custom comparison function
+========================
+
+{%- function ic_fst_cmp (a, b) %}{{ compare (lower (a[0]), lower(b[0])) }}{% endfunction -%}
+{%- set data = [("A", 0), ("Z", 2), ("b", 1)] -%}
+{{ assert (sort(data) == data) }}
+sort(data):{% for x in data | sort %} {{ x[0] }}{% endfor %}
+sort(data, compare=if_fst_cmp):
+{%- for x in data | sort (compare=ic_fst_cmp) %} {{ x[0] }}{{ assert (x[1] == loop.index0) }}{% endfor %}
+
 ========================
 
 {% if error.count != 0 %}
