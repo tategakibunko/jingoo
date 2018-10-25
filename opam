@@ -12,10 +12,10 @@ build: [
 install: [make "install"]
 remove: ["ocamlfind" "remove" "jingoo"]
 depends: [
-  "ocaml" { >= "4.02.3" }
+  "ocaml" {>= "4.02.3"}
   "ocamlfind" {build}
   "re"
-  "uutf" { >= "0.9.4" }
+  "uutf" {>= "0.9.4"}
   "uucp"
-  "ounit" { test & >= "2.0.0" }
+  "ounit" {test & >= "2.0.0"}
 ]

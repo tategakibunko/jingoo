@@ -11,6 +11,7 @@ o [PR#56] Implemented jg_batch for arrays.
 o [PR#58] Added .gitattribute to provide .jingoo syntax highlight on github.
 o [PR#59] Added function ~ endfunction syntax.
 * [PR#60] Fix empty if branch trouble.
+o [PR#61] Switch from Pcre to Re.
 ! [ISSUE#57] Removed mutex lock.
 
 version: 1.2.20, 2018-09-25

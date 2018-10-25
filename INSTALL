@@ -1,7 +1,7 @@
 Dependencies
 ============
 
-1. ocaml (>= "4.02.3")
+1. ocaml (>= 4.02.3)
 2. ocamlfind
 3. re
 4. uutf (>= 0.9.4)
