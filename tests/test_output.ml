@@ -3,11 +3,13 @@ open Jg_utils
 open Jg_types
 open Jg_runtime
 
+let assert_eq_string = assert_equal ~printer:(fun x -> "\"" ^ x ^ "\"")
+
 let assert_interp ~test_ctxt ?(env=std_env) ?(models=[]) source expected =
   let output = Jg_template.from_string source ~env ~models in
   logf test_ctxt `Info "Source: %S" source;
   logf test_ctxt `Info "Output: %S" output;
-  assert_equal ~printer:(fun x -> x) expected output
+  assert_eq_string expected output
 ;;
 
 let assert_interp_raises ~test_ctxt ?(env=std_env) ?(models=[]) source error =
@@ -164,12 +166,12 @@ let from_file test_ctxt file_name =
 
 let test_extends test_ctxt =
   let output = from_file test_ctxt "extends.tmpl" in
-  assert_equal (Jg_utils.chomp output) "extended"
+  assert_eq_string (Jg_utils.chomp output) "extended"
 ;;
 
 let test_include test_ctxt =
   let output = from_file test_ctxt "included.tmpl" in
-  assert_equal (Jg_utils.chomp output) "this is included"
+  assert_eq_string (Jg_utils.chomp output) "this is included"
 ;;
 
 let macro_three_words =
@@ -182,7 +184,7 @@ let test_macro test_ctxt =
   let output = Jg_template.from_string
     (macro_three_words^"{{ three_words(\"this\", \"is\", \"it!\") }}")
   in
-  assert_equal (Jg_utils.chomp output) "this is it!"
+  assert_eq_string (Jg_utils.chomp output) "this is it!"
 ;;
 
 let test_caller test_ctxt =
@@ -192,7 +194,7 @@ let test_caller test_ctxt =
      {{a}} {{b}} {{c}}\
      {% endcall %}")
   in
-  assert_equal (Jg_utils.chomp output) "this is it! by michael jackson"
+  assert_eq_string (Jg_utils.chomp output) "this is it! by michael jackson"
 ;;
 
 let test_filter test_ctxt =

@@ -184,7 +184,7 @@ let escape_html str =
     Bytes.unsafe_to_string buf
 
 let chomp str =
-  Pcre.qreplace ~rex:(Pcre.regexp "\\n+$") ~templ:"" str
+  Re.replace_string (Re.compile @@ Re.seq [ Re.rep1 (Re.compl [ Re.notnl ]) ; Re.eos ] ) ~by:"" str
 
 let rec take ?pad n lst =
   match n, lst, pad with

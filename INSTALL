@@ -1,18 +1,12 @@
-
 Dependencies
 ============
 
-1. ocaml(>=4.02.3)
-2. findlib
-3. pcre(pcre-ocaml)
-4. uutf(>=0.9.4)
+1. ocaml (>= "4.02.3")
+2. ocamlfind
+3. re
+4. uutf (>= 0.9.4)
 5. uucp
-6. ounit (>=2.0.0, for test)
-
-Important notice
-================
-
-pcre library(http://www.pcre.org/) must be build with configuration "--enable-utf8".
+6. ounit (>= 2.0.0, for test)
 
 Installing
 ==========

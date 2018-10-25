@@ -695,7 +695,7 @@ let jg_split ?(kwargs=[]) pat text =
   match pat, text with
     | Tstr pat, Tstr text ->
       let lst =
-	Pcre.split ~rex:(Pcre.regexp pat) text |>
+	Re.Pcre.split ~rex:(Re.Pcre.regexp pat) text |>
 	  List.map (fun str -> Tstr str) in
       Tlist lst
   | _ -> failwith_type_error_2 "jg_split" pat text
@@ -837,7 +837,7 @@ let jg_random ?(kwargs=[]) lst =
 let jg_replace ?(kwargs=[]) src dst str =
   match src, dst, str with
     | Tstr src, Tstr dst, Tstr str ->
-      Tstr (Pcre.replace ~rex:(Pcre.regexp src ~flags:[`UTF8]) ~templ:dst str)
+      Tstr (Re.replace_string (Re.Pcre.regexp src) ~by:dst str)
     | _ -> failwith_type_error_3 "jg_replace" src dst str
 
 let jg_add a b = match a, b with
@@ -930,11 +930,24 @@ let jg_range ?(kwargs=[]) start stop =
 	Tlist (iter [] start)
     | _ -> failwith_type_error_2 "jg_range(start, stop)" start stop
 
+let jg_urlize_regexp =
+  let open Re in
+  lazy (compile @@
+        group @@
+        seq
+          [ alt [ str "http" ; str "https" ; str "ftp" ; str "file" ]
+          ; str "://"
+          ; rep (alt [ alnum ; set "._-@:~/\\" ])
+          ; opt (seq [ char '?' ; rep (alt [ alnum ; set "._-@:!/\\" ; set "%+=&" ]) ])
+          ; opt (seq [ char '#' ; rep (alt [ alnum ; set "._-" ]) ])
+          ; compl [ set ":.?" ]
+          ])
+
 let jg_urlize ?(kwargs=[]) text =
   match text with
     | Tstr text ->
-      let reg = Pcre.regexp "((http|ftp|https):\\/\\/[\\w\\-_]+(\\.[\\w\\-_]+)+([\\w\\-\\.,@?^=%&amp;:/~\\+#]*[\\w\\-\\@?^=%&amp;/~\\+#])?)" in
-      Tstr (Pcre.replace ~rex:reg ~templ:"<a href='$1'>$1</a>" text)
+      Tstr (Re.replace (Lazy.force jg_urlize_regexp) text
+              ~f:(fun g -> let h = Re.Group.get g 1 in "<a href=\"" ^ h ^ "\">" ^ h ^ "</a>") )
     | _ -> failwith_type_error_1 "jg_urlize" text
 
 let jg_title ?(kwargs=[]) text =
@@ -942,12 +955,14 @@ let jg_title ?(kwargs=[]) text =
     | Tstr text -> Tstr (Jg_utils.UTF8.titlecase text)
     | _ -> failwith_type_error_1 "jg_title" text
 
+let jg_striptags_regexp =
+  let open Re in
+  lazy (compile @@ seq [ char '<' ; opt (char '?') ; rep1 (compl [ char '>' ]) ; char '>' ])
+
 let jg_striptags ?(kwargs=[]) text =
   match text with
     | Tstr text ->
-      let reg = Pcre.regexp "<\\/?[^>]+>" ~flags:[`UTF8] in
-      let text' = Pcre.replace ~rex:reg ~templ:"" text in
-      Tstr text'
+      Tstr (Re.replace_string (Lazy.force jg_striptags_regexp) ~by:"" text)
     | _ -> failwith_type_error_1 "jg_striptags" text
 
 let jg_sort ?(kwargs=[]) lst =
