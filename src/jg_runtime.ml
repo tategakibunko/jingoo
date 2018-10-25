@@ -523,7 +523,7 @@ let rec jg_compare_list
     | _, [] -> 1
     | x1 :: acc1, x2 :: acc2 ->
       match jg_compare (filter x1) (filter x2) with
-      | 0 -> compare acc1 acc2
+      | 0 -> jg_compare_list ~filter acc1 acc2
       | c -> c
 
 and jg_compare_obj left right = match left, right with
