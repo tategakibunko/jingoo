@@ -94,7 +94,8 @@ let test_obj_eq_eq ctx =
 ;;
 
 let test_batch_list ctx =
-  let lst = jg_range (Tint 0) (Tint 9) in
+  let ary = jg_range (Tint 0) (Tint 9) in
+  let lst = Tlist (Array.to_list (unbox_array ary)) in
   let batched_list = jg_batch (Tint 4) lst ~kwargs:[("fill_with", Tstr "x")] in
   let expect_list = Tlist [
     Tlist [(Tint 0); (Tint 1); (Tint 2); (Tint 3)];
@@ -106,7 +107,8 @@ let test_batch_list ctx =
 
 (* if fill_with keyword is not given, final row is shrinked by list_length mod slice_count *)
 let test_batch_list2 ctx =
-  let lst = jg_range (Tint 0) (Tint 9) in
+  let ary = jg_range (Tint 0) (Tint 9) in
+  let lst = Tlist (Array.to_list (unbox_array ary)) in
   let batched_list = jg_batch (Tint 4) lst in
   let expect_list = Tlist [
     Tlist [(Tint 0); (Tint 1); (Tint 2); (Tint 3)];
@@ -117,8 +119,7 @@ let test_batch_list2 ctx =
 ;;
 
 let test_batch_array ctx =
-  let lst = jg_range (Tint 0) (Tint 9) in
-  let ary = Tarray (Array.of_list (unbox_list lst)) in
+  let ary = jg_range (Tint 0) (Tint 9) in
   let batched_ary = jg_batch (Tint 4) ary ~kwargs:[("fill_with", Tstr "x")] in
   let expect_ary = Tarray [|
     Tarray [| (Tint 0); (Tint 1); (Tint 2); (Tint 3) |];
@@ -130,8 +131,7 @@ let test_batch_array ctx =
 
 (* if fill_with keyword is not given, final row is shrinked by array_length mod slice_count *)
 let test_batch_array2 ctx =
-  let lst = jg_range (Tint 0) (Tint 9) in
-  let ary = Tarray (Array.of_list (unbox_list lst)) in
+  let ary = jg_range (Tint 0) (Tint 9) in
   let batched_ary = jg_batch (Tint 4) ary in
   let expect_ary = Tarray [|
     Tarray [| (Tint 0); (Tint 1); (Tint 2); (Tint 3) |];
@@ -145,7 +145,7 @@ let test_capitalize ctx =
   let orig = Tstr "car" in
   let caps = Tstr "Car" in
   assert_equal_tvalue (jg_capitalize orig) caps
-;;  
+;;
 
 let test_default ctx =
   assert_equal_tvalue (jg_default (Tstr "hello") Tnull) (Tstr "hello");
@@ -288,9 +288,11 @@ let test_round ctx =
 ;;
 
 let test_range ctx =
-  assert_equal_tvalue (jg_range (Tint 0) (Tint 2)) (Tlist [Tint 0; Tint 1; Tint 2]);
-  assert_equal_tvalue (jg_range (Tint 2) (Tint 0)) (Tlist [Tint 2; Tint 1; Tint 0]);
-  assert_equal_tvalue (jg_range (Tint 2012) (Tint 2006)) (Tlist [Tint 2012; Tint 2011; Tint 2010; Tint 2009; Tint 2008; Tint 2007; Tint 2006]);
+  assert_equal_tvalue (Tarray [|Tint 0; Tint 1; Tint 2|]) (jg_range (Tint 0) (Tint 2));
+  assert_equal_tvalue (Tarray [|Tint 2; Tint 1; Tint 0|]) (jg_range (Tint 2) (Tint 0));
+  assert_equal_tvalue (Tarray [|Tint 2012; Tint 2011; Tint 2010; Tint 2009; Tint 2008; Tint 2007; Tint 2006|]) (jg_range (Tint 2012) (Tint 2006));
+  assert_equal_tvalue (Tarray [|Tstr "a"; Tstr "b"; Tstr "c"; Tstr "d"|]) (jg_range (Tstr "a") (Tstr "d"));
+  assert_equal_tvalue (Tarray [|Tstr "Z"; Tstr "Y"; Tstr "X"|]) (jg_range (Tstr "Z") (Tstr "X"));
 ;;
 
 let test_sum ctx =
@@ -646,7 +648,7 @@ let test_groupby ctx =
   assert_equal (List.for_all2 check_person english_speakers_expected english_speakers) true;
   assert_equal (List.for_all2 check_person french_speakers_expected french_speakers) true
 ;;
-  
+
 let test_min_max ctx =
   let numbers = Tlist [Tint 3; Tint 1; Tint 2] in
   let min_number = jg_min numbers in
