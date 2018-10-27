@@ -4,7 +4,7 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
-version: 1.2.21
+version: 1.2.21, 2018-10-27
 ===========================
 o [PR#55] type error messages enhancement.
 o [PR#56] Implemented jg_batch for arrays.
