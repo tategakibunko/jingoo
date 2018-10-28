@@ -6,7 +6,6 @@
   License: see LICENSE
 *)
 open Jg_types
-open Jg_utils
 
 (** Internally, interpretted result is outputed to `output:(string -> unit)` interface. *)
 type 'a internal_interp = ?env:Jg_types.environment ->
@@ -30,4 +29,3 @@ let content (fn : 'a internal_interp) : 'a external_interp =
 let from_file = content Jg_interp.from_file
 
 let from_string = content (Jg_interp.from_string ?file_path:None)
-

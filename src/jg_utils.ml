@@ -36,7 +36,7 @@ module UTF8 = struct
      http://erratique.ch/software/uucp/doc/Uucp.Case.html *)
   let cmap_utf_8 cmap s =
     let b = Buffer.create (String.length s * 2) in
-    let rec add_map _ _ u =
+    let add_map _ _ u =
       let u = match u with `Malformed _ -> Uutf.u_rep | `Uchar u -> u in
       match cmap u with
       | `Self -> Uutf.Buffer.add_utf_8 b u
@@ -189,7 +189,7 @@ let chomp str =
 let rec take ?pad n lst =
   match n, lst, pad with
     | n, _, _ when n <= 0 -> []
-    | n, [], None -> []
+    | _, [], None -> []
     | n, [], Some value -> value :: (take (n-1) [] ?pad)
     | n, h :: rest, _ -> h :: (take (n-1) rest ?pad)
 
@@ -202,7 +202,7 @@ let after n lst =
 	rest
       else
 	(match rest with
-	  | h :: tl -> iter (count + 1) tl
+	  | _ :: tl -> iter (count + 1) tl
 	  | [] -> []) in
     iter 0 lst
 

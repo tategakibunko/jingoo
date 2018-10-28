@@ -6,7 +6,6 @@
 
   License: see LICENSE
 *)
-  open Jg_utils
   open Jg_types
 
   let debug = false
@@ -236,8 +235,8 @@ expr:
 | expr IN expr { pel "inop"; InOpExpr($1, $3) }
 | expr VLINE expr { pel "expr|expr -> ApplyExpr"; ApplyExpr($3, [$1]) }
 | expr IS expr expr{
-  (** when expr1 is fun and expr2 is args without LPAREN and RPAREN. *)
-  (** for example, 'a is divisableby 2' *)
+  (* when expr1 is fun and expr2 is args without LPAREN and RPAREN. *)
+  (* for example, 'a is divisableby 2' *)
   pel "test(apply)";
   TestOpExpr($1, ApplyExpr($3, [$4]))
 }
