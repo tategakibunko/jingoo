@@ -1,25 +1,23 @@
+ROOT_DIR:="$(dir $(realpath $(lastword $(MAKEFILE_LIST))))"
+DUNE=dune
+
 all:
-	$(MAKE) -C src
+	$(DUNE) build
 
-byte:
-	$(MAKE) -C src byte
+%dune: %dune.in
+	sed -e "s|%%%OUNIT_TESTDATA_DIR%%%|$(ROOT_DIR)/tests/data|g" $< > $@
 
-test:
-	$(MAKE) -C tests run
+test: tests/dune
+	$(DUNE) build @tests/runtest
 
-reinstall: uninstall install
+jingoo.install:
+	$(DUNE) build @install
 
-install:
-	$(MAKE) -C src install
+install: jingoo.install
+	$(DUNE) install jingoo
 
-uninstall:
-	$(MAKE) -C src uninstall
+uninstall: jingoo.install
+	$(DUNE) uninstall jingoo
 
 clean:
-	$(MAKE) -C src clean
-	$(MAKE) -C tests clean
-
-rebuild:
-	$(MAKE) -C src rebuild
-
-.PHONY: all test reinstall install uninstall reinstall clean rebuild
+	$(DUNE) clean
