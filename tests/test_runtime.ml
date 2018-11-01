@@ -682,6 +682,23 @@ let test_map _ctx =
   assert_equal (List.for_all2 (=) ranks ranks_expected) true
 ;;
 
+let alice = Tobj [ "name", Tstr "alice" ; "age", Tint 36 ]
+let bob = Tobj [ "name", Tstr "bob" ; "age", Tint 42 ]
+let carol = Tobj [ "name", Tstr "carol" ; "age", Tint 20]
+
+let text_filter_aux jg_filter expected =
+  let persons = Tlist [ alice ; bob ; carol ] in
+  let filter = func_arg1 @@ fun ?kwargs:_ x ->
+    Tbool (unbox_int (List.assoc "age" (unbox_obj x)) > 30)
+  in
+  assert_equal_tvalue expected (jg_filter filter persons)
+
+let test_filter _ctx =
+  text_filter_aux jg_filter (Tlist [ alice ; bob ])
+
+let test_reject _ctx =
+  text_filter_aux jg_reject (Tlist [ carol ])
+
 let suite = "runtime test" >::: [
   "test_escape" >:: test_escape;
   "test_string_of_tvalue" >:: test_string_of_tvalue;
@@ -752,5 +769,7 @@ let suite = "runtime test" >::: [
   "test_min_max" >:: test_min_max;
   "test_nth" >:: test_nth;
   "test_map" >:: test_map;
+  "test_filter" >:: test_filter;
+  "test_reject" >:: test_reject;
 ]
 ;;
