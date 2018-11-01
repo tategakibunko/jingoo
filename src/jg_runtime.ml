@@ -5,21 +5,13 @@
 
   License: see LICENSE
 *)
+
+(** Builtin functions, value lookup and context initialization. *)
+
 open Jg_utils
 open Jg_types
 
-let box_int i = Tint i
-let box_float f = Tfloat f
-let box_string s = Tstr s
-let box_bool b = Tbool b
-let box_list lst = Tlist lst
-let box_set lst = Tset lst
-let box_obj alist = Tobj alist
-let box_hash hash = Thash hash
-let box_array a = Tarray a
-let box_pat fn = Tpat fn
-let box_lazy z = Tlazy z
-let box_fun z = Tfun z
+(**/**)
 
 let type_string_of_tvalue = function
   | Tint _ -> "int"
@@ -61,50 +53,6 @@ let failwith_type_error_3 name a b c =
     (type_string_of_tvalue a)
     (type_string_of_tvalue b)
     (type_string_of_tvalue c)
-
-let unbox_int = function
-  | Tint x -> x
-  | x -> failwith_type_error_1 "unbox_int" x
-
-let unbox_float = function
-  | Tfloat f -> f
-  | x -> failwith_type_error_1 "unbox_float" x
-
-let unbox_string = function
-  | Tstr s -> s
-  | x -> failwith_type_error_1 "unbox_string" x
-
-let unbox_bool = function
-  | Tbool b -> b
-  | x -> failwith_type_error_1 "unbox_bool" x
-
-let unbox_list = function
-  | Tlist lst -> lst
-  | x -> failwith_type_error_1 "unbox_list" x
-
-let unbox_set = function
-  | Tset lst -> lst
-  | x -> failwith_type_error_1 "unbox_set" x
-
-let unbox_array = function
-  | Tarray lst -> lst
-  | x -> failwith_type_error_1 "unbox_array" x
-
-let unbox_obj = function
-  | Tobj alist -> alist
-  | x -> failwith_type_error_1 "unbox_obj" x
-
-let unbox_hash = function
-  | Thash hash -> hash
-  | x -> failwith_type_error_1 "unbox_hash" x
-
-let unbox_pat = function
-  | Tpat pat -> pat
-  | x -> failwith_type_error_1 "unbox_pat" x
-
-let is_iterable = function
-  | Tlist _ | Tset _ | Thash _ | Tobj _ | Tarray _ | Tstr _ | Tnull-> true
-  | _ -> false
 
 let jg_strp = function
   | Tstr _ -> Tbool true
@@ -245,12 +193,6 @@ let jg_obj_lookup_by_name ctx obj_name prop_name =
     | _ -> (try Jg_stub.get_func ~namespace:obj_name ~func_name:prop_name
             with Not_found -> Tnull)
 
-let jg_nth value i =
-  match value with
-  | Tarray a -> a.(i)
-  | Tset l | Tlist l -> List.nth l i
-  | _ -> failwith_type_error_1 "jg_nth" value
-
 let jg_get_func ctx name =
   match jg_get_value ctx name with
     | Tfun f -> Tfun f
@@ -273,11 +215,23 @@ let jg_pop_filter ctx =
     | [] -> ctx
     | _ :: rest -> {ctx with active_filters = rest}
 
+(**/**)
+
+(* FIXME: invert n seq *)
+(** [jg_nth seq n] returns the [n]-th value of sequence [seq] *)
+let jg_nth value i =
+  match value with
+  | Tarray a -> a.(i)
+  | Tset l | Tlist l -> List.nth l i
+  | _ -> failwith_type_error_1 "jg_nth" value
+
+(** [jg_escape_html x] escape [x] string representation using {!Jg_utils.escape_html} *)
 let jg_escape_html ?kwargs:_ str =
   match str with
     | Tstr str -> Tstr(Jg_utils.escape_html str)
     | other -> Tstr(Jg_utils.escape_html @@ string_of_tvalue other)
 
+(**/**)
 let jg_apply ?(name="<lambda>") ?(kwargs=[]) f args =
   match f with
     | Tfun fn -> fn args ~kwargs
@@ -309,6 +263,7 @@ let jg_output ?(autoescape=true) ?(safe=false) ctx value =
 let jg_obj_lookup_path obj path =
   List.fold_left (fun obj key -> jg_obj_lookup obj key) obj path
 
+(* FIXME: only declare loop once and use volatile values updated with each iteration *)
 let jg_iter_mk_ctx ctx iterator itm len i =
   let cycle = Tfun (fun ?kwargs:_ args ->
       let args_len = List.length args in
@@ -403,14 +358,20 @@ let jg_eval_macro ?(caller=false) ctx macro_name args kwargs macro f =
   ignore @@ jg_eval_aux ctx' args kwargs macro f;
   ctx
 
-let jg_test_defined_aux ctx name =
-  jg_get_value ctx name <> Tnull
+let jg_test_defined_aux ctx name fn =
+  fn (jg_get_value ctx name)
+(**/**)
 
+(* TODO: do not hard code them in jg_interp but use something like std_filters instead. *)
+(* FIXME: remove the ctx (as filters do not need ctx) *)
 let jg_test_defined ctx name =
-  Tbool (jg_test_defined_aux ctx name)
+  Tbool (jg_test_defined_aux ctx name @@ (<>) Tnull)
 
 let jg_test_undefined ctx name =
-  Tbool (not @@ jg_test_defined_aux ctx name)
+  Tbool (jg_test_defined_aux ctx name @@ (=) Tnull)
+
+(** Alias for [jg_test_undefined]  *)
+let jg_test_none = jg_test_undefined
 
 let jg_test_obj_defined ctx obj_name prop_name =
   match jg_get_value ctx obj_name with
@@ -422,13 +383,9 @@ let jg_test_obj_undefined ctx obj_name prop_name =
     | Tbool status -> Tbool (not status)
     | _ -> failwith "invalid test:jg_test_obj_defined"
 
+(** FIXME: this should check the value and not the context *)
 let jg_test_escaped ctx =
   Tbool(List.mem "safe" @@ ctx.active_filters)
-
-let jg_test_none ctx name =
-  match jg_get_value ctx name with
-    | Tnull -> Tbool(true)
-    | _ -> Tbool(false)
 
 let jg_negative = function
   | Tint x -> Tint(-x)
@@ -510,15 +467,21 @@ let jg_mod left right =
     | Tint x1, Tint x2 -> Tint(x1 mod x2)
     | _, _ -> failwith_type_error_2 "jg_mod" left right
 
+(** [jg_or e1 e2] The boolean [and]. *)
 let jg_and left right =
   Tbool(jg_is_true left && jg_is_true right)
 
+(** [jg_or e1 e2] The boolean [or]. *)
 let jg_or left right =
   Tbool(jg_is_true left || jg_is_true right)
 
+(** [jg_compare x y] returns [0] if [x] is equal to [y],
+    a negative integer if [x] is less than [y],
+    and a positive integer if [x] is greater than [y]. *)
 let rec jg_compare ?kwargs:_ left right =
   Tint (jg_compare_aux left right)
 
+(**/**)
 and jg_compare_aux left right =
   match left, right with
   | Tint x1, Tint x2 -> compare x1 x2
@@ -608,6 +571,7 @@ and jg_obj_eq_eq obj1 obj2 =
       alist1
   with
     Not_found -> false
+(**/**)
 
 let jg_eq_eq left right =
   Tbool (jg_eq_eq_aux left right)
@@ -643,43 +607,65 @@ let jg_gteq left right =
     | Tstr x1, Tstr x2 -> Tbool(x1>=x2)
     | _, _ -> failwith_type_error_2 "jg_gteq" left right
 
+(** [jg_inop x seq] Test if [seq] contains element [x]. *)
 let jg_inop left right =
   match left, right with
     | value, Tlist lst -> Tbool (List.exists (jg_eq_eq_aux value) lst)
     | value, Tarray a -> Tbool (array_exists (jg_eq_eq_aux value) a)
     | _ -> Tbool false
 
+(**/**)
 let jg_get_kvalue ?(defaults=[]) name kwargs =
   try List.assoc name kwargs with Not_found ->
     (try List.assoc name defaults with Not_found -> Tnull)
+(**/**)
 
-let jg_safe ?kwargs:_ value =
-  value
-
+(** [jg_upper s] Apply upper case to [s]. *)
 let jg_upper ?kwargs:_ x =
   match x with
     | Tstr str -> Tstr (Jg_utils.UTF8.uppercase str)
     | other -> Tstr (string_of_tvalue other)
 
+(** [jg_upper s] Apply lower case to [s]. *)
 let jg_lower ?kwargs:_ x =
   match x with
     | Tstr str -> Tstr (Jg_utils.UTF8.lowercase str)
     | other -> Tstr (string_of_tvalue other)
 
+(** [jg_capitalize txt]
+    Apply uppercase to the first letter of [txt] and lowercase to the rest *)
+let jg_capitalize ?kwargs:_ value =
+  match value with
+    | Tstr str -> Tstr (Jg_utils.UTF8.capitalize str)
+    | _ -> failwith_type_error_1 "jg_capitalize" value
+
+(** [jg_title txt] Apply titlecase (lower case except for first letter
+    of all words which is upper cased) to [txt]. *)
+let jg_title ?kwargs:_ text =
+  match text with
+    | Tstr text -> Tstr (Jg_utils.UTF8.titlecase text)
+    | _ -> failwith_type_error_1 "jg_title" text
+
+(** [jg_int x] turns [x] into an integer.
+    Support int, float and string types. *)
 let jg_int ?kwargs:_ x =
   match x with
-    | Tint x -> Tint x
+    | Tint _ -> x
     | Tfloat x -> Tint (int_of_float  x)
     | Tstr s -> Tint (int_of_string s)
     | _ -> failwith_type_error_1 "jg_int" x
 
+(** [jg_float x] turns [x] into a float.
+    Support int, float and string types. *)
 let jg_float ?kwargs:_ x =
   match x with
-    | Tfloat x -> Tfloat x
+    | Tfloat _ -> x
     | Tint x -> Tfloat (float_of_int x)
     | Tstr s -> Tfloat (float_of_string s)
     | _ -> failwith_type_error_1 "jg_float" x
 
+(** [jg_join sep seq] concatenates the string representation of values
+    in [seq], inserting the separator [sep] between each. *)
 let jg_join ?kwargs:_ join_str lst =
   match join_str, lst with
     | Tstr str, Tlist lst
@@ -696,6 +682,8 @@ let jg_join ?kwargs:_ join_str lst =
       in Tstr (Buffer.contents buf)
     | _ -> failwith_type_error_2 "jg_join" join_str lst
 
+(** [jg_split pat text] returns the list of all (possibly empty) substrings
+    of [text] that are delimited by [pat] regex. *)
 let jg_split ?kwargs:_ pat text =
   match pat, text with
     | Tstr pat, Tstr text ->
@@ -705,6 +693,10 @@ let jg_split ?kwargs:_ pat text =
       Tlist lst
   | _ -> failwith_type_error_2 "jg_split" pat text
 
+(** [jg_substring start len s]
+    returns a string of length [len], containing the substring of [s]
+    that starts at position [start] and has length [len]
+  *)
 let jg_substring ?kwargs:_ base count str =
   match base, count, str with
     | Tint base, Tint count, Tstr str ->
@@ -713,17 +705,21 @@ let jg_substring ?kwargs:_ base count str =
       Tstr ""
     | _ -> failwith_type_error_3 "jg_substring" base count str
 
+(** [jg_truncate len str] is a shorthand for [jg_substring 0 len str] *)
 let jg_truncate ?kwargs:_ len str =
   match len, str with
     | Tint len, Tstr str ->
       Tstr (substring 0 len str)
     | _ -> failwith_type_error_2 "jg_truncate" len str
 
+(** [jg_strlen s] returns the length (number of characters) of [s] *)
 let jg_strlen ?kwargs:_ x =
   match x with
     | Tstr str -> Tint (Jg_utils.strlen str)
     | _ -> failwith_type_error_1 "jg_strlen" x
 
+(** [jg_length seq] returns the number of of elements in sequence [seq].
+    If [seq] is a string [jg_strlen seq] is returned. *)
 let jg_length ?kwargs:_ x =
   match x with
     | Tlist lst -> Tint (List.length lst)
@@ -738,6 +734,7 @@ let jg_md5 ?kwargs:_ x =
       Tstr(str |> Jg_utils.UTF8.lowercase |> Digest.string |> Digest.to_hex)
     | _ -> failwith_type_error_1 "jg_md5" x
 
+(** [jg_abs x] Return the absolute value of [x]. *)
 let jg_abs ?kwargs:_ value =
   match value with
     | Tint x -> Tint (abs x)
@@ -753,41 +750,10 @@ let jg_attr ?kwargs:_ obj prop =
       (try fn prop with Not_found -> Tnull)
     | _ -> Tnull
 
-let jg_batch ?(kwargs=[]) ?(defaults=[
-  ("fill_with", Tnull)
-]) count value =
-  let fill_value = jg_get_kvalue "fill_with" kwargs ~defaults in
-  match count, value with
-    | Tint slice_count, Tlist lst ->
-      let pad = match fill_value with Tnull -> None | other -> Some other in
-      let rec batch ret left_count rest =
-	if left_count > slice_count then
-	  batch ((box_list @@ take slice_count rest) :: ret) (left_count - slice_count) (after slice_count rest)
-	else if left_count > 0 then
-          batch ((box_list @@ take slice_count rest ?pad) :: ret) 0 []
-	else
-	  box_list @@ List.rev ret in
-      batch [] (List.length lst) lst
-    | Tint c, Tarray arr ->
-      let len1 = Array.length arr in
-      let len2 = len1 / c + (if len1 mod c = 0 then 0 else 1) in
-      box_array @@
-      Array.init len2 @@ fun i ->
-      if i * c + c < len1
-      then box_array (Array.sub arr (i * c) c)
-      else if fill_value = Tnull then box_array @@ Array.init (len1 mod c) (fun j -> arr.(i * c + j))
-      else box_array @@ Array.init c (fun j -> if i * c + j < len1 then arr.(i * c + j) else fill_value)
-    | _ -> failwith "invalid args: batch"
-
 (** TODO *)
 (* defaults=[ ("width", Tint 80) ] *)
 let jg_center ?kwargs:_ ?defaults:_ value =
   value (* TODO *)
-
-let jg_capitalize ?kwargs:_ value =
-  match value with
-    | Tstr str -> Tstr (Jg_utils.UTF8.capitalize str)
-    | _ -> failwith_type_error_1 "jg_capitalize" value
 
 let jg_default ?kwargs:_ default value =
   match value with
@@ -843,6 +809,9 @@ let jg_replace ?kwargs:_ src dst str =
       Tstr (Re.replace_string (Re.Pcre.regexp src) ~by:dst str)
     | _ -> failwith_type_error_3 "jg_replace" src dst str
 
+(** [jg_add a b] is [a + b]. It only support int and float.
+    If both [a] and [b] are int, the result is an int, it is a float otherwise.
+ *)
 let jg_add a b = match a, b with
   | Tint a, Tint b -> Tint (a + b)
   | Tfloat a, Tfloat b -> Tfloat (a +. b)
@@ -850,6 +819,8 @@ let jg_add a b = match a, b with
   | Tfloat b, Tint a -> Tfloat (float_of_int a +. b)
   | _ -> failwith_type_error_2 "jg_add" a b
 
+(** [jg_sum seq] is the sum of elements in [seq] produced using {!val:jg_add}.
+ *)
 let jg_sum ?kwargs:_ lst =
   match lst with
   | Tset l
@@ -857,11 +828,13 @@ let jg_sum ?kwargs:_ lst =
   | Tarray a -> Array.fold_left jg_add (Tint 0) a
   | _ -> failwith_type_error_1 "jg_sum" lst
 
+(** [jg_trim s] returns [s] with leading and trailing whitespace. *)
 let jg_trim ?kwargs:_ str =
   match str with
     | Tstr str -> Tstr (Jg_utils.UTF8.trim str)
     | _ -> failwith_type_error_1 "jg_trim" str
 
+(** [jg_list x] convert [x] to a list. Support list, tuple, string and array. *)
 let jg_list ?kwargs:_ value =
   match value with
     | Tlist lst | Tset lst -> Tlist lst
@@ -877,19 +850,68 @@ let jg_list ?kwargs:_ value =
     | Tarray a -> Tlist (Array.to_list a)
     | _ -> failwith_type_error_1 "jg_list" value
 
-(** TODO: default keywords args *)
-(* ?(defaults = [("fill_with", Tnull)]) *)
+(* FIXME: What if we do not want to fill last chunk? remove defaults? *)
+(** [jg_batch count value] split [value] into chunks containing [count] values.
+
+    If [fill_with=v] keyword argument is given, the last chunk will be filled
+    with [v] instead of [null] if needed.
+ *)
+let jg_batch ?(kwargs=[]) ?(defaults=[
+  ("fill_with", Tnull)
+]) count value =
+  let fill_value = jg_get_kvalue "fill_with" kwargs ~defaults in
+  match count, value with
+    | Tint slice_count, Tlist lst ->
+      let pad = match fill_value with Tnull -> None | other -> Some other in
+      let rec batch ret left_count rest =
+	if left_count > slice_count then
+	  batch ((box_list @@ take slice_count rest) :: ret) (left_count - slice_count) (after slice_count rest)
+	else if left_count > 0 then
+          batch ((box_list @@ take slice_count rest ?pad) :: ret) 0 []
+	else
+	  box_list @@ List.rev ret in
+      batch [] (List.length lst) lst
+    | Tint c, Tarray arr ->
+      let len1 = Array.length arr in
+      let len2 = len1 / c + (if len1 mod c = 0 then 0 else 1) in
+      box_array @@
+      Array.init len2 @@ fun i ->
+      if i * c + c < len1
+      then box_array (Array.sub arr (i * c) c)
+      else if fill_value = Tnull then box_array @@ Array.init (len1 mod c) (fun j -> arr.(i * c + j))
+      else box_array @@ Array.init c (fun j -> if i * c + j < len1 then arr.(i * c + j) else fill_value)
+    | _ -> failwith "invalid args: batch"
+
+(** [jg_slice nb value] split [value] into [nb] chunks.
+
+    If [fill_with=v] keyword argument is given, [v] will be used
+    when buckets will need to be filled so that they all contain the
+    same number of elements.
+
+    See also {!val:jg_batch}.
+ *)
+(* FIXME: implem is wrong.
+   jg_slice 3 [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
+   should return [ [0, 1, 2, 3], [4, 5, 6], [7, 8, 9] ]
+ *)
+(* TODO ?(defaults = [("fill_with", Tnull)]) *)
 let jg_slice ?(kwargs=[]) ?defaults:_ len value =
   match value with
   | Tlist _ | Tarray _ -> jg_batch len value ~kwargs
   | _ -> jg_batch len (jg_list value) ~kwargs
 
+(** [jg_sublist i len list] returns the sub-list of [list],
+    starting at the [i]-th element, and containing [len] elements, or
+    all elements after the [i]-th if len is [null].
+*)
 let jg_sublist ?kwargs:_ base count lst =
   match base, count, lst with
     | Tint base, Tint count, Tlist lst -> Tlist (after base lst |> take count)
     | Tint base, Tnull, Tlist lst -> Tlist (after base lst)
     | _ -> failwith_type_error_3 "jg_sublist" base count lst
 
+(** [jg_wordcount str] count (non-empty) words in [str] using spacing
+    as delimiter between words. *)
 let jg_wordcount ?kwargs:_ str =
   match str with
     | Tstr str ->
@@ -904,6 +926,9 @@ let jg_wordcount ?kwargs:_ str =
       Tint !n
     | _ -> failwith_type_error_1 "jg_word_count" str
 
+(* FIXME: common method make no sens to me... *)
+(** [jg_round meth x] rounds [x] using [meth] rounding method.
+    Supported methods are ["ceil"] and ["floor"]. *)
 let jg_round ?kwargs:_ how value =
   match how, value with
     | _, Tint x -> Tint x
@@ -921,6 +946,8 @@ let jg_fmt_float ?kwargs:_ digit_count value =
       Tfloat (float_of_string @@ spf fmt value)
     | _, _ -> failwith_type_error_2 "jg_fmt_float(count, value)" digit_count value
 
+(** [jg_range start stop] returns a sequence of value going from [start]
+    to (or downto) [stop]. *)
 let jg_range ?kwargs:_ start stop =
   match start, stop with
     | Tint start, Tint stop ->
@@ -953,11 +980,6 @@ let jg_urlize ?kwargs:_ text =
               ~f:(fun g -> let h = Re.Group.get g 1 in "<a href=\"" ^ h ^ "\">" ^ h ^ "</a>") )
     | _ -> failwith_type_error_1 "jg_urlize" text
 
-let jg_title ?kwargs:_ text =
-  match text with
-    | Tstr text -> Tstr (Jg_utils.UTF8.titlecase text)
-    | _ -> failwith_type_error_1 "jg_title" text
-
 let jg_striptags_regexp =
   let open Re in
   lazy (compile @@ seq [ char '<' ; opt (char '?') ; rep1 (compl [ char '>' ]) ; char '>' ])
@@ -968,6 +990,14 @@ let jg_striptags ?kwargs:_ text =
       Tstr (Re.replace_string (Lazy.force jg_striptags_regexp) ~by:"" text)
     | _ -> failwith_type_error_1 "jg_striptags" text
 
+(** [jg_sort ?kwargs seq] sort the [seq].
+    Support the following keyword arguments:
+    - ["reverse"]: sorted in descending order.
+    - ["attribute"]: use attribute of elements to sort the sequence.
+      Support dotted notation.
+    - ["compare"]: provide a comparison function to be use instead of the
+      built-in one.
+ *)
 let jg_sort ?(kwargs=[]) lst =
   let reverse = ref false in
   let attribute = ref "" in
@@ -987,10 +1017,13 @@ let jg_sort ?(kwargs=[]) lst =
     | Tarray a -> Tarray (let a = Array.copy a in Array.sort compare a ; a)
     | _ -> failwith_type_error_1 "jg_sort" lst
 
+(** [jg_xmlattr o] Format a string containing keys/values representation
+    of object [o] so it can be used as xml attributes.
+    i.e. ['key1="value1" key2="value2"] *)
 let jg_xmlattr ?kwargs:_ obj =
   match obj with
     | Tobj alist ->
-      List.map (fun (name, value) -> spf "%s='%s'" name (string_of_tvalue value)) alist |>
+      List.map (fun (name, value) -> spf "%s=\"%s\"" name (string_of_tvalue value)) alist |>
 	String.concat " " |> box_string
     | _ -> failwith_type_error_1 "jg_xmlattr" obj
 
@@ -1049,6 +1082,15 @@ let jg_groupby_aux fn length iter collection =
       | _ -> raise Not_found) :: acc)
     h []
 
+(** [jg_groupby ?kwargs fn seq]
+    For each element [x] of [seq], [fn x] returns a key used to group elements
+    with the same key together.
+
+    Resulting list is a list of objects with two fields: [gouper], the key,
+    and [list], the list containing values from [seq] whose key is [grouper].
+
+   ["attribute"=path] keyword argument will apply [attr(path)] function.
+  *)
 let jg_groupby ?(kwargs=[]) fn list =
   try
     let f = fun_or_attribute ~kwargs ~arg:fn in
@@ -1059,6 +1101,11 @@ let jg_groupby ?(kwargs=[]) fn list =
   with Not_found ->
     failwith_type_error "jg_groupby" @@ ("", fn) :: ("", list) :: kwargs
 
+(** [jg_map ?kwargs fn seq] build the sequence [seq']
+    such as [ seq'[n] = fn (seq[n]) ].
+
+   ["attribute"=path] keyword argument will apply [attr(path)] function.
+ *)
 let jg_map ?(kwargs=[]) fn list =
   try
     let f = fun_or_attribute ~kwargs ~arg:fn in
@@ -1081,6 +1128,10 @@ let jg_max_min_aux is_max fst iter value kwargs =
   iter (fun x -> if compare !result x = -1 then result := x) value;
   !result
 
+(** [jg_max ?kwargs sequence] return the maximal value of [sequence].
+    [kwargs] may be used to specify an attribute (["attribute", str])
+    to use when comparing values (dotted notation is supported).
+ *)
 let jg_max ?(kwargs=[]) arg =
   match arg with
   | Tarray [||] | Tlist [] -> Tnull
@@ -1088,6 +1139,11 @@ let jg_max ?(kwargs=[]) arg =
   | Tlist (hd :: tl) -> jg_max_min_aux true hd List.iter tl kwargs
   | _ -> failwith_type_error_1 "jg_max" arg
 
+(* TODO: ~kwargs:["compare", fn] *)
+(** [jg_min ?kwargs sequence] return the minimal value of [sequence].
+    [kwargs] may be used to specify an attribute (["attribute", str])
+    to use when comparing values (dotted notation is supported).
+ *)
 let jg_min ?(kwargs=[]) arg =
   match arg with
   | Tarray [||] | Tlist [] -> Tnull
@@ -1095,41 +1151,53 @@ let jg_min ?(kwargs=[]) arg =
   | Tlist (hd :: tl) -> jg_max_min_aux false hd List.iter tl kwargs
   | _ -> failwith_type_error_1 "jg_min" arg
 
+(** [jg_test_divisibleby divisor dividend]
+    tests if [dividend] is divisible by [divisor]. *)
 let jg_test_divisibleby ?kwargs:_ num target =
   match num, target with
     | Tint 0, _ -> Tbool(false)
     | Tint n, Tint t ->  Tbool(t mod n = 0)
     | _ -> Tbool(false)
 
+(** [jg_test_even x] tests if [x] is even (only works with int). *)
 let jg_test_even ?kwargs:_ x =
   match x with
     | Tint x -> Tbool(x mod 2 = 0)
     | _ -> Tbool(false)
 
+(** [jg_test_odd x] tests if [x] is odd (only works with int). *)
 let jg_test_odd ?kwargs:_ x =
   match x with
     | Tint x -> Tbool(x mod 2 = 1)
     | _ -> Tbool(false)
 
-let jg_test_iterable ?kwargs:_ x =
-  Tbool (is_iterable x)
+let jg_test_iterable_aux = function
+  | Tlist _ | Tset _ | Thash _ | Tobj _ | Tarray _ | Tstr _ | Tnull-> true
+  | _ -> false
 
+(** [jg_test_upper x] tests if [x] is iterable. *)
+let jg_test_iterable ?kwargs:_ = fun x -> Tbool (jg_test_iterable_aux x)
+
+(** [jg_test_upper x] tests if [x] is an lowercased string. *)
 let jg_test_lower ?kwargs:_ x =
   match x with
     | Tstr str -> Tbool(Jg_utils.UTF8.is_lower str)
     | _ -> Tbool(false)
 
+(** [jg_test_upper x] tests if [x] is an uppercased string. *)
 let jg_test_upper ?kwargs:_ x =
   match x with
     | Tstr str -> Tbool(Jg_utils.UTF8.is_upper str)
     | _ -> Tbool(false)
 
+(** [jg_test_number x] tests if [x] is a number (i.e. an int or a float). *)
 let jg_test_number ?kwargs:_ x =
   match x with
     | Tint _ -> Tbool(true)
     | Tfloat _ -> Tbool(true)
     | _ -> Tbool(false)
 
+(** [jg_test_sameas x y] tests if [y] and [x] are physically equals. *)
 let jg_test_sameas ?kwargs:_ value target =
   match value, target with
     | Tstr x, Tstr y -> Tbool(x == y)
@@ -1143,43 +1211,14 @@ let jg_test_sameas ?kwargs:_ value target =
     | Tarray x, Tarray y -> Tbool(x == y)
     | _ -> Tbool(false)
 
+(** [jg_test_sequence x] tests if [x] is sequence (i.e. a list or an array). *)
 let jg_test_sequence ?kwargs:_ target =
   jg_test_iterable target
 
+(** [jg_test_string x] tests if [x] is of type string. *)
 let jg_test_string ?kwargs:_ target =
   jg_strp target
 
-let rec func_arg1 (f: ?kwargs:kwargs -> tvalue -> tvalue) =
-  Tfun (fun ?(kwargs=[]) args ->
-    match args with
-    | a1 :: _ -> f a1 ~kwargs
-    | [] ->
-       let f' = f ~kwargs in
-       func_arg1 (fun ?kwargs:_ a1 -> f' a1)
-  )
-
-let func_arg2 (f: ?kwargs:kwargs -> tvalue -> tvalue -> tvalue) =
-  Tfun (fun ?(kwargs=[]) args ->
-    match args with
-    | a1 :: a2 :: _ -> f a1 a2 ~kwargs
-    | a1 :: _ ->
-       let f' = f a1 ~kwargs in
-       func_arg1 (fun ?kwargs:_ a2 -> f' a2)
-    | _ -> Tnull
-  )
-
-let func_arg3 (f: ?kwargs:kwargs -> tvalue -> tvalue -> tvalue -> tvalue) =
-  Tfun (fun ?(kwargs=[]) args ->
-    match args with
-    | a1 :: a2 :: a3 :: _ -> f a1 a2 a3 ~kwargs
-    | a1 :: a2 :: _ ->
-       let f' = f a1 a2 ~kwargs in
-       func_arg1 (fun ?kwargs:_ a3 -> f' a3)
-    | a1 :: _ ->
-       let f' = f a1 ~kwargs in
-       func_arg2 (fun ?kwargs:_ a2 a3 -> f' a2 a3)
-    | _ -> Tnull
-  )
 
 let std_filters = [
   (* built-in filters *)
@@ -1196,7 +1235,6 @@ let std_filters = [
   ("max", func_arg1 jg_max);
   ("md5", func_arg1 jg_md5);
   ("min", func_arg1 jg_min);
-  ("safe", func_arg1 jg_safe);
   ("strlen", func_arg1 jg_strlen);
   ("sum", func_arg1 jg_sum);
   ("striptags", func_arg1 jg_striptags);
@@ -1249,6 +1287,11 @@ let jg_load_extensions extensions =
 	Dynlink.Error e -> failwith @@ Dynlink.error_message e
   ) extensions
 
+(** [jg_init_context ?models output env]
+    Define a context to use with evaluation functions from
+    {!module:Jg_interp}.
+    See {!type:Jg_types.context}.
+*)
 let jg_init_context ?(models=[]) output env =
   let model_frame = Hashtbl.create (List.length models) in
   let top_frame = Hashtbl.create (List.length std_filters + List.length env.filters + 2) in

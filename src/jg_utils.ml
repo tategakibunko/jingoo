@@ -143,6 +143,8 @@ let rec substring base count str =
   else
     UTF8.sub str base count
 
+(** [escape_html str] replaces '&', '"', '<' and '>'
+    with their corresponding character entities (using entity number) *)
 let escape_html str =
   let buflen = ref 0 in
   let strlen = ref 0 in

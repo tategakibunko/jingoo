@@ -80,6 +80,9 @@ let rec value_of_expr env ctx = function
     let _ = List.fold_left (eval_statement env) ctx ast in
     (Marshal.from_string (Buffer.contents buffer) 0 : tvalue)
 
+  | ApplyExpr(IdentExpr("safe"), [expr]) ->
+     value_of_expr env ctx expr
+
   | ApplyExpr(expr, args) ->
     let name = apply_name_of expr in
     let nargs = nargs_of env ctx args in
@@ -173,7 +176,7 @@ and eval_statement env ctx = function
       | SetExpr(lst) -> ident_names_of lst
       | _ -> failwith "invalid iterator" in
     let iterable = value_of_expr env ctx iterable_expr in
-    let is_iterable = Jg_runtime.is_iterable iterable in
+    let is_iterable = Jg_runtime.jg_test_iterable_aux iterable in
     (* [ISSUE#23] when strict_mode is enabled, raises error if loop target is not iterable. *)
     if env.strict_mode = true && is_iterable = false then
       failwith @@ spf "%s is not iterable" (string_of_tvalue iterable)

@@ -478,7 +478,7 @@ let test_xmlattr _ctx =
     ("width", Tint 300);
   ] in
   assert_equal_tvalue
-    (Tstr "class='profile' id='taro' width='300'")
+    (Tstr "class=\"profile\" id=\"taro\" width=\"300\"")
     (jg_xmlattr obj)
 ;;
 

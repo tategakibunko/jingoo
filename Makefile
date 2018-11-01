@@ -1,6 +1,8 @@
 ROOT_DIR:="$(dir $(realpath $(lastword $(MAKEFILE_LIST))))"
 DUNE=dune
 
+.PHONY: all test doc install uninstall clean
+
 all:
 	$(DUNE) build
 
@@ -9,6 +11,8 @@ all:
 
 test: tests/dune
 	$(DUNE) build @tests/runtest
+doc:
+	$(DUNE) build @doc
 
 jingoo.install:
 	$(DUNE) build @install
