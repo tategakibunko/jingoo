@@ -923,15 +923,19 @@ let jg_fmt_float ?(kwargs=[]) digit_count value =
     | _, _ -> failwith_type_error_2 "jg_fmt_float(count, value)" digit_count value
 
 let jg_range ?(kwargs=[]) start stop =
+  let range start stop fn =
+    let sign = if start < stop then (+) else (-) in
+    let len = (if start < stop then stop - start else start - stop) + 1 in
+    Tarray (Array.init len (fun i -> fn (sign start i)))
+  in
   match start, stop with
-    | Tint start, Tint stop ->
-      if start = stop then
-	Tlist [Tint start]
-      else
-	let is_end i = if start < stop then i > stop else i < stop in
-	let next i = if start < stop then i + 1 else i - 1 in
-	let rec iter ret i = if is_end i then List.rev ret else iter ((Tint i) :: ret) (next i) in
-	Tlist (iter [] start)
+    | Tint start, Tint stop -> range start stop box_int
+    | Tstr strt, Tstr stp when String.length strt = 1 && String.length stp = 1 ->
+      let strt = Char.code @@ String.unsafe_get strt 0 in
+      let stp = Char.code @@ String.unsafe_get stp 0 in
+      if strt < 0 || strt > 255 || stp < 0 || stp > 255
+      then failwith_type_error_2 "jg_range(start, stop)" start stop
+      else range strt stp (fun i -> Tstr (String.make 1 @@ Char.chr i))
     | _ -> failwith_type_error_2 "jg_range(start, stop)" start stop
 
 let jg_urlize_regexp =
