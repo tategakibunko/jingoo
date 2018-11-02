@@ -1,0 +1,17 @@
+(copy_files ../src/*.ml{,l,y})
+
+(executable
+  (name test)
+  (libraries unix dynlink re uutf uucp
+   	     oUnit
+  )
+)
+
+(alias
+  (name runtest)
+  (action
+     (setenv
+        OUNIT_TESTDATA_DIR "%%%OUNIT_TESTDATA_DIR%%%" (run ./test.exe)
+     )
+  )
+)

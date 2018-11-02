@@ -19,6 +19,8 @@
      jingoo -template_dirs /path/to/tmpl1,/path/to/tmpl2 -input hello.tmpl > hello.ml
 *)
 
+open Jingoo
+
 let get_template_dirs = function
   | "" -> []
   | dirs ->

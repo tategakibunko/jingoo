@@ -1,6 +1,0 @@
-name="jingoo"
-version = "1.2.21"
-description = "ocaml template engine almost compatible with jinja2"
-requires = "unix,dynlink,re,uutf,uucp"
-archive(byte) = "jingoo.cma"
-archive(native) = "jingoo.cmxa"
