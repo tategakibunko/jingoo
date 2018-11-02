@@ -92,7 +92,7 @@ let test_obj_eq_eq _ctx =
   assert_equal ~cmp:jg_obj_eq_eq obj1 obj4;
 ;;
 
-let test_batch_list ctx =
+let test_batch_list _ctx =
   let ary = jg_range (Tint 0) (Tint 9) in
   let lst = Tlist (Array.to_list (unbox_array ary)) in
   let batched_list = jg_batch (Tint 4) lst ~kwargs:[("fill_with", Tstr "x")] in
@@ -105,7 +105,7 @@ let test_batch_list ctx =
 ;;
 
 (* if fill_with keyword is not given, final row is shrinked by list_length mod slice_count *)
-let test_batch_list2 ctx =
+let test_batch_list2 _ctx =
   let ary = jg_range (Tint 0) (Tint 9) in
   let lst = Tlist (Array.to_list (unbox_array ary)) in
   let batched_list = jg_batch (Tint 4) lst in
@@ -117,7 +117,7 @@ let test_batch_list2 ctx =
   assert_equal_tvalue expect_list batched_list
 ;;
 
-let test_batch_array ctx =
+let test_batch_array _ctx =
   let ary = jg_range (Tint 0) (Tint 9) in
   let batched_ary = jg_batch (Tint 4) ary ~kwargs:[("fill_with", Tstr "x")] in
   let expect_ary = Tarray [|
@@ -129,7 +129,7 @@ let test_batch_array ctx =
 ;;
 
 (* if fill_with keyword is not given, final row is shrinked by array_length mod slice_count *)
-let test_batch_array2 ctx =
+let test_batch_array2 _ctx =
   let ary = jg_range (Tint 0) (Tint 9) in
   let batched_ary = jg_batch (Tint 4) ary in
   let expect_ary = Tarray [|
@@ -288,7 +288,7 @@ let test_round _ctx =
   assert_equal_tvalue (jg_round (Tstr "ceil") (Tfloat 1.5)) (Tfloat 2.0)
 ;;
 
-let test_range ctx =
+let test_range _ctx =
   assert_equal_tvalue (Tarray [|Tint 0; Tint 1; Tint 2|]) (jg_range (Tint 0) (Tint 2));
   assert_equal_tvalue (Tarray [|Tint 2; Tint 1; Tint 0|]) (jg_range (Tint 2) (Tint 0));
   assert_equal_tvalue (Tarray [|Tint 2012; Tint 2011; Tint 2010; Tint 2009; Tint 2008; Tint 2007; Tint 2006|]) (jg_range (Tint 2012) (Tint 2006));
@@ -650,7 +650,7 @@ let test_groupby _ctx =
   assert_equal (List.for_all2 check_person french_speakers_expected french_speakers) true
 ;;
 
-let test_min_max ctx =
+let test_min_max _ctx =
   let numbers = Tlist [Tint 3; Tint 1; Tint 2] in
   let min_number = jg_min numbers in
   let max_number = jg_max numbers in
@@ -681,6 +681,23 @@ let test_map _ctx =
   assert_equal (List.for_all2 (=) names names_expected) true;
   assert_equal (List.for_all2 (=) ranks ranks_expected) true
 ;;
+
+let alice = Tobj [ "name", Tstr "alice" ; "age", Tint 36 ]
+let bob = Tobj [ "name", Tstr "bob" ; "age", Tint 42 ]
+let carol = Tobj [ "name", Tstr "carol" ; "age", Tint 20]
+
+let text_filter_aux jg_filter expected =
+  let persons = Tlist [ alice ; bob ; carol ] in
+  let filter = func_arg1 @@ fun ?kwargs:_ x ->
+    Tbool (unbox_int (List.assoc "age" (unbox_obj x)) > 30)
+  in
+  assert_equal_tvalue expected (jg_filter filter persons)
+
+let test_filter _ctx =
+  text_filter_aux jg_filter (Tlist [ alice ; bob ])
+
+let test_reject _ctx =
+  text_filter_aux jg_reject (Tlist [ carol ])
 
 let suite = "runtime test" >::: [
   "test_escape" >:: test_escape;
@@ -752,5 +769,7 @@ let suite = "runtime test" >::: [
   "test_min_max" >:: test_min_max;
   "test_nth" >:: test_nth;
   "test_map" >:: test_map;
+  "test_filter" >:: test_filter;
+  "test_reject" >:: test_reject;
 ]
 ;;

@@ -946,6 +946,9 @@ let jg_fmt_float ?kwargs:_ digit_count value =
       Tfloat (float_of_string @@ spf fmt value)
     | _, _ -> failwith_type_error_2 "jg_fmt_float(count, value)" digit_count value
 
+(** [jg_range start stop] returns a sequence of values going from [start]
+     to (or downto) [stop].
+    Support integers and string with one ascii character. *)
 let jg_range ?kwargs:_ start stop =
   let range start stop fn =
     let sign = if start < stop then (+) else (-) in
@@ -1153,6 +1156,27 @@ let jg_min ?(kwargs=[]) arg =
   | Tlist (hd :: tl) -> jg_max_min_aux false hd List.iter tl kwargs
   | _ -> failwith_type_error_1 "jg_min" arg
 
+let jg_filter_aux name filter =
+  fun fn seq ->
+    let filtered l = match fn with
+      | Tfun fn -> Tlist (List.filter (fun x -> filter (unbox_bool @@ fn [x])) l)
+      | _ -> failwith_type_error_2 name fn seq
+    in
+    match seq with
+    | Tarray a -> filtered (Array.to_list a)
+    | Tlist l -> filtered l
+    | _ -> failwith_type_error_2 name fn seq
+
+(** [jg_reject fn seq]
+    returns the elements of [seq] that {b don't} satify [fn]. *)
+let jg_reject =
+  fun ?kwargs:_ -> jg_filter_aux "jg_reject" not
+
+(** [jg_filter fn seq]
+    returns the elements of [seq] that satify [fn]. *)
+let jg_filter =
+  fun ?kwargs:_ -> jg_filter_aux "jg_filter" (fun x -> x)
+
 (** [jg_test_divisibleby divisor dividend]
     tests if [dividend] is divisible by [divisor]. *)
 let jg_test_divisibleby ?kwargs:_ num target =
@@ -1263,6 +1287,8 @@ let std_filters = [
   ("round", func_arg2 jg_round);
   ("groupby", func_arg2 jg_groupby);
   ("map", func_arg2 jg_map);
+  ("reject", func_arg2 jg_reject);
+  ("filter", func_arg2 jg_filter);
 
   ("replace", func_arg3 jg_replace);
   ("substring", func_arg3 jg_substring);

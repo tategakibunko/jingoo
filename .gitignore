@@ -5,3 +5,5 @@ src/.merlin
 example/simple
 example/bench
 example/advanced
+tests/.merlin
+tests/dune
