@@ -6,7 +6,6 @@
 
     License: see LICENSE
   *)
-  open Jg_types
   open Jg_parser
 
   type lexer_mode = [`Logic | `Html]
@@ -30,7 +29,7 @@
   let buf = Buffer.create 256
 
   let fail
-      { Lexing.lex_curr_p = { Lexing.pos_fname ; pos_lnum ; pos_bol ; pos_cnum } } str =
+      { Lexing.lex_curr_p = { Lexing.pos_fname ; pos_lnum ; pos_bol ; pos_cnum } ; _ } str =
     failwith @@
     spf "File '%s', line %d, char %d: %s" pos_fname pos_lnum (pos_cnum - pos_bol) str
 
@@ -300,4 +299,3 @@ and string_literal terminator = parse
       string_literal terminator lexbuf
     end
   }
-

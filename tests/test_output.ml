@@ -1,7 +1,5 @@
 open OUnit2
-open Jg_utils
 open Jg_types
-open Jg_runtime
 
 let assert_eq_string = assert_equal ~printer:(fun x -> "\"" ^ x ^ "\"")
 
@@ -12,7 +10,7 @@ let assert_interp ~test_ctxt ?(env=std_env) ?(models=[]) source expected =
   assert_eq_string expected output
 ;;
 
-let assert_interp_raises ~test_ctxt ?(env=std_env) ?(models=[]) source error =
+let assert_interp_raises ?(env=std_env) ?(models=[]) source error =
   assert_raises error (fun _ -> ignore (Jg_template.from_string source ~env ~models))
 ;;
 
@@ -165,12 +163,12 @@ let from_file test_ctxt file_name =
 ;;
 
 let test_extends test_ctxt =
-  let output = from_file test_ctxt "extends.tmpl" in
+  let output = from_file test_ctxt "extends.jingoo" in
   assert_eq_string (Jg_utils.chomp output) "extended"
 ;;
 
 let test_include test_ctxt =
-  let output = from_file test_ctxt "included.tmpl" in
+  let output = from_file test_ctxt "included.jingoo" in
   assert_eq_string (Jg_utils.chomp output) "this is included"
 ;;
 
@@ -180,14 +178,14 @@ let macro_three_words =
    {% endmacro %}"
 ;;
 
-let test_macro test_ctxt =
+let test_macro _test_ctxt =
   let output = Jg_template.from_string
     (macro_three_words^"{{ three_words(\"this\", \"is\", \"it!\") }}")
   in
   assert_eq_string (Jg_utils.chomp output) "this is it!"
 ;;
 
-let test_caller test_ctxt =
+let test_caller _test_ctxt =
   let output = Jg_template.from_string
     (macro_three_words^
     "{% call(a,b,c) three_words('this', 'is', 'it!') %}\
@@ -217,7 +215,7 @@ let test_white_space_control test_ctxt =
 let test_invalid_iterable test_ctxt =
   let source = "{% for i in 3 %}{{i}}{% endfor %}" in
   assert_interp ~test_ctxt ~env:{std_env with strict_mode = false} source "";
-  assert_interp_raises ~test_ctxt ~env:{std_env with strict_mode = true} source (Failure "3 is not iterable")
+  assert_interp_raises ~env:{std_env with strict_mode = true} source (Failure "3 is not iterable")
 
 let suite = "runtime test" >::: [
   "test_expand_escape" >:: test_expand_escape;

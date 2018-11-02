@@ -6,6 +6,31 @@ type jg_ast_mapper =
   ; expression : jg_ast_mapper -> expression -> expression
   }
 
+(** {!type:Jg_ast_mapper.jg_ast_mapper} allows to implement AST rewriting.
+
+    A typical mapper would be based on {!val:Jg_ast_mapper.default_mapper},
+    a {b deep identity} mapper, and will fall back on it for handling the syntax it does not modify.
+
+    {{:#type-jg_ast_mapper.ast} ast}, {{:#type-jg_ast_mapper.statement} statement} and
+    {{:#type-jg_ast_mapper.expression} expression} expect a first argument being the mapper
+    currently used.
+
+    For example, {!val:Jg_interp.inline_include} defines an ast mapper replacing
+    [{% include %}] statements by actual code (statements) from these included files.
+
+    {[
+    let open Jg_ast_mapper in
+      let statement self = function
+        | IncludeStatement (LiteralExpr (Tstr file), true) ->
+          Statements (self.ast self @@ ast_from_file ~env file)
+        | RawIncludeStatement (LiteralExpr (Tstr file)) ->
+          Statements (self.ast self @@ ast_from_file ~env file)
+        | e -> default_mapper.statement self e in
+      { default_mapper with statement }
+    ]}
+ *)
+
+(**/**)
 let ast self = List.map (self.statement self)
 
 and statement self stmt : statement = match stmt with
@@ -164,6 +189,8 @@ and expression self expr = match expr with
 
   | InOpExpr (e1, e2) ->
     InOpExpr (self.expression self e1, self.expression self e2)
+
+(**/**)
 
 let default_mapper =
   { ast

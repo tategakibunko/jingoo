@@ -10,50 +10,36 @@ exception SyntaxError of string
 
 type environment = {
   autoescape : bool;
-  (** [default: true]
-      if true, template variables are auto escaped when output.
-  *)
+  (** If true, template variables are auto escaped when output. *)
 
   strict_mode : bool;
-  (** [defualt: false]
-      if true, strict type cheking is enabled.
-      if false, some kind of invalid type usages are just ignored.
-      for example, following expression throws exception if strict_mode is true,
-      but skipped if strict_mode = false.
+  (** If true, strict type cheking is enabled.
+      If false, some kind of invalid type usages are just ignored.
+      for example, following expression throws exception if [strict_mode = true],
+      but is skipped if [strict_mode = false].
 
+      {[
       {# 3(Tint) is not iterable #}
       {% for item in 3 %}
         {{ item }}
       {% endfor %}
+      ]}
   *)
 
   template_dirs : string list;
-  (** [default: empty list]
-      define template search path list.
-      if empty, search current directory only.
-
-      example:
-
-      ["/path/to/tmpl1"; "/path/to/tmpl2"]
+  (** Template search path list used by [{% include %}] statements.
+      Jingoo will always search in current directory in last resort.
   *)
 
   filters : (string * tvalue) list;
-  (** [default: empty list]
-      define user own filter.
-
-      see example/advanced.ml for sample.
-  *)
+  (** User-defined filters. *)
 
   extensions : string list;
-  (** [default: empty list]
-      define path list of shared library module(.cms or .cmxs) which is dynamically loaded.
-
-      example
-      -------
-
-      ["/path/to/a.cmxs"; "/path/to/b.cmxs"]
-  *)
+  (** Path list of shared library modules ([.cms] or [.cmxs] files)
+      which are dynamically loaded.
+   *)
 }
+(** See {! val-std_env} *)
 
 and context = {
   frame_stack : frame list;
@@ -76,8 +62,8 @@ and tvalue =
   | Tfloat of float
   | Tstr of string
   | Tobj of (string * tvalue) list
-  | Thash of (string, tvalue) Hashtbl.t (* faster object *)
-  | Tpat of (string -> tvalue) (* much faster object, but not iterable, not testable *)
+  | Thash of (string, tvalue) Hashtbl.t
+  | Tpat of (string -> tvalue)
   | Tlist of tvalue list
   | Tset of tvalue list
   | Tfun of (?kwargs:kwargs -> args -> tvalue)
@@ -86,40 +72,8 @@ and tvalue =
   | Tvolatile of (unit -> tvalue)
 and args = tvalue list
 and kwargs = (string * tvalue) list
-(**
-   1. About args
-   -------------
 
-   Arguments of function are defined as "tvalue list".
-   And it's important to know that the filtered target is the LAST argument of filter function.
-   For example, consider following expansion of "x" with filter function "foo" (with no keyword arguments)
-
-   {{ x|foo(10,20) }}
-
-   The filter function "foo" takes 3 arguments, and internally, this is evaluated like this.
-
-   foo(10,20,x)
-
-   2. About kwargs
-   ---------------
-
-   Keyword arguments of function are defined as (string * tvalue) list.
-   And keyword label must be declared when use it, that is, implicit conversion not available.
-
-   For example, built-in function "slice" catch two args(slice_length, target_list), and one keyword argument(fill_with).
-   and following code slice the list with length 4 and fill 0 for rest space of splitted list.
-
-     slice(4, [1,2,3,4,5], fill_with=0)
-
-   It return list of list [[1,2,3,4], [5,0,0,0]], works well.
-
-   But you can't call this func like this.
-
-     slice(4, [1,2,3,4,5], 0)
-
-   It return list of list [[1,2,3,4], [5]], because keyword label 'fill_with' is not declared.
-*)
-
+(**/**)
 and ast = statement list
 
 and statement =
@@ -176,6 +130,113 @@ and expression =
 and with_context = bool
 and branch = expression option * ast
 and arguments = expression list
+(**/**)
 
+(** {[
+    let std_env = {
+      autoescape = true;
+      strict_mode = false;
+      template_dirs = [];
+      filters = [];
+      extensions = [];
+    }
+    ]}
+ *)
 val std_env : environment
 
+
+(** {2 Boxing OCaml values} *)
+
+val box_int : int -> tvalue
+val box_float : float -> tvalue
+val box_string : string -> tvalue
+val box_bool : bool -> tvalue
+val box_list : tvalue list -> tvalue
+val box_set : tvalue list -> tvalue
+val box_obj : (string * tvalue) list -> tvalue
+val box_hash : (string, tvalue) Hashtbl.t -> tvalue
+val box_array : tvalue array -> tvalue
+val box_pat : (string -> tvalue) -> tvalue
+val box_lazy : tvalue Lazy.t -> tvalue
+val box_fun : (?kwargs:kwargs -> args -> tvalue) -> tvalue
+
+(** {2 Unboxing OCaml values}
+    Unboxing operations raise [Invalid_argument] in case of type error.
+ *)
+
+val unbox_int : tvalue -> int
+val unbox_float : tvalue -> float
+val unbox_string : tvalue -> string
+val unbox_bool : tvalue -> bool
+val unbox_list : tvalue -> tvalue list
+val unbox_set : tvalue -> tvalue list
+val unbox_array : tvalue -> tvalue array
+val unbox_obj : tvalue -> (string * tvalue) list
+val unbox_hash : tvalue -> (string, tvalue) Hashtbl.t
+val unbox_pat : tvalue -> (string -> tvalue)
+
+(** {2 Helpers for function writing} *)
+
+val func_arg1 : (?kwargs:kwargs -> tvalue -> tvalue) -> tvalue
+val func_arg2 : (?kwargs:kwargs -> tvalue -> tvalue -> tvalue) -> tvalue
+val func_arg3 : (?kwargs:kwargs -> tvalue -> tvalue -> tvalue -> tvalue) -> tvalue
+
+(** {2:notes-tvalue Notes about some data types }
+
+    {!type-tvalue.Tobj}
+    Key/value object using an associative list.
+
+    {!type-tvalue.Thash}
+    Key/value objects using a hash table.
+
+    {!type-tvalue.Tpat}
+    Key/value object using a function to map ["key"] to [value].
+    Faster than {!type-tvalue.Tobj} and {!type-tvalue.Thash},
+    but not iterable nor testable.
+
+    {!type-tvalue.Tset}
+    Tuples
+
+    {!type-tvalue.Tlazy}
+    Lazy values are actually computed only when needed.
+    Useful for recursive some data structure.
+    In the following example, your app would throw a stack overflow without lazyness.
+    {[
+    let rec lazy_model n =
+      let prev = lazy_model (n - 1) in
+      let next = lazy_model (n + 1) in
+      let cur = Tint n in
+      Tlazy (lazy (Tobj [ ("cur", cur) ; ("prev", prev) ; ("next", next) ]) )
+    ]}
+
+    {!type-tvalue.Tvolatile}
+    You can use volatile values for variables that can not be defined at model's
+    definition time or if it is subject to changes over time on ocaml's side
+
+*)
+
+(**
+   {2:function-calls Function calls}
+
+   Built-in functions (aka filters) expect the {b TARGET} value to be the {b LAST} argument, in
+   order to be usable with the pipe notation. You are encouraged to do the same while defining your
+   own functions.
+
+   [{{ x | foo (10,20) }}] is equivalent too [{{ foo (10,20,x) }}].
+
+   Also, built-in function are written as functions returning functions until the last parameter
+   is given.
+
+   It allows you to use partial application in you templates [{{ list | map (foo (10,20)) }}]
+
+   There is two kind of arguments: {{:#type-args} unnamed arguments} and {{:#type-kwargs} keyword arguments}.
+
+   When defining a {b keyword argument}, {b label can't be omitted}.
+
+   You {b can't} use [slice(4, [1,2,3,4,5], 0)], because you need to explicitly bind [0] with the [fill_with] label.
+
+   A correct usage of the [slice] function would be [slice(4, [1,2,3,4,5], fill_with=0)].
+
+   Note that kwargs may be defined at any place: [slice(4, fill_with=0, [1,2,3,4,5])].
+
+ *)

@@ -14,7 +14,7 @@ install: [make "install"]
 remove: ["ocamlfind" "remove" "jingoo"]
 depends: [
   "ocaml" {>= "4.02.3"}
-  "ocamlfind" {build}
+  "dune" { build & >= "1.4.0" }
   "re"
   "uutf" {>= "0.9.4"}
   "uucp"
