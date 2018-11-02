@@ -946,6 +946,9 @@ let jg_fmt_float ?kwargs:_ digit_count value =
       Tfloat (float_of_string @@ spf fmt value)
     | _, _ -> failwith_type_error_2 "jg_fmt_float(count, value)" digit_count value
 
+(** [jg_range start stop] returns a sequence of values going from [start]
+     to (or downto) [stop].
+    Support integers and string with one ascii character. *)
 let jg_range ?kwargs:_ start stop =
   let range start stop fn =
     let sign = if start < stop then (+) else (-) in
