@@ -4,6 +4,10 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.2.22
+===========================
+o [PR#65] jg_range: generate an array instead of a list, and support char ranges.
+
 version: 1.2.21, 2018-10-27
 ===========================
 o [PR#55] type error messages enhancement.
