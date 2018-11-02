@@ -6,6 +6,7 @@
 
 version: 1.2.22
 ===========================
+o [PR#63] Dune build system, documentation and github pages.
 o [PR#65] jg_range: generate an array instead of a list, and support char ranges.
 
 version: 1.2.21, 2018-10-27
