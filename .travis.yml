@@ -1,0 +1,38 @@
+sudo: required
+
+language: c
+
+os:
+  - linux
+  - osx
+
+env:
+  - OCAML_VERSION=4.02 OPAM_VERSION=2.0.0
+  - OCAML_VERSION=4.03 OPAM_VERSION=2.0.0
+  - OCAML_VERSION=4.04 OPAM_VERSION=2.0.0
+  - OCAML_VERSION=4.05 OPAM_VERSION=2.0.0
+  - OCAML_VERSION=4.06 OPAM_VERSION=2.0.0
+  - OCAML_VERSION=4.07 OPAM_VERSION=2.0.0
+
+matrix:
+  fast_finish: true
+
+install:
+  - wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-ocaml.sh
+
+script:
+  - bash -ex .travis-ocaml.sh ;
+    set -ex ;
+    export OPAMYES=1 ;
+    eval $(opam config env) ;
+    opam pin add jingoo . --no-action ;
+    opam install jingoo --deps-only ;
+    opam install ounit ;
+    make clean all test ;
+
+notifications:
+  email:
+    recipients:
+      - julien.sagot@geneanet.org
+    on_success: change
+    on_failure: always
