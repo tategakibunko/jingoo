@@ -20,7 +20,7 @@ DOCDIR=_build/default/_doc/_html/
 gh-pages: doc
 	gitstatus=`git status --untracked-files=no --porcelain` \
 	&& [ -z "$$gitstatus" ] \
-	&& branch=`git symbolic-ref -q HEAD | cut -d"/" -f 3` \
+	&& branch=`git symbolic-ref -q HEAD | cut -d "/" -f 3` \
 	&& [ ! -z "$$branch" ] \
 	&& commit=`git rev-parse HEAD` \
 	&& tmp=`mktemp -d` \
