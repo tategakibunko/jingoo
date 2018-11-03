@@ -383,17 +383,20 @@ and error e lexbuf =
   let msg = Printf.sprintf "Error line %d, col %d, token %s (%s)" l c t e in
   raise (SyntaxError msg)
 
-and ast_from_file ~env filename =
-  let filename = get_file_path env filename in
-  let ch = open_in filename in
+and ast_from_chan filename ch =
   let lexbuf = Lexing.from_channel ch in
   try
-    let ast = ast_from_lexbuf (Some filename) lexbuf in
+    let ast = ast_from_lexbuf filename lexbuf in
     close_in ch;
     ast
   with SyntaxError e ->
     close_in ch ;
     error e lexbuf
+
+and ast_from_file ~env filename =
+  let filename = get_file_path env filename in
+  let ch = open_in filename in
+  ast_from_chan (Some filename) ch
 
 and ast_from_string string =
   let lexbuf = Lexing.from_string string in
@@ -419,3 +422,9 @@ and from_string ?(env=std_env) ?(models=[]) ?file_path:_ ~output
     source =
   eval_aux ~env ~ctx @@
     ast_from_string source
+
+and from_chan ?(env=std_env) ?(models=[]) ?file_path ~output
+    ?(ctx = init_context ~env ~models ~output ())
+    chan =
+  eval_aux ~env ~ctx @@
+    ast_from_chan file_path chan

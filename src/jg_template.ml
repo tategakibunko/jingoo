@@ -27,6 +27,8 @@ let content (fn : 'a internal_interp) : 'a external_interp =
     let () = fn ~env ~models ~output ?ctx arg in
     Buffer.contents buffer
 
+let from_chan = content (Jg_interp.from_chan ?file_path:None)
+
 let from_file = content Jg_interp.from_file
 
 let from_string = content (Jg_interp.from_string ?file_path:None)
