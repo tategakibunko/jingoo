@@ -368,17 +368,30 @@ and ast_from_lexbuf filename lexbuf =
   let ast = Jg_parser.input Jg_lexer.main lexbuf in
   ast
 
+and error e lexbuf =
+  let curr = lexbuf.Lexing.lex_curr_p in
+  let l = curr.Lexing.pos_lnum in
+  let c = curr.Lexing.pos_cnum - curr.Lexing.pos_bol in
+  let t = Lexing.lexeme lexbuf in
+  let msg = Printf.sprintf "Error line %d, col %d, token %s (%s)" l c t e in
+  raise (SyntaxError msg)
+
 and ast_from_file ~env filename =
   let filename = get_file_path env filename in
   let ch = open_in filename in
   let lexbuf = Lexing.from_channel ch in
-  let ast = ast_from_lexbuf (Some filename) lexbuf in
-  close_in ch;
-  ast
+  try
+    let ast = ast_from_lexbuf (Some filename) lexbuf in
+    close_in ch;
+    ast
+  with SyntaxError e ->
+    close_in ch ;
+    error e lexbuf
 
 and ast_from_string string =
   let lexbuf = Lexing.from_string string in
-  ast_from_lexbuf None lexbuf
+  try ast_from_lexbuf None lexbuf
+  with SyntaxError e -> error e lexbuf
 
 and eval_aux ~env ~ctx ast =
   let ast =
