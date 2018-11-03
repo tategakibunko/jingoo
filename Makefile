@@ -7,7 +7,7 @@ all:
 	$(DUNE) build
 
 %dune: %dune.in
-	sed -e "s|%%%OUNIT_TESTDATA_DIR%%%|$(ROOT_DIR)/tests/data|g" $< > $@
+	sed -e "s|%%%OUNIT_TESTDATA_DIR%%%|$(ROOT_DIR)tests/data|g" $< > $@
 
 test: tests/dune
 	$(DUNE) build @tests/runtest
