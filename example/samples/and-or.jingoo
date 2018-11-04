@@ -1,0 +1,6 @@
+{% if foo == "BAR" || bar == "BAR" %}✓{% endif %}
+{% if foo == "BAR" or bar == "BAR" %}✓{% endif %}
+{% if foo == "FOO" && bar == "BAR" %}✓{% endif %}
+{% if foo == "FOO" and bar == "BAR" %}✓{% endif %}
+{% if not (foo == "BAR" and bar == "BAR") %}✗{% endif %}
+{% if ! (foo == "BAR" || bar == "FOO") %}✗{% endif %}

@@ -1,0 +1,10 @@
+{%- set ns = namespace (foo=0, bar='bar') -%}
+
+{%- for i in [1,2,3] -%}
+  {%- set ns.foo = ns.foo + i -%}
+  {%- set ns.bar = ns.bar + i -%}
+{%- endfor -%}
+
+{%- if ns.foo == 6 and ns.bar == 'bar123' -%}
+  Namespace works :)
+{%- endif %}

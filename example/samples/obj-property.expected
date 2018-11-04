@@ -1,0 +1,4 @@
+- person.name: alice
+- person.age: 42
+- person["name"]: alice
+- person["age"]: 42

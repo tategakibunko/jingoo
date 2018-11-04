@@ -767,6 +767,8 @@ let jg_attr ?kwargs:_ prop obj =
 let jg_center ?kwargs:_ ?defaults:_ value =
   value (* TODO *)
 
+(** [jg_default default value]
+    Return [value] if different from [Tnull], and [default] otherwise. *)
 let jg_default ?kwargs:_ default value =
   match value with
     | Tnull -> default
@@ -788,6 +790,9 @@ let jg_reverse ?kwargs:_ lst =
       Tarray (Array.init len (fun i -> Array.get a (len - 1 - i)))
     | _ -> failwith_type_error_1 "jg_reverse" lst
 
+(** [jg_last seq].
+    Return the last element of sequence [seq].
+*)
 let jg_last ?kwargs:_ lst =
   match lst with
     | Tlist lst

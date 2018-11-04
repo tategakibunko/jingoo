@@ -1,0 +1,21 @@
+(executable
+  (name test)
+  (libraries jingoo)
+  (modules test)
+)
+
+(alias
+  (name runtest)
+  (deps (glob_files samples/*.{jingoo,expected,json}))
+  (action (setenv DOC_SAMPLE_DIR "%%%ROOT_DIR%%%/example/samples" (run ./test.exe) ) )
+)
+
+(ocamllex (modules jg_highlight) )
+
+(library
+  (name jg_highlight)
+  (libraries jingoo)
+  (modules jg_highlight)
+)
+
+(alias (name doc) (deps index.html) )

@@ -8,7 +8,7 @@
   *)
   open Jg_parser
 
-  type lexer_mode = [`Logic | `Html]
+  type lexer_mode = [ `Logic | `Html ]
   type lexer_context = {
     mutable mode : lexer_mode;
     mutable terminator : string option;

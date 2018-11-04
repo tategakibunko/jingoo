@@ -1,0 +1,29 @@
+{% function incr (i) %}{{i+1}}{% endfunction -%}
+incr(1) = {{ incr (1) }}
+incr(-1) = {{ incr (-1) }}
+
+{% function lt1 (i) %}{{ i < 1 }}{% endfunction -%}
+lt1(1) = {{ lt1 (1) }}
+lt1(-1) = {{ lt1 (-1) }}
+
+{% function obj (x, y) %}{{ {a:x,b:y} }}{% endfunction -%}
+
+obj(1,2).a = {{ obj(1,2).a }}
+obj(1,2).b = {{ obj(1,2).b }}
+
+obj('a',2.5).a = {{ obj('a',2.5).a }}
+obj('a',2.5).b = {{ obj('a',2.5).b }}
+
+{% function inv (reverse=false, x, y) -%}
+  {%- if reverse %}{{ {a:y,b:x} }}{% else %}{{ {a:x,b:y} }}{% endif -%}
+{%- endfunction -%}
+
+inv('a','b').a = {{ (inv('a','b')).a }}
+inv(reverse=true,'a','b').a = {{ (inv(reverse=true,'a','b')).a }}
+
+{% function add_val (val=0, x) -%}
+  {{ [ x, (x + val) ] }}
+{%- endfunction -%}
+{% for x in [-1,0,1,2] | map (add_val, val=-2) -%}
+  add_val(val=-2,{{x[0]}}) = {{x[1]}}
+{% endfor -%}

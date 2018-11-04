@@ -1,0 +1,19 @@
+incr(1) = 2
+incr(-1) = 0
+
+lt1(1) = false
+lt1(-1) = true
+
+obj(1,2).a = 1
+obj(1,2).b = 2
+
+obj('a',2.5).a = a
+obj('a',2.5).b = 2.5
+
+inv('a','b').a = a
+inv(reverse=true,'a','b').a = b
+
+add_val(val=-2,-1) = -3
+add_val(val=-2,0) = -2
+add_val(val=-2,1) = -1
+add_val(val=-2,2) = 0

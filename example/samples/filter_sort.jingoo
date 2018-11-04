@@ -1,0 +1,10 @@
+{%- function ic_fst_cmp (a, b) -%}
+  {{ compare (lower (a[0]), lower(b[0])) }}
+{%- endfunction -%}
+
+{%- set data = [("A", 0), ("Z", 2), ("b", 1)] -%}
+
+sort(data):
+ {% for x in data | sort %} {{ x[0] }}{% endfor %}
+sort(data, compare=if_fst_cmp):
+ {% for x in data | sort (compare=ic_fst_cmp) %} {{ x[0] }}{% endfor %}

@@ -1,0 +1,6 @@
+Only the last expression is returned:
+- "From eval!"
+- "Hello, world! From eval!"
+
+Be careful with trailing whitespaces:
+- " "
