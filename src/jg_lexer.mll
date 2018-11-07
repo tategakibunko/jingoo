@@ -107,7 +107,12 @@ rule main = parse
     add_char '}';
     main lexbuf
   }
-  | "{%" blank+ "raw" blank+ "%}" { raw lexbuf }
+  | ("{%" | (blank | newline)* "{%-")
+       blank* "raw" blank*
+     ("%}" | "-%}" (blank | newline)*) as str {
+    String.iter (function '\n' -> Lexing.new_line lexbuf | _ -> () ) str;
+    raw lexbuf
+  }
   | ("{%" | (blank | newline)* "{%-") as str {
     String.iter (function '\n' -> Lexing.new_line lexbuf | _ -> () ) str;
     if ctx.mode = `Logic then fail lexbuf @@ "Unexpected '{%' token" ;
@@ -271,7 +276,12 @@ and comment = parse
   }
 
 and raw = parse
-  | "{%" blank+ "endraw" blank+ "%}" { TEXT (get_buf()) }
+  | ("{%" | (blank | newline)* "{%-")
+      blank* "endraw" blank*
+    ("%}" | "-%}" (blank | newline)*) as str {
+    String.iter (function '\n' -> Lexing.new_line lexbuf | _ -> () ) str ;
+    TEXT (get_buf())
+  }
   | _ as c {
     if c = '\n' then Lexing.new_line lexbuf;
     add_char c;
