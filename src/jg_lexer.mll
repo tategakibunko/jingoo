@@ -12,14 +12,12 @@
   type lexer_context = {
     mutable mode : lexer_mode;
     mutable terminator : string option;
-    mutable eof : bool;
     mutable token_required : bool ;
   }
 
   let ctx = {
     mode = `Html;
     terminator = None;
-    eof = false;
     token_required = false
   }
 
@@ -53,7 +51,6 @@
     ctx.token_required <- token_required
 
   let reset_context () =
-    ctx.eof <- false;
     ctx.mode <- `Html;
     ctx.terminator <- None;
     ctx.token_required <- false;
@@ -261,11 +258,7 @@ rule main = parse
       | _ -> fail lexbuf @@ spf "unexpected token:%c" c
   }
   | eof {
-    match ctx.eof with
-      | true -> EOF
-      | _ ->
-	ctx.eof <- true;
-	TEXT (get_buf ())
+      match get_buf () with "" -> EOF | s -> TEXT s
   }
 
 and comment = parse
