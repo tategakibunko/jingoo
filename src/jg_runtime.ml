@@ -185,7 +185,7 @@ and jg_obj_lookup obj prop_name =
     | Thash(hash) -> (try Hashtbl.find hash prop_name with Not_found -> Tnull)
     | Tpat(fn) -> (try fn prop_name with Not_found -> Tnull)
     | Tlazy _ | Tvolatile _ -> jg_obj_lookup (jg_force obj) prop_name
-    | _ -> failwith ("jg_obj_lookup:not object when looking for '"  ^ prop_name ^ "'")
+    | _ -> failwith_type_error_1 ("jg_obj_lookup(\"" ^ prop_name ^ "\")") obj
 
 let jg_obj_lookup_by_name ctx obj_name prop_name =
   match jg_get_value ctx obj_name with
@@ -256,15 +256,11 @@ let jg_apply_filters ?(autoescape=true) ?(safe=false) ctx text filters =
   if safe || not autoescape then text else jg_escape_html text
 
 let jg_output ?(autoescape=true) ?(safe=false) ctx value =
-  if ctx.serialize then ctx.output @@ Marshal.to_string value []
+  if ctx.serialize || (ctx.active_filters = [] && safe) then
+    ctx.output value
   else
-    begin
-      match ctx.active_filters, safe, value with
-      | [], true, value -> ctx.output @@ string_of_tvalue value
-      | _ ->
-        ctx.output @@ string_of_tvalue @@
-        jg_apply_filters ctx value ctx.active_filters ~safe ~autoescape
-    end ;
+    ctx.output @@
+    jg_apply_filters ctx value ctx.active_filters ~safe ~autoescape ;
   ctx
 
 let jg_obj_lookup_path obj path =

@@ -73,12 +73,12 @@ let rec value_of_expr env ctx = function
     ) expr_list)
 
   | ApplyExpr(IdentExpr("eval"), [expr]) ->
-    let buffer = Buffer.create 256 in
-    let ctx = {ctx with serialize = true ; output = Buffer.add_string buffer } in
+    let value = ref Tnull in
+    let ctx = {ctx with serialize = true ; output = fun x -> value := x } in
     let str = string_of_tvalue @@ value_of_expr env ctx expr in
     let ast = ast_from_string str in
     let _ = List.fold_left (eval_statement env) ctx ast in
-    (Marshal.from_string (Buffer.contents buffer) 0 : tvalue)
+    !value
 
   | ApplyExpr(IdentExpr("safe"), [expr]) ->
      value_of_expr env ctx expr
@@ -255,14 +255,13 @@ and eval_statement env ctx = function
     let kwargs = kwargs_of env ctx def_args in
     let macro = Macro (arg_names, kwargs, ast) in
     let fn =
-      let buffer = Buffer.create 256 in
       Tfun (fun ?(kwargs=[]) args ->
-          Buffer.reset buffer ;
-          let ctx = { ctx with serialize = true ; output = Buffer.add_string buffer } in
+          let value = ref Tnull in
+          let ctx = { ctx with serialize = true ; output = fun x -> value := x } in
           let ctx = jg_push_frame ctx in
           ignore (jg_eval_aux ctx args kwargs macro @@ fun ctx ast ->
                   List.fold_left (eval_statement env) ctx ast) ;
-          (Marshal.from_string (Buffer.contents buffer) 0 : tvalue)
+          !value
         ) in
     jg_set_value ctx name fn ;
     ctx

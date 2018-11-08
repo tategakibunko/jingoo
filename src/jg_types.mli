@@ -47,7 +47,7 @@ and context = {
   namespace_table : (string, frame) Hashtbl.t;
   active_filters : string list;
   serialize: bool;
-  output : string -> unit;
+  output : tvalue -> unit;
 }
 
 and frame = (string, tvalue) Hashtbl.t
