@@ -174,6 +174,7 @@ val unbox_array : tvalue -> tvalue array
 val unbox_obj : tvalue -> (string * tvalue) list
 val unbox_hash : tvalue -> (string, tvalue) Hashtbl.t
 val unbox_pat : tvalue -> (string -> tvalue)
+val unbox_lazy : tvalue -> tvalue Lazy.t
 
 (** {2 Helpers for function writing} *)
 

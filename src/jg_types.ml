@@ -167,6 +167,9 @@ let unbox_pat = function
   | Tpat pat -> pat
   | _ -> raise @@ Invalid_argument "unbox_pat"
 
+let unbox_lazy = function
+  | Tlazy l -> l
+  | _ -> raise @@ Invalid_argument "unbox_lazy"
 
 let rec func_arg1 (f: ?kwargs:kwargs -> tvalue -> tvalue) =
   Tfun (fun ?(kwargs=[]) args ->
