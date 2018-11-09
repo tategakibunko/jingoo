@@ -406,7 +406,7 @@ let rec jg_is_true = function
   | Thash x -> Hashtbl.length x > 0
   | Tpat _ -> true
   | Tnull -> false
-  | Tfun _ -> failwith "jg_is_true:type error(function)"
+  | Tfun _ -> true
   | Tarray a -> Array.length a > 0
   | Tlazy fn -> jg_is_true (Lazy.force fn)
   | Tvolatile fn -> jg_is_true (fn ())
