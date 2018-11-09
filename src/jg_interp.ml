@@ -202,26 +202,28 @@ and eval_statement env ctx = function
      | None -> ctx (* do nothing *)
     )
 
-  | IncludeStatement(IdentExpr(name), with_context) ->
-    eval_statement env ctx @@ IncludeStatement(LiteralExpr(jg_get_value ctx name), with_context)
+  | IncludeStatement(e, with_ctx) ->
+    begin match value_of_expr env ctx e with
+      | Tstr path ->
+        if with_ctx then
+          let ast = ast_from_file ~env path in
+          List.fold_left (eval_statement env) ctx ast
+        else
+          let ast = ast_from_file ~env path in
+          let ctx' = jg_init_context ctx.output env in
+          let _ = List.fold_left (eval_statement env) ctx' ast in
+          ctx
+      | x -> Jg_runtime.failwith_type_error_1 "Jg_interp:include" x
+    end
 
-  | IncludeStatement(LiteralExpr(Tstr path), true) ->
-    let ast = ast_from_file ~env path in
-    List.fold_left (eval_statement env) ctx ast
-
-  | IncludeStatement(LiteralExpr(Tstr path), false) ->
-    let ast = ast_from_file ~env path in
-    let ctx' = jg_init_context ctx.output env in
-    let _ = List.fold_left (eval_statement env) ctx' ast in
-    ctx
-
-  | RawIncludeStatement(IdentExpr(name)) ->
-    eval_statement env ctx @@ RawIncludeStatement(LiteralExpr(jg_get_value ctx name))
-
-  | RawIncludeStatement(LiteralExpr(Tstr path)) ->
-    let file_path = get_file_path env path in
-    let source = Jg_utils.read_file_as_string file_path in
-    jg_output ctx (Tstr source) ~safe:true
+  | RawIncludeStatement(e) ->
+    begin match value_of_expr env ctx e with
+      | Tstr path ->
+        let file_path = get_file_path env path in
+        let source = Jg_utils.read_file_as_string file_path in
+        jg_output ctx (Tstr source) ~safe:true
+      | x -> Jg_runtime.failwith_type_error_1 "Jg_interp:rawinclude" x
+    end
 
   | WithStatement(binds, ast) ->
     let kwargs = kwargs_of env ctx binds in
