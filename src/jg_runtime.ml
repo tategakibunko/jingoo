@@ -400,9 +400,9 @@ let rec jg_is_true = function
   | Tstr x -> x <> ""
   | Tint x -> x != 0
   | Tfloat x -> (x > epsilon_float) || (x < -. epsilon_float)
-  | Tlist x -> List.length x > 0
-  | Tset x -> List.length x > 0
-  | Tobj x -> List.length x > 0
+  | Tlist x -> x <> []
+  | Tset x -> x <> []
+  | Tobj x -> x <> []
   | Thash x -> Hashtbl.length x > 0
   | Tpat _ -> true
   | Tnull -> false
