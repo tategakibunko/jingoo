@@ -256,15 +256,20 @@ and eval_statement env ctx = function
     let arg_names = ident_names_of def_args in
     let kwargs = kwargs_of env ctx def_args in
     let macro = Macro (arg_names, kwargs, ast) in
+    let apply ~kwargs args =
+      let value = ref Tnull in
+      let ctx = { ctx with serialize = true ; output = fun x -> value := x } in
+      let ctx = jg_push_frame ctx in
+      ignore (jg_eval_aux ctx args kwargs macro @@ fun ctx ast ->
+              List.fold_left (eval_statement env) ctx ast) ;
+      !value
+    in
+    (* FIXME: generalize this for any number of arguments *)
     let fn =
-      Tfun (fun ?(kwargs=[]) args ->
-          let value = ref Tnull in
-          let ctx = { ctx with serialize = true ; output = fun x -> value := x } in
-          let ctx = jg_push_frame ctx in
-          ignore (jg_eval_aux ctx args kwargs macro @@ fun ctx ast ->
-                  List.fold_left (eval_statement env) ctx ast) ;
-          !value
-        ) in
+      match List.length arg_names with
+      | 2 -> func_arg2 (fun ?(kwargs=kwargs) a b -> apply ~kwargs [a ; b])
+      | 3 -> func_arg3 (fun ?(kwargs=kwargs) a b c -> apply ~kwargs [a ; b ; c])
+      | _ -> Tfun (fun ?(kwargs=kwargs) args -> apply ~kwargs args) in
     jg_set_value ctx name fn ;
     ctx
 
