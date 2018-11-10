@@ -223,6 +223,7 @@ let jg_nth value i =
   match value with
   | Tarray a -> a.(i)
   | Tset l | Tlist l -> List.nth l i
+  | Tstr s -> Tstr (String.make 1 @@ String.get s i)
   | _ -> failwith_type_error_1 "jg_nth" value
 
 (** [jg_escape_html x] escape [x] string representation using {!Jg_utils.escape_html} *)
