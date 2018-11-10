@@ -691,7 +691,7 @@ let jg_split ?kwargs:_ pat text =
   match pat, text with
     | Tstr pat, Tstr text ->
       let lst =
-	Re.Pcre.split ~rex:(Re.Pcre.regexp pat) text |>
+	Re.Str.split (Re.Str.regexp pat) text |>
 	  List.map (fun str -> Tstr str) in
       Tlist lst
   | _ -> failwith_type_error_2 "jg_split" pat text
@@ -809,7 +809,7 @@ let jg_random ?kwargs:_ lst =
 let jg_replace ?kwargs:_ src dst str =
   match src, dst, str with
     | Tstr src, Tstr dst, Tstr str ->
-      Tstr (Re.replace_string (Re.Pcre.regexp src) ~by:dst str)
+      Tstr (Re.Str.global_replace (Re.Str.regexp src) dst str)
     | _ -> failwith_type_error_3 "jg_replace" src dst str
 
 (** [jg_add a b] is [a + b]. It only support int and float.
