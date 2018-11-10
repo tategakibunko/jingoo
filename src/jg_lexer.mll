@@ -289,13 +289,16 @@ and raw = parse
   }
 
 and string_literal terminator = parse
-  | '\\' ['\\' '\"' 'n' 't' 'r'] {
+  | '\\' (_ as c) {
     let chr =
-      match Lexing.lexeme_char lexbuf 1 with
-        | 'n' -> '\n'
-        | 't' -> '\t'
-        | 'r' -> '\r'
-        | c -> c in
+      match c with
+      | '\\' -> '\\'
+      | 'n' -> '\n'
+      | 't' -> '\t'
+      | 'r' -> '\r'
+      | c when c = terminator -> c
+      | c -> fail lexbuf @@ spf "illegal backslash escape:%c" c
+    in
     add_char chr;
     string_literal terminator lexbuf
   }
