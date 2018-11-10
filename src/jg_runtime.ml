@@ -1177,6 +1177,24 @@ let jg_reject =
 let jg_filter =
   fun ?kwargs:_ -> jg_filter_aux "jg_filter" (fun x -> x)
 
+(** [jg_fold fn acc [b1, ..., bn]] is [fn (... (fn (fn acc b1) b2) ...) bn].
+*)
+let jg_fold = fun ?kwargs:_ fn acc seq ->
+  let wrap fn acc x = fn [ acc ; x ] in
+  match fn, seq with
+  | Tfun fn, Tarray a -> Array.fold_left (wrap fn) acc a
+  | Tfun fn, Tlist l -> List.fold_left (wrap fn) acc l
+  | Tfun fn, Tstr s ->
+    let len = UTF8.length s in
+    let rec loop i acc =
+      if i >= len then acc
+      else
+        let x = UTF8.sub s i 1 in
+        loop (i + String.length x) ((wrap fn) acc (Tstr x))
+    in
+    loop 0 acc
+  | _ -> failwith_type_error_3 "jg_fold" fn acc seq
+
 (** [jg_test_divisibleby divisor dividend]
     tests if [dividend] is divisible by [divisor]. *)
 let jg_test_divisibleby ?kwargs:_ num target =
@@ -1245,7 +1263,6 @@ let jg_test_sequence ?kwargs:_ target =
 let jg_test_string ?kwargs:_ target =
   jg_strp target
 
-
 let std_filters = [
   (* built-in filters *)
   ("abs", func_arg1 jg_abs);
@@ -1294,6 +1311,7 @@ let std_filters = [
   ("substring", func_arg3 jg_substring);
   ("sublist", func_arg3 jg_sublist);
   ("wordwrap", func_arg3 jg_wordwrap);
+  ("fold", func_arg3 jg_fold);
 
   (* built-in tests *)
   ("divisibleby", func_arg2 jg_test_divisibleby);

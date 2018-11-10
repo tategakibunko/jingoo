@@ -686,7 +686,7 @@ let alice = Tobj [ "name", Tstr "alice" ; "age", Tint 36 ]
 let bob = Tobj [ "name", Tstr "bob" ; "age", Tint 42 ]
 let carol = Tobj [ "name", Tstr "carol" ; "age", Tint 20]
 
-let text_filter_aux jg_filter expected =
+let test_filter_aux jg_filter expected =
   let persons = Tlist [ alice ; bob ; carol ] in
   let filter = func_arg1 @@ fun ?kwargs:_ x ->
     Tbool (unbox_int (List.assoc "age" (unbox_obj x)) > 30)
@@ -694,10 +694,19 @@ let text_filter_aux jg_filter expected =
   assert_equal_tvalue expected (jg_filter filter persons)
 
 let test_filter _ctx =
-  text_filter_aux jg_filter (Tlist [ alice ; bob ])
+  test_filter_aux jg_filter (Tlist [ alice ; bob ])
 
 let test_reject _ctx =
-  text_filter_aux jg_reject (Tlist [ carol ])
+  test_filter_aux jg_reject (Tlist [ carol ])
+
+let test_fold _ctx =
+  let test seq =
+    assert_equal_tvalue
+      (Tint 45)
+      (jg_fold (func_arg2 @@ fun ?kwargs:_ -> jg_add) (Tint 0) seq)
+  in
+  test (Tlist [Tint 0;Tint 1;Tint 2;Tint 3;Tint 4;Tint 5;Tint 6;Tint 7;Tint 8;Tint 9]) ;
+  test (Tarray [|Tint 0;Tint 1;Tint 2;Tint 3;Tint 4;Tint 5;Tint 6;Tint 7;Tint 8;Tint 9|])
 
 let suite = "runtime test" >::: [
   "test_escape" >:: test_escape;
@@ -771,5 +780,6 @@ let suite = "runtime test" >::: [
   "test_map" >:: test_map;
   "test_filter" >:: test_filter;
   "test_reject" >:: test_reject;
+  "test_fold" >:: test_fold
 ]
 ;;
