@@ -217,14 +217,20 @@ let jg_pop_filter ctx =
 
 (**/**)
 
-(* FIXME: invert n seq *)
-(** [jg_nth seq n] returns the [n]-th value of sequence [seq] *)
-let jg_nth value i =
+(**/**)
+let jg_nth_aux value i =
   match value with
   | Tarray a -> a.(i)
   | Tset l | Tlist l -> List.nth l i
   | Tstr s -> Tstr (String.make 1 @@ String.get s i)
-  | _ -> failwith_type_error_1 "jg_nth" value
+  | _ -> failwith_type_error_1 "jg_nth_aux" value
+(**/**)
+
+(** [jg_nth n seq] returns the [n]-th value of sequence [seq] *)
+let jg_nth ?kwargs:_ i value =
+  match i with
+  | Tint i -> jg_nth_aux value i
+  | _ -> failwith_type_error_1 "jg_nth" i
 
 (** [jg_escape_html x] escape [x] string representation using {!Jg_utils.escape_html} *)
 let jg_escape_html ?kwargs:_ str =
@@ -1307,6 +1313,7 @@ let std_filters = [
   ("map", func_arg2 jg_map);
   ("reject", func_arg2 jg_reject);
   ("filter", func_arg2 jg_filter);
+  ("nth", func_arg2 jg_nth);
 
   ("replace", func_arg3 jg_replace);
   ("substring", func_arg3 jg_substring);

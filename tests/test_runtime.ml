@@ -239,17 +239,24 @@ let test_replace _ctx =
   let str = Tstr "hoge" in
   let src = Tstr "ho" in
   let dst = Tstr "hi" in
-  let str'= Tstr "hige" in
-  assert_equal_tvalue (jg_replace src dst str) str'
+  let exp = Tstr "hige" in
+  assert_equal_tvalue exp (jg_replace src dst str)
 ;;
 
 let test_replace_uni _ctx =
   let src = Tstr "日本" in
   let dst = Tstr "英" in
   let str = Tstr "日本語" in
-  let str'= Tstr "英語" in
-  assert_equal_tvalue (jg_replace src dst str) str'
+  let exp= Tstr "英語" in
+  assert_equal_tvalue exp (jg_replace src dst str)
 ;;
+
+let test_replace_regex _ctx =
+  let src = Tstr {|\("[^"]*"\)|} in
+  let dst = Tstr ">>>\\1<<<" in
+  let str = Tstr {|"FOO"|} in
+  let exp = Tstr {|>>>"FOO"<<<|} in
+  assert_equal_tvalue exp (jg_replace src dst str)
 
 let test_random _ctx =
   let rec iter ret i =
@@ -452,13 +459,13 @@ let test_sort_compare _ctx =
     Tset [Tstr "b"; Tint 1]
   ] in
   let lower_fst_cmp = function
-    | [a; b] -> jg_compare (jg_lower (jg_nth a 0)) (jg_lower (jg_nth b 0))
+    | [a; b] -> jg_compare (jg_lower (jg_nth_aux a 0)) (jg_lower (jg_nth_aux b 0))
     | _ -> failwith "invalid args" in
   let jg_lower_fst_cmp = Tfun (fun ?kwargs:_ values -> lower_fst_cmp values) in
   assert_equal_tvalue (jg_sort data) data;
   assert_equal_tvalue
-    (jg_sort ~kwargs:[("compare", jg_lower_fst_cmp)] data)
     (Tlist [Tset [Tstr "A"; Tint 0]; Tset [Tstr "b"; Tint 1]; Tset [Tstr "Z"; Tint 2]])
+    (jg_sort ~kwargs:[("compare", jg_lower_fst_cmp)] data)
 ;;
 
 let test_sort_string_array _ctx =
@@ -665,12 +672,12 @@ let test_min_max _ctx =
 let test_nth _ctx =
   let list = Tlist [Tint 3; Tint 0; Tint 2] in
   let ary = Tarray [| Tint 1; Tint 10; Tint 12 |] in
-  assert_equal_tvalue (jg_nth list 0) (Tint 3);
-  assert_equal_tvalue (jg_nth list 1) (Tint 0);
-  assert_equal_tvalue (jg_nth list 2) (Tint 2);
-  assert_equal_tvalue (jg_nth ary 0) (Tint 1);
-  assert_equal_tvalue (jg_nth ary 1) (Tint 10);
-  assert_equal_tvalue (jg_nth ary 2) (Tint 12);
+  assert_equal_tvalue (Tint 3) (jg_nth (Tint 0) list);
+  assert_equal_tvalue (Tint 0) (jg_nth (Tint 1) list);
+  assert_equal_tvalue (Tint 2) (jg_nth (Tint 2) list);
+  assert_equal_tvalue (Tint 1) (jg_nth (Tint 0) ary);
+  assert_equal_tvalue (Tint 10) (jg_nth (Tint 1) ary);
+  assert_equal_tvalue (Tint 12) (jg_nth (Tint 2) ary);
 ;;
 
 let test_map _ctx =
@@ -741,6 +748,7 @@ let suite = "runtime test" >::: [
   "test_last" >:: test_last;
   "test_replace" >:: test_replace;
   "test_replace_uni" >:: test_replace_uni;
+  "test_replace_regex" >:: test_replace_regex;
   "test_random" >:: test_random;
   "test_slice" >:: test_slice;
   "test_wordcount" >:: test_wordcount;
