@@ -1198,6 +1198,15 @@ let jg_fold = fun ?kwargs:_ fn acc seq ->
     loop 0 acc
   | _ -> failwith_type_error_3 "jg_fold" fn acc seq
 
+(** [for_all fn seq]
+    checks if all elements of the sequence [seq] satisfy the predicate [fn].
+*)
+let jg_forall = fun ?kwargs:_ fn seq ->
+  match seq, fn with
+  | (Tlist l, Tfun fn) -> Tbool (List.for_all (fun x -> unbox_bool @@ fn [x]) l)
+  | (Tarray l, Tfun fn) -> Tbool (Array.for_all (fun x -> unbox_bool @@ fn [x]) l)
+  | _ -> failwith_type_error_2 "jg_forall" fn seq
+
 (** [jg_test_divisibleby divisor dividend]
     tests if [dividend] is divisible by [divisor]. *)
 let jg_test_divisibleby ?kwargs:_ num target =
@@ -1310,6 +1319,7 @@ let std_filters = [
   ("reject", func_arg2 jg_reject);
   ("filter", func_arg2 jg_filter);
   ("nth", func_arg2 jg_nth);
+  ("forall", func_arg2 jg_forall);
 
   ("replace", func_arg3 jg_replace);
   ("substring", func_arg3 jg_substring);

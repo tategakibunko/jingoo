@@ -715,6 +715,15 @@ let test_fold _ctx =
   test (Tlist [Tint 0;Tint 1;Tint 2;Tint 3;Tint 4;Tint 5;Tint 6;Tint 7;Tint 8;Tint 9]) ;
   test (Tarray [|Tint 0;Tint 1;Tint 2;Tint 3;Tint 4;Tint 5;Tint 6;Tint 7;Tint 8;Tint 9|])
 
+let test_forall _ctx =
+  let test res seq =
+    assert_equal_tvalue
+      (Tbool res)
+      (jg_forall (func_arg1 @@ fun ?kwargs:_ x -> Tbool (unbox_int x < 10)) seq)
+  in
+  test true (Tlist [Tint 0;Tint 1;Tint 2;Tint 3;Tint 4;Tint 5;Tint 6;Tint 7;Tint 8;Tint 9]) ;
+  test false (Tarray [|Tint 0;Tint 10;Tint 2|])
+
 let suite = "runtime test" >::: [
   "test_escape" >:: test_escape;
   "test_string_of_tvalue" >:: test_string_of_tvalue;
@@ -788,6 +797,7 @@ let suite = "runtime test" >::: [
   "test_map" >:: test_map;
   "test_filter" >:: test_filter;
   "test_reject" >:: test_reject;
-  "test_fold" >:: test_fold
+  "test_fold" >:: test_fold;
+  "test_forall" >:: test_forall;
 ]
 ;;
