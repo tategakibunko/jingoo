@@ -32,7 +32,6 @@ let test_persons = Tlist [
     ("rank", Tint 5);
   ])];
 ]
-;;
 
 let tval_equal t1 t2 =
   match jg_eq_eq t1 t2 with
@@ -44,8 +43,7 @@ let test_escape _ctx =
   assert_equal_tvalue (Tstr "&#34;&#34;") (jg_escape_html (Tstr "\"\""));
   assert_equal_tvalue
     (Tstr "Lo&#38;rem&#62;\n I&#60;ps&#34;um")
-    (jg_escape_html (Tstr "Lo&rem>\n I<ps\"um"));
-;;
+    (jg_escape_html (Tstr "Lo&rem>\n I<ps\"um"))
 
 let test_string_of_tvalue _ctx =
   assert_equal "a" (string_of_tvalue (Tstr "a"));
@@ -53,15 +51,13 @@ let test_string_of_tvalue _ctx =
   assert_equal "1." (string_of_tvalue (Tfloat 1.0));
   assert_equal "1.2" (string_of_tvalue (Tfloat 1.2));
   assert_equal "<obj>" (string_of_tvalue (Tobj [("name", Tstr "value")]));
-  assert_equal "<list>" (string_of_tvalue (Tlist [Tint 0; Tint 1]));
-;;
+  assert_equal "<list>" (string_of_tvalue (Tlist [Tint 0; Tint 1]))
 
 let test_plus _ctx =
   assert_equal_tvalue (Tint 2) (jg_plus (Tint 1) (Tint 1));
   assert_equal_tvalue (Tint 0) (jg_plus (Tint 1) (Tint (-1)));
   assert_equal_tvalue (Tfloat 1.0) (jg_plus (Tint 0) (Tfloat 1.0));
-  assert_equal_tvalue (Tfloat 2.0) (jg_plus (Tfloat 1.0) (Tfloat 1.0));
-;;
+  assert_equal_tvalue (Tfloat 2.0) (jg_plus (Tfloat 1.0) (Tfloat 1.0))
 
 let test_minus _ctx =
   assert_equal_tvalue (Tint 0) (jg_minus (Tint 1) (Tint 1));
@@ -69,8 +65,7 @@ let test_minus _ctx =
   assert_equal_tvalue (Tint 2) (jg_minus (Tint 1) (Tint (-1)));
   assert_equal_tvalue (Tfloat (-1.0)) (jg_minus (Tint 0) (Tfloat 1.0));
   assert_equal_tvalue (Tfloat 1.0) (jg_minus (Tint 1) (Tfloat 0.0));
-  assert_equal_tvalue (Tfloat 0.0) (jg_minus (Tfloat 1.0) (Tfloat 1.0));
-;;
+  assert_equal_tvalue (Tfloat 0.0) (jg_minus (Tfloat 1.0) (Tfloat 1.0))
 
 let test_list_eq_eq _ctx =
   let lst1 = [Tint 0; Tint 1; Tint 2] in
@@ -79,8 +74,7 @@ let test_list_eq_eq _ctx =
   let lst4 = [Tint 0; Tint 1] in
   assert_equal ~cmp:jg_list_eq_eq lst1 lst2;
   assert_equal (jg_list_eq_eq lst1 lst3) false;
-  assert_equal (jg_list_eq_eq lst1 lst4) false;
-;;
+  assert_equal (jg_list_eq_eq lst1 lst4) false
 
 let test_obj_eq_eq _ctx =
   let obj1 = Tobj [("name", Tstr "john"); ("age", Tint 20)] in
@@ -89,8 +83,7 @@ let test_obj_eq_eq _ctx =
   let obj4 = Tobj [("age", Tint 20); ("name", Tstr "john")] in
   assert_equal ~cmp:jg_obj_eq_eq obj1 obj2 ;
   assert_equal (jg_obj_eq_eq obj1 obj3) false;
-  assert_equal ~cmp:jg_obj_eq_eq obj1 obj4;
-;;
+  assert_equal ~cmp:jg_obj_eq_eq obj1 obj4
 
 let test_batch_list _ctx =
   let ary = jg_range (Tint 0) (Tint 9) in
@@ -102,7 +95,6 @@ let test_batch_list _ctx =
     Tlist [(Tint 8); (Tint 9); (Tstr "x"); (Tstr "x")];
   ] in
   assert_equal_tvalue expect_list batched_list
-;;
 
 (* if fill_with keyword is not given, final row is shrinked by list_length mod slice_count *)
 let test_batch_list2 _ctx =
@@ -115,7 +107,6 @@ let test_batch_list2 _ctx =
     Tlist [(Tint 8); (Tint 9)]
   ] in
   assert_equal_tvalue expect_list batched_list
-;;
 
 let test_batch_array _ctx =
   let ary = jg_range (Tint 0) (Tint 9) in
@@ -126,7 +117,6 @@ let test_batch_array _ctx =
     Tarray [| (Tint 8); (Tint 9); (Tstr "x"); (Tstr "x") |];
   |] in
   assert_equal_tvalue expect_ary batched_ary
-;;
 
 (* if fill_with keyword is not given, final row is shrinked by array_length mod slice_count *)
 let test_batch_array2 _ctx =
@@ -138,46 +128,37 @@ let test_batch_array2 _ctx =
     Tarray [| (Tint 8); (Tint 9) |];
   |] in
   assert_equal_tvalue expect_ary batched_ary
-;;
 
 let test_capitalize _ctx =
   let orig = Tstr "car" in
   let caps = Tstr "Car" in
   assert_equal_tvalue (jg_capitalize orig) caps
-;;
 
 let test_default _ctx =
   assert_equal_tvalue (jg_default (Tstr "hello") Tnull) (Tstr "hello");
   assert_equal_tvalue (jg_default (Tstr "hello") (Tstr "hoge")) (Tstr "hoge")
-;;
 
 let test_length _ctx =
   assert_equal_tvalue (jg_length (Tstr "hoge")) (Tint 4);
   assert_equal_tvalue (jg_length (Tstr "日本語")) (Tint 3);
-  assert_equal_tvalue (jg_length (Tlist [Tint 0; Tint 1])) (Tint 2);
-;;
+  assert_equal_tvalue (jg_length (Tlist [Tint 0; Tint 1])) (Tint 2)
 
 let test_strlen _ctx =
   assert_equal_tvalue (jg_strlen (Tstr "hoge")) (Tint 4);
-  assert_equal_tvalue (jg_strlen (Tstr "日本語")) (Tint 3);
-;;
+  assert_equal_tvalue (jg_strlen (Tstr "日本語")) (Tint 3)
 
 let test_abs _ctx =
   assert_equal_tvalue (jg_abs (Tint (-1))) (Tint 1);
-  assert_equal_tvalue (jg_abs (Tint 1)) (Tint 1);
-;;
+  assert_equal_tvalue (jg_abs (Tint 1)) (Tint 1)
 
 let test_upper _ctx =
   assert_equal_tvalue (jg_upper (Tstr "aaa")) (Tstr "AAA")
-;;
 
 let test_lower _ctx =
   assert_equal_tvalue (jg_lower (Tstr "AAA")) (Tstr "aaa")
-;;
 
 let test_join _ctx =
   assert_equal_tvalue (jg_join (Tstr ",") (Tlist [Tstr "a"; Tstr "b"])) (Tstr "a,b")
-;;
 
 let test_substring _ctx =
   assert_equal_tvalue (jg_substring (Tint 0) (Tint 1) (Tstr "hoge")) (Tstr "h");
@@ -209,18 +190,15 @@ let test_substring _ctx =
   assert_equal_tvalue (jg_substring (Tint 0) (Tint 4) (Tstr "日本語")) (Tstr "日本語");
   assert_equal_tvalue (jg_substring (Tint 1) (Tint 4) (Tstr "日本語")) (Tstr "本語");
   assert_equal_tvalue (jg_substring (Tint 0) (Tint 10) Tnull) (Tstr "")
-;;
 
 let test_truncate _ctx =
   assert_equal_tvalue (jg_truncate (Tint 3) (Tstr "123456789")) (Tstr "123")
-;;
 
 [@@@warning "-3"]
 let test_md5 _ctx =
   let src = "hoge" in
   let md5 = String.lowercase src |> Digest.string |> Digest.to_hex in
   assert_equal_tvalue (jg_md5 (Tstr src)) (Tstr md5)
-;;
 [@@@warning "+3"]
 
 let test_reverse _ctx =
@@ -228,12 +206,10 @@ let test_reverse _ctx =
   let rev = List.rev lst in
   let rev' = jg_reverse (Tlist lst) in
   List.iter2 assert_equal_tvalue rev (unbox_list rev')
-;;
 
 let test_last _ctx =
   let lst = Tlist [Tint 0; Tint 1] in
   assert_equal_tvalue (jg_last lst) (Tint 1)
-;;
 
 let test_replace _ctx =
   let str = Tstr "hoge" in
@@ -241,7 +217,6 @@ let test_replace _ctx =
   let dst = Tstr "hi" in
   let exp = Tstr "hige" in
   assert_equal_tvalue exp (jg_replace src dst str)
-;;
 
 let test_replace_uni _ctx =
   let src = Tstr "日本" in
@@ -249,7 +224,6 @@ let test_replace_uni _ctx =
   let str = Tstr "日本語" in
   let exp= Tstr "英語" in
   assert_equal_tvalue exp (jg_replace src dst str)
-;;
 
 let test_replace_regex _ctx =
   let src = Tstr {|\("[^"]*"\)|} in
@@ -265,7 +239,6 @@ let test_random _ctx =
   let lst'= unbox_list @@ jg_random (Tlist lst) in
   let is_eq_eq = List.for_all2 (=) lst lst' in
   assert_equal is_eq_eq false
-;;
 
 let test_slice _ctx =
   let lst = Tlist [Tint 1; Tint 2; Tint 3; Tint 4; Tint 5] in
@@ -276,47 +249,39 @@ let test_slice _ctx =
   ] in
   let result = jg_slice (Tint 2) lst in
   assert_equal_tvalue expect result
-;;
 
 let test_wordcount _ctx =
   assert_equal_tvalue (jg_wordcount (Tstr "hoge hige hage")) (Tint 3);
   assert_equal_tvalue (jg_wordcount (Tstr "hoge")) (Tint 1);
   assert_equal_tvalue (jg_wordcount (Tstr "")) (Tint 0);
   assert_equal_tvalue (jg_wordcount (Tstr "日　本　語")) (Tint 3)
-;;
 
 let test_trim _ctx =
   assert_equal_tvalue (jg_trim (Tstr " a \n b c ")) (Tstr "a \n b c");
   assert_equal_tvalue (jg_trim (Tstr "　日　本\n　　語　　　")) (Tstr "日　本\n　　語")
-;;
 
 let test_round _ctx =
   assert_equal_tvalue (jg_round (Tstr "floor") (Tfloat 1.5)) (Tfloat 1.0);
   assert_equal_tvalue (jg_round (Tstr "ceil") (Tfloat 1.5)) (Tfloat 2.0)
-;;
 
 let test_range _ctx =
   assert_equal_tvalue (Tarray [|Tint 0; Tint 1; Tint 2|]) (jg_range (Tint 0) (Tint 2));
   assert_equal_tvalue (Tarray [|Tint 2; Tint 1; Tint 0|]) (jg_range (Tint 2) (Tint 0));
   assert_equal_tvalue (Tarray [|Tint 2012; Tint 2011; Tint 2010; Tint 2009; Tint 2008; Tint 2007; Tint 2006|]) (jg_range (Tint 2012) (Tint 2006));
   assert_equal_tvalue (Tarray [|Tstr "a"; Tstr "b"; Tstr "c"; Tstr "d"|]) (jg_range (Tstr "a") (Tstr "d"));
-  assert_equal_tvalue (Tarray [|Tstr "Z"; Tstr "Y"; Tstr "X"|]) (jg_range (Tstr "Z") (Tstr "X"));
-;;
+  assert_equal_tvalue (Tarray [|Tstr "Z"; Tstr "Y"; Tstr "X"|]) (jg_range (Tstr "Z") (Tstr "X"))
 
 let test_sum _ctx =
   assert_equal_tvalue (jg_sum (Tlist [Tint 0; Tint 1; Tint 2])) (Tint 3);
   assert_equal_tvalue (jg_sum (Tlist [Tint 0; Tint 1; Tfloat 2.1])) (Tfloat 3.1)
-;;
 
 let test_int _ctx =
   assert_equal_tvalue (jg_int (Tint 1)) (Tint 1);
   assert_equal_tvalue (jg_int (Tfloat 1.0)) (Tint 1)
-;;
 
 let test_float _ctx =
   assert_equal_tvalue (jg_float (Tfloat 1.0)) (Tfloat 1.0);
   assert_equal_tvalue (jg_float (Tint 1)) (Tfloat 1.0)
-;;
 
 
 let test_times _ctx =
@@ -327,41 +292,35 @@ let test_times _ctx =
   assert_equal_tvalue (jg_times (Tfloat 2.0) (Tfloat 2.0)) (Tfloat 4.0);
   assert_equal_tvalue (jg_times (Tfloat 0.0) (Tfloat 2.0)) (Tfloat 0.0);
   assert_equal_tvalue (jg_times (Tfloat 0.0) (Tint 1)) (Tfloat 0.0)
-;;
 
 let test_power _ctx =
   assert_equal_tvalue (jg_power (Tint 2) (Tint (-1))) (Tfloat 1.0);
   assert_equal_tvalue (jg_power (Tint 2) (Tint 0)) (Tfloat 1.0);
   assert_equal_tvalue (jg_power (Tint 2) (Tint 1)) (Tfloat 2.0);
-  assert_equal_tvalue (jg_power (Tint 2) (Tint 10)) (Tfloat 1024.0);
-;;
+  assert_equal_tvalue (jg_power (Tint 2) (Tint 10)) (Tfloat 1024.0)
 
 let test_div _ctx =
   assert_raises (Failure "jg_div:zero division error") (fun () -> jg_div (Tint 4) (Tint 0));
   assert_raises (Failure "jg_div:zero division error") (fun () -> jg_div (Tint 4) (Tfloat 0.0));
   assert_equal_tvalue (jg_div (Tint 4) (Tint 2)) (Tint 2);
   assert_equal_tvalue (jg_div (Tfloat 4.0) (Tint 2)) (Tfloat 2.0)
-;;
 
 let test_mod _ctx =
   assert_raises (Failure "jg_mod:zero division error") (fun () -> jg_mod (Tint 4) (Tint 0));
   assert_equal_tvalue (jg_mod (Tint 4) (Tint 3)) (Tint 1);
   assert_equal_tvalue (jg_mod (Tint 4) (Tint 1)) (Tint 0)
-;;
 
 let test_and _ctx =
   assert_equal_tvalue (jg_and (Tbool true) (Tbool true)) (Tbool true);
   assert_equal_tvalue (jg_and (Tbool true) (Tbool false)) (Tbool false);
   assert_equal_tvalue (jg_and (Tbool false) (Tbool true)) (Tbool false);
   assert_equal_tvalue (jg_and (Tbool false) (Tbool false)) (Tbool false)
-;;
 
 let test_or _ctx =
   assert_equal_tvalue (jg_or (Tbool true) (Tbool true)) (Tbool true);
   assert_equal_tvalue (jg_or (Tbool true) (Tbool false)) (Tbool true);
   assert_equal_tvalue (jg_or (Tbool false) (Tbool true)) (Tbool true);
   assert_equal_tvalue (jg_or (Tbool false) (Tbool false)) (Tbool false)
-;;
 
 let test_eq_eq _ctx =
   assert_equal_tvalue (jg_eq_eq (Tint 1) (Tint 1)) (Tbool true);
@@ -372,7 +331,6 @@ let test_eq_eq _ctx =
   assert_equal_tvalue (jg_eq_eq (Tstr "日本語") (Tstr "日本語")) (Tbool true);
   assert_equal_tvalue (jg_eq_eq (Tstr "日本語") (Tstr "英語")) (Tbool false);
   assert_equal_tvalue (jg_eq_eq (Tint 0) (Tstr "hoge")) (Tbool false)
-;;
 
 let test_urlize _ctx =
   assert_equal_tvalue
@@ -380,56 +338,47 @@ let test_urlize _ctx =
     (jg_urlize @@ Tstr "go to http://yahoo.co.jp.") ;
   assert_equal_tvalue
     (Tstr "want to go to <a href=\"http://user@foo:8080/bar/?baz=0\">http://user@foo:8080/bar/?baz=0</a>?")
-    (jg_urlize @@ Tstr "want to go to http://user@foo:8080/bar/?baz=0?") ;
-;;
+    (jg_urlize @@ Tstr "want to go to http://user@foo:8080/bar/?baz=0?") 
 
 let test_title _ctx =
   assert_equal_tvalue
     (Tstr "This Is It!")
     (jg_title @@ Tstr "this is it!")
-;;
 
 let test_striptags _ctx =
   assert_equal_tvalue
     (Tstr "hogehoge higehige hagehage")
     (jg_striptags @@ Tstr "<p class='indent'>hogehoge</p> higehige <b>hagehage</b>")
-;;
 
 let test_sort_int_list _ctx =
   assert_equal_tvalue
     (Tlist [Tint 1; Tint 2; Tint 3])
     (jg_sort @@ Tlist [Tint 3; Tint 1; Tint 2])
-;;
 
 let test_sort_int_array _ctx =
   assert_equal_tvalue
     (Tarray [| Tint 1; Tint 2; Tint 3 |])
     (jg_sort @@ Tarray [| Tint 3; Tint 1; Tint 2 |])
-;;
 
 let test_sort_float_list _ctx =
   assert_equal_tvalue
     (Tlist [Tfloat 1.1; Tfloat 2.2; Tfloat 3.0])
     (jg_sort @@ Tlist [Tfloat 3.0; Tfloat 1.1; Tfloat 2.2])
-;;
 
 let test_sort_float_array _ctx =
   assert_equal_tvalue
     (Tarray [| Tfloat 1.1; Tfloat 2.2; Tfloat 3.0 |])
     (jg_sort @@ Tarray [| Tfloat 3.0; Tfloat 1.1; Tfloat 2.2 |])
-;;
 
 let test_sort_string_list _ctx =
   assert_equal_tvalue
     (Tlist [Tstr "aa"; Tstr "baba"; Tstr "caca"])
     (jg_sort @@ Tlist [Tstr "baba"; Tstr "aa"; Tstr "caca"] )
-;;
 
 let test_sort_rev _ctx =
   assert_equal_tvalue
     (Tlist [Tint 3; Tint 2; Tint 1])
     (jg_sort (Tlist [Tint 3; Tint 1; Tint 2]) ~kwargs:[("reverse", Tbool true)])
-;;
 
 let test_sort_attr _ctx =
   let persons = Tlist [
@@ -449,8 +398,7 @@ let test_sort_attr _ctx =
   let reverse_expected = [name_is "ken"; name_is "bob"] in
   let check_person checker person = checker person in
   assert_equal (List.for_all2 check_person forward_expected forward_sorted) true;
-  assert_equal (List.for_all2 check_person reverse_expected reverse_sorted) true;
-;;
+  assert_equal (List.for_all2 check_person reverse_expected reverse_sorted) true
 
 let test_sort_compare _ctx =
   let data = Tlist [
@@ -466,19 +414,16 @@ let test_sort_compare _ctx =
   assert_equal_tvalue
     (Tlist [Tset [Tstr "A"; Tint 0]; Tset [Tstr "b"; Tint 1]; Tset [Tstr "Z"; Tint 2]])
     (jg_sort ~kwargs:[("compare", jg_lower_fst_cmp)] data)
-;;
 
 let test_sort_string_array _ctx =
   assert_equal_tvalue
     (Tarray [| Tstr "aa"; Tstr "baba"; Tstr "caca" |])
     (jg_sort @@ Tarray [| Tstr "baba"; Tstr "aa"; Tstr "caca" |])
-;;
 
 let test_list _ctx =
   assert_equal_tvalue
     (Tlist [Tstr "h"; Tstr "o"; Tstr "g"; Tstr "e"])
     (jg_list @@ Tstr "hoge")
-;;
 
 let test_xmlattr _ctx =
   let obj = Tobj [
@@ -489,7 +434,6 @@ let test_xmlattr _ctx =
   assert_equal_tvalue
     (Tstr "class=\"profile\" id=\"taro\" width=\"300\"")
     (jg_xmlattr obj)
-;;
 
 let test_wordwrap _ctx =
   let text = String.concat " " [
@@ -501,8 +445,7 @@ let test_wordwrap _ctx =
     (jg_wordwrap (Tint 12) (Tbool true) (Tstr text));
   assert_equal_tvalue
     (Tstr "this is it!!\nhoge hogehogehoge")
-    (jg_wordwrap (Tint 12) (Tbool false) (Tstr text));
-;;
+    (jg_wordwrap (Tint 12) (Tbool false) (Tstr text))
 
 let test_sublist _ctx =
   let lst = Tlist [Tint 0; Tint 1; Tint 2; Tint 3] in
@@ -535,36 +478,31 @@ let test_sublist _ctx =
     (jg_sublist (Tint 1) (Tint 3) lst);
   assert_equal_tvalue
     (Tlist [Tint 1; Tint 2; Tint 3])
-    (jg_sublist (Tint 1) (Tint 4) lst);
-;;
+    (jg_sublist (Tint 1) (Tint 4) lst)
 
 let test_fmt_float _ctx =
   let value = Tfloat 3.141592 in
   assert_equal_tvalue (jg_fmt_float (Tint 1) value) (Tfloat 3.1);
   assert_equal_tvalue (jg_fmt_float (Tint 2) value) (Tfloat 3.14);
   assert_equal_tvalue (jg_fmt_float (Tint 3) value) (Tfloat 3.142);
-  assert_equal_tvalue (jg_fmt_float (Tint 4) value) (Tfloat 3.1416);
-;;
+  assert_equal_tvalue (jg_fmt_float (Tint 4) value) (Tfloat 3.1416)
 
 let test_divisibleby _ctx =
   assert_equal_tvalue (jg_test_divisibleby (Tint 2) (Tint 6)) (Tbool true);
   assert_equal_tvalue (jg_test_divisibleby (Tint 5) (Tint 6)) (Tbool false);
-  assert_equal_tvalue (jg_test_divisibleby (Tint 0) (Tint 6)) (Tbool false);
-;;
+  assert_equal_tvalue (jg_test_divisibleby (Tint 0) (Tint 6)) (Tbool false)
 
 let test_even _ctx =
   assert_equal_tvalue (jg_test_even (Tint 0)) (Tbool true);
   assert_equal_tvalue (jg_test_even (Tint 1)) (Tbool false);
   assert_equal_tvalue (jg_test_even (Tint 2)) (Tbool true);
-  assert_equal_tvalue (jg_test_even (Tint 3)) (Tbool false);
-;;
+  assert_equal_tvalue (jg_test_even (Tint 3)) (Tbool false)
 
 let test_odd _ctx =
   assert_equal_tvalue (jg_test_odd (Tint 0)) (Tbool false);
   assert_equal_tvalue (jg_test_odd (Tint 1)) (Tbool true);
   assert_equal_tvalue (jg_test_odd (Tint 2)) (Tbool false);
-  assert_equal_tvalue (jg_test_odd (Tint 3)) (Tbool true);
-;;
+  assert_equal_tvalue (jg_test_odd (Tint 3)) (Tbool true)
 
 let test_iterable _ctx =
   assert_equal_tvalue (jg_test_iterable (Tint 0)) (Tbool false);
@@ -573,29 +511,24 @@ let test_iterable _ctx =
   assert_equal_tvalue (jg_test_iterable (Tobj [])) (Tbool true);
   assert_equal_tvalue (jg_test_iterable (Tlist [])) (Tbool true);
   assert_equal_tvalue (jg_test_iterable (Tset [])) (Tbool true);
-  assert_equal_tvalue (jg_test_iterable Tnull) (Tbool true);
-;;
+  assert_equal_tvalue (jg_test_iterable Tnull) (Tbool true)
 
 let test_is_lower _ctx =
   assert_equal_tvalue (jg_test_lower (Tstr "aaa")) (Tbool true);
   assert_equal_tvalue (jg_test_lower (Tstr "aaA")) (Tbool false)
-;;
 
 let test_is_upper _ctx =
   assert_equal_tvalue (jg_test_upper (Tstr "aaa")) (Tbool false);
-  assert_equal_tvalue (jg_test_upper (Tstr "AAA")) (Tbool true);
-;;
+  assert_equal_tvalue (jg_test_upper (Tstr "AAA")) (Tbool true)
 
 let test_number _ctx =
   assert_equal_tvalue (jg_test_number (Tint 1)) (Tbool true);
   assert_equal_tvalue (jg_test_number (Tfloat 1.0)) (Tbool true);
-  assert_equal_tvalue (jg_test_number (Tstr "1")) (Tbool false);
-;;
+  assert_equal_tvalue (jg_test_number (Tstr "1")) (Tbool false)
 
 let test_string _ctx =
   assert_equal_tvalue (jg_test_string (Tstr "aaa")) (Tbool true);
-  assert_equal_tvalue (jg_test_string (Tint 1)) (Tbool false);
-;;
+  assert_equal_tvalue (jg_test_string (Tint 1)) (Tbool false)
 
 let test_groupby _ctx =
   let person ~gender ~first_name ~last_name ~native_lang ~second_lang =
@@ -655,7 +588,6 @@ let test_groupby _ctx =
   assert_equal (List.for_all2 check_person males_expected males) true;
   assert_equal (List.for_all2 check_person english_speakers_expected english_speakers) true;
   assert_equal (List.for_all2 check_person french_speakers_expected french_speakers) true
-;;
 
 let test_min_max _ctx =
   let numbers = Tlist [Tint 3; Tint 1; Tint 2] in
@@ -667,7 +599,6 @@ let test_min_max _ctx =
   assert_equal_tvalue max_number (Tint 3);
   assert_equal_tvalue (jg_obj_lookup min_person "name") (Tstr "jiro");
   assert_equal_tvalue (jg_obj_lookup max_person "name") (Tstr "hana")
-;;
 
 let test_nth _ctx =
   let list = Tlist [Tint 3; Tint 0; Tint 2] in
@@ -677,8 +608,7 @@ let test_nth _ctx =
   assert_equal_tvalue (Tint 2) (jg_nth (Tint 2) list);
   assert_equal_tvalue (Tint 1) (jg_nth (Tint 0) ary);
   assert_equal_tvalue (Tint 10) (jg_nth (Tint 1) ary);
-  assert_equal_tvalue (Tint 12) (jg_nth (Tint 2) ary);
-;;
+  assert_equal_tvalue (Tint 12) (jg_nth (Tint 2) ary)
 
 let test_map _ctx =
   let names = unbox_list @@ jg_map Tnull test_persons ~kwargs:[("attribute", Tstr "name")] in
@@ -687,7 +617,6 @@ let test_map _ctx =
   let ranks_expected = [Tint 3; Tint 12; Tint 5] in
   assert_equal (List.for_all2 (=) names names_expected) true;
   assert_equal (List.for_all2 (=) ranks ranks_expected) true
-;;
 
 let alice = Tobj [ "name", Tstr "alice" ; "age", Tint 36 ]
 let bob = Tobj [ "name", Tstr "bob" ; "age", Tint 42 ]
@@ -800,4 +729,3 @@ let suite = "runtime test" >::: [
   "test_fold" >:: test_fold;
   "test_forall" >:: test_forall;
 ]
-;;
