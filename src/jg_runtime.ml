@@ -743,7 +743,7 @@ let jg_abs ?kwargs:_ value =
     | Tint x -> Tint (abs x)
     | _ -> failwith_type_error_1 "jg_abs" value
 
-let jg_attr ?kwargs:_ obj prop =
+let jg_attr ?kwargs:_ prop obj =
   match obj, prop with
     | Tobj alist, Tstr prop ->
       (try List.assoc prop alist with Not_found -> Tnull)
