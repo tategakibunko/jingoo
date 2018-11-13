@@ -414,6 +414,12 @@ let rec jg_is_true = function
 let jg_not x =
   Tbool (not (jg_is_true x))
 
+(** [jg_plus a b]
+    The multi-purpose [+] operator.
+    Can add two numbers,
+    concat two strings or a string and a number,
+    append two sequences (list or array).
+  *)
 let jg_plus left right =
   match left, right with
     | Tint x1, Tint x2 -> Tint(x1+x2)
@@ -427,6 +433,11 @@ let jg_plus left right =
     | Tstr x1, Tstr x2 -> Tstr (x1 ^ x2)
     | Tstr x1, Tint x2 -> Tstr (x1 ^ string_of_int x2)
     | Tstr x1, Tfloat x2 -> Tstr (x1 ^ string_of_float x2)
+
+    | Tlist l1, Tlist l2 -> Tlist (List.append l1 l2)
+    | Tarray a1, Tlist l2 -> Tlist (List.append (Array.to_list a1) l2)
+    | Tlist l1, Tarray a2 -> Tlist (List.append l1 (Array.to_list a2))
+    | Tarray a1, Tarray a2 -> Tarray (Array.append a1 a2)
 
     | _, _ -> failwith_type_error_2 "jg_plus" left right
 
