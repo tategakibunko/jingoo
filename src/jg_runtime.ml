@@ -743,15 +743,13 @@ let jg_abs ?kwargs:_ value =
     | Tint x -> Tint (abs x)
     | _ -> failwith_type_error_1 "jg_abs" value
 
+(** [jg_attr p o]
+    Return the [p] property of object [o]. Support dotted notation. *)
 let jg_attr ?kwargs:_ prop obj =
-  match obj, prop with
-    | Tobj alist, Tstr prop ->
-      (try List.assoc prop alist with Not_found -> Tnull)
-    | Thash htbl, Tstr prop ->
-      (try Hashtbl.find htbl prop with Not_found -> Tnull)
-    | Tpat fn, Tstr prop ->
-      (try fn prop with Not_found -> Tnull)
-    | _ -> Tnull
+  match prop with
+  | Tstr path ->
+    jg_obj_lookup_path obj (string_split_on_char '.' path)
+  | _ -> failwith_type_error_2 "jg_attr" prop obj
 
 (** TODO *)
 (* defaults=[ ("width", Tint 80) ] *)
