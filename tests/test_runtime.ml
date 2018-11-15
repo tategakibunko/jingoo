@@ -622,18 +622,18 @@ let alice = Tobj [ "name", Tstr "alice" ; "age", Tint 36 ]
 let bob = Tobj [ "name", Tstr "bob" ; "age", Tint 42 ]
 let carol = Tobj [ "name", Tstr "carol" ; "age", Tint 20]
 
-let test_filter_aux jg_filter expected =
+let test_select_aux jg_select expected =
   let persons = Tlist [ alice ; bob ; carol ] in
-  let filter = func_arg1 @@ fun ?kwargs:_ x ->
+  let select = func_arg1 @@ fun ?kwargs:_ x ->
     Tbool (unbox_int (List.assoc "age" (unbox_obj x)) > 30)
   in
-  assert_equal_tvalue expected (jg_filter filter persons)
+  assert_equal_tvalue expected (jg_select select persons)
 
-let test_filter _ctx =
-  test_filter_aux jg_filter (Tlist [ alice ; bob ])
+let test_select _ctx =
+  test_select_aux jg_select (Tlist [ alice ; bob ])
 
 let test_reject _ctx =
-  test_filter_aux jg_reject (Tlist [ carol ])
+  test_select_aux jg_reject (Tlist [ carol ])
 
 let test_fold _ctx =
   let test seq =
@@ -724,7 +724,7 @@ let suite = "runtime test" >::: [
   "test_min_max" >:: test_min_max;
   "test_nth" >:: test_nth;
   "test_map" >:: test_map;
-  "test_filter" >:: test_filter;
+  "test_select" >:: test_select;
   "test_reject" >:: test_reject;
   "test_fold" >:: test_fold;
   "test_forall" >:: test_forall;
