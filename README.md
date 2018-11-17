@@ -45,7 +45,7 @@ Set your custom filter to `filters` field of environment.
 ```ocaml
 open Jingoo
 
-(* define custom filter to_mail *)
+(* define custom filter 'to_mail' *)
 let to_mail ?(kwargs=[]) ?(defaults=[]) value =
   let id = Jg_runtime.string_of_tvalue value in
   let domain = Jg_runtime.string_of_tvalue (Jg_runtime.jg_get_kvalue "domain" kwargs ~defaults) in
@@ -92,7 +92,7 @@ let () =
 ocamfind ocamlopt -shared -o my_ext.cmxs my_ext.ml
 ```
 
-3. Set `my_ext.cmxs` to `extensions` field of environment.
+3. Set `my_ext.cmxs` to `extensions` field of environment, and you can use your custom filter `my_ext.to_md5`.
 
 ```ocaml
 open Jingoo
