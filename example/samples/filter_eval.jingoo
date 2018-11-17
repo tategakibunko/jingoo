@@ -1,0 +1,9 @@
+{% set msg = 'Hello, world!' -%}
+{% set src = 'From eval!' -%}
+
+Only the last expression is returned:
+- "{{ eval("{{ msg }} {{ src }}") }}"
+- "{{ eval("{{ msg + ' ' + src }}") }}"
+
+Be careful with trailing whitespaces:
+- "{{ eval("{{ msg + ' ' + src }} ") }}"

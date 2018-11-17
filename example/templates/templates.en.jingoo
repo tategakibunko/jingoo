@@ -1,0 +1,417 @@
+{% set highlight = jg_highlight.highlight %}
+
+{%- macro input (class, id, checked) -%}
+  <input type="radio" class="tab-input tab-input-{{ class }}" id="{{ id }}" name="nav-tab" {% if checked %}checked{% endif %}>
+{%- endmacro -%}
+
+{%- macro label (class, id, label) -%}
+  <label for="{{ id }}" class="tab-label tab-label-{{ class }}">{{ label }}</label>
+{%- endmacro -%}
+
+{%- macro code (x) -%}
+  <code>{{ x }}</code>
+{%- endmacro -%}
+
+{%- macro template (name, models) %}
+  {% if name %}
+  <form class="demo">
+    {% if models %}{{ input ('models', 'models-' + name) }}{% endif %}
+    {{ input ('jingoo', 'jingoo-' + name, true) }}
+    {{ input ('result', 'result-' + name) }}
+    <div class="tabs">
+      {% if models %}{{ label ('models', 'models-' + name, 'MODELS') }}{% endif %}
+      {{ label ('jingoo', 'jingoo-' + name, 'JINGOO') }}
+      {{ label ('result', 'result-' + name, 'RESULT') }}
+    </div>
+    <div class="tab-container">
+      {% if models %}<pre class="tab-content tab-models">{{ eval("{% rawinclude '" + name + ".models' %}") }}</pre>{% endif %}
+      <pre class="tab-content tab-jingoo">{{ highlight ( escape (eval("{% rawinclude '" + name + ".jingoo' %}") ) ) | safe }}</pre>
+      <pre class="tab-content tab-result">{{ eval("{% rawinclude '" + name + ".expected' %}") }}</pre>
+    </div>
+  </form>
+  {% endif %}
+{%- endmacro -%}
+
+{%- macro section (title, name, models) -%}
+  <div class="section" id="{{ name }}">
+    <p class="section-title">{{ breadcrumb (title) }}</p>
+    <div class="section-content">
+      {{ caller () }}
+      {{ template (name, models) }}
+    </div>
+  </div>
+{%- endmacro -%}
+
+{%- macro breadcrumb (path) -%}
+  <ul class="breadcrumb">{%- for x in path -%}<li>{{ x }}</li>{%- endfor -%}</ul>
+{%- endmacro -%}
+
+{%- macro dl (data) -%}
+  <dl class="dl">
+    {%- for x in data -%}
+      <dt class="dt">{{ x[0] }}</dt><dd class="dd">{{ x[1] }}</dd>
+    {%- endfor -%}
+  </dl>
+{%- endmacro -%}
+
+{% set filter_names_list =
+[ 'abs', 'attr', 'batch', 'capitalize', 'default', 'escape', 'eval',
+'float', 'fold', 'forall', 'groupby', 'int', 'join', 'last', 'length',
+'list', 'lower', 'map', 'max', 'md5', 'min', 'nth', 'random', 'range',
+'reject', 'replace', 'reverse', 'round', 'select', 'slice', 'sort',
+'split', 'striptag', 'strlen', 'sublist', 'substring', 'sum', 'title',
+'truncate', 'trim', 'upper', 'urlize', 'wordcount', 'wordwrap',
+'xmlattr' ] %}
+
+{% macro toc_filter_link (id) -%}
+  <a href="#filter_{{ id }}" class="toc-link">{{ id }}</a>
+{%- endmacro %}
+
+<!doctype html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <title>Jingoo - Template designer documentation</title>
+    <link rel="stylesheet" href="templates.css">
+  </head>
+
+  <body>
+
+    <div class="languages">
+      <a href="templates.en.html" class="flag flag-en"></a>
+      <a href="templates.fr.html" class="flag flag-fr"></a>
+      <a href="templates.jp.html" class="flag flag-jp"></a>
+    </div>
+
+    <div class="toc">
+      <div class="toc-title">Filters</div>
+      {%- for x in filter_names_list -%}
+        {{ toc_filter_link (x) }}
+      {%- endfor -%}
+    </div>
+
+    <div class="container">
+
+      <p class="title">Statements</p>
+
+      {% call section ([ 'Statements', 'Autoescape' ], 'autoescape', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Statements', 'For' ], 'for', true) %}
+        {% block section_for %}
+          <p class="p">Loop over each item in a sequence.</p>
+          <p class="p">Inside of a for-loop block, you can access some special variables:</p>
+          {{ dl ([ [ 'loop.index', 'The current iteration of the loop. (1 indexed)' ]
+                 , [ 'loop.index0', 'The current iteration of the loop. (0 indexed)' ]
+                 , [ 'loop.revindex', 'The number of iterations from the end of the loop (1 indexed)' ]
+                 , [ 'loop.revindex0', 'The number of iterations from the end of the loop (0 indexed)' ]
+                 , [ 'loop.first', 'True if first iteration.' ]
+                 , [ 'loop.last', 'True if last iteration.' ]
+                 , [ 'loop.length', 'The number of items in the sequence.' ]
+                 , [ 'loop.cycle', 'A helper function to cycle between a list of sequences.' ]
+                 ]) }}
+        {% endblock %}
+      {% endcall %}
+
+      {% call section ([ 'Statements', 'macro' ], 'macro', false) %}
+        {% block section_macro %}
+          <p class="p">Macro are useful to put often used idioms into reusable component.</p>
+          <p class="p">
+            Note that macros are hoisted, and their scope is the toplevel scope.
+            It means that you define two macro with the same name, the second will erase the first,
+            <strong>even in the macro invocation occuring before the second definition.</strong>
+          </p>
+        {% endblock %}
+      {% endcall %}
+
+      {% call section ([ 'Statements', 'call' ], 'call', false) %}
+        {% block section_call %}
+          <p class="p">Use {{ code ('call') }} statement to pass a macro to another macro.</p>
+        {% endblock %}
+      {% endcall %}
+
+      {% call section ([ 'Statements', 'function' ], 'function', false) %}
+        {% block section_function %}
+          <p class="p">Function can be seen as macros that return a value instead of printing it.</p>
+        {% endblock %}
+      {% endcall %}
+
+      {% call section ([ 'Statements', 'if' ], 'if', true) %}
+        {% block section_if %}
+          <p class="p">
+            The if statement allows us to check if an expression is true or false,
+            and execute different code according to the result.
+          </p>
+          <p>
+            {{ code ('0') }}, {{ code ('null') }}, {{ code ("''") }}, {{ code ('""') }}, {{ code ('[]') }},
+            or {{ code ('{}') }} are considered as {{ code ('false') }} when used in a {{ code ('if') }}/{{ code ('elif') }} test.
+            The rest is {{ code ('true') }}.
+          <p>
+        {% endblock %}
+      {% endcall %}
+
+      {% call section ([ 'Statements', 'Keywords', 'in' ], 'in', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Statements', 'Filter' ], 'filter', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Statements', 'Objects properties' ], 'obj-property', true) %}
+      {% endcall %}
+
+
+      {% call section ([ 'Statements', 'Raw' ], 'raw', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Statements', 'Variable assignment' ], 'set', false) %}
+        {% block section_set %}
+          <p class="p">
+            All blocks introduce a new scope when assigning variables. You can read a variable
+            defined in a parent block, but you can not assign a new value to this variable.
+            A new variable will be created for each assignment. It will shadow the old definition,
+            but as soon as you will leave the block, the old definition
+          </p>
+          <p class="p">
+            The only exception to that rule are {{ code ('if') }} statements which do not introduce a scope.
+          </p>
+          <p class="p">
+            See <a href="#namespace">Namespace</a> for variable assignement propagating across scopes.
+          </p>
+        {% endblock %}
+      {% endcall %}
+
+      {% call section ([ 'Statements', 'Variable assignment', 'Namespace' ], 'namespace', false) %}
+        {% block section_namespace %}
+          <p class="p">
+            Namespace are used to create variables you can modify from a child block.
+          </p>
+        {% endblock %}
+      {% endcall %}
+
+      {% call section ([ 'Statements', 'Whitespace control' ], 'whitespace-control', false) %}
+        <p class="p">Use {{ code ('{%-') }} to strip whitespaces <strong>before</strong> this token.</p>
+        <p class="p">Use {{ code ('-%}') }} to strip whitespaces <strong>after</strong> this token.</p>
+      {% endcall %}
+
+      {% call section ([ 'Statements', 'With' ], 'with', false) %}
+      {% endcall %}
+
+      <p class="title">Tests</p>
+      <p class="subtitle">Tests are just functions that return a boolean.</p>
+
+      {% call section ([ 'Tests', 'The IS keyword' ], 'is', false) %}
+        <p class="p">
+          Tests can be used with the standard function call syntax,
+          but also with the {{ code ('is') }} keyword in statements or expressions.
+        </p>
+      {% endcall %}
+
+      <p class="title">Operators</p>
+
+      {% call section ([ 'Statements', 'Boolean operators' ], 'and-or', true) %}
+        {% block and_or %}
+          <p class="p">
+            Evaluation of boolean operators is sequential, left-to-right.
+          </p>
+          <p class="p">
+            In {{ code ('e1 && e2') }},
+            {{ code ('e1') }} is evaluated first, and if it returns {{ code ('false') }},
+            {{ code ('e2') }} is not evaluated at all.
+          </p>
+          <p class="p">
+            In {{ code ('e1 || e2') }},
+            {{ code ('e1') }} is evaluated first, and if it returns {{ code ('true') }}, {{ code ('e2') }}
+            is not evaluated at all.
+          </p>
+          <p class="p">Use {{ code ('not') }} and {{ code ('!') }} operators to negate a boolean.</p>
+        {% endblock %}
+      {% endcall %}
+
+      {% call section ([ 'Statements', 'Basic operators' ], 'operators', false) %}
+      {% endcall %}
+
+      <p class="title">Built-in filters</p>
+
+      {% call section ([ 'Built-in filters', 'abs' ], '', false) %}
+      <p class="p">{{ code ('abs (num)') }} Return the absolute value of {{ code ('num') }}.</p>
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'attr' ], '', false) %}
+      <p class="p">{{ code ('attr (name, obj)') }}</p>
+      <p class="p">{{ code ('{{ foo | attr ("bar") }}') }} is {{ code ('{{ foo.bar }}') }}.</p>
+      <p class="p">{{ code ('{{ foo | attr ("bar.baz") }}') }} is {{ code ('{{ foo.bar.baz }}') }}.</p>
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'batch' ], 'filter_batch', true) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'capitalize' ], 'filter_capitalize', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'default' ], '', false) %}
+      <p class="p">{{ code ('default (default_value, value)') }}</p>
+      <p class="p">
+        Return {{ code ('value') }} if it is defined from {{ code ('null') }},
+        and {{ code ('default') }} otherwise.
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'escape' ], '', false) %}
+        <p class="p">
+          {{ code ('escape (string)') }}. Replaces {{ code('&') }}, {{ code('"') }},
+          {{ code('<') }} and {{ code ('>') }} with their corresponding HTML entities.
+        </p>
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'eval' ], 'filter_eval', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'float' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'fold' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'forall' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'groupby' ], 'filter_groupby', true) %}
+        <p class="p">
+          {{ code ('groupby (fn, seq)') }}
+        </p>
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'int' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'join' ], 'filter_join', false) %}
+        <p class="p">
+          {{ code ('join (sep, seq)') }}
+        </p>
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'last' ], '', false) %}
+        <p class="p">
+          {{ code ('last (seq)') }}.
+          Return the last element of sequence {{ code ('seq') }}.
+        </p>
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'length' ], '', false) %}
+        <p class="p">
+          {{ code ('length (seq)') }}.
+          Return the number of elements in sequence {{ code ('seq') }}.
+        </p>
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'list' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'lower' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'map' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'max' ], 'filter_max', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'md5' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'min' ], 'filter_min', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'nth' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'random' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'range' ], 'filter_range', false) %}
+        <p class="p">
+          {{ code ('range (start, stop)') }}
+        </p>
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'reject' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'replace' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'reverse' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'round' ], 'filter_round', false) %}
+        <p class="p">
+          {{ code ('round (method, val)') }}. {{ code ('method') }}
+          can be {{ code ('"floor"') }} or {{ code ('"ceil"') }}.
+        </p>
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'select' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'slice' ], 'filter_slice', true) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'sort' ], 'filter_sort', true) %}
+        <p class="p">
+          {{ code ('sort (seq)') }}. Support the following optionnal keywords:
+          {{ dl ([ [ 'reverse', 'Sort using descending order.' ]
+                 , [ 'attribute', 'Compare items using a given attribute. Support dotted notation.' ]
+                 , [ 'compare', 'Provide a comparison function to be used instead of built-in.' ]
+                 ]) }}
+        </p>
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'split' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'striptag' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'strlen' ], 'filter_strlen', false) %}
+        <p class="p">
+          {{ code ('strlen (string)') }}. Number of UTF-8 characters.
+        </p>
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'sublist' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'substring' ], 'filter_substring', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'sum' ], 'filter_sum', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'title' ], 'filter_title', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'truncate' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'trim' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'upper' ], 'filter_upper', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'urlize' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'wordcount' ], 'filter_wordcount', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'wordwrap' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'xmlattr' ], '', false) %}
+      {% endcall %}
+
+    </div>
+
+  </body>
+</html>

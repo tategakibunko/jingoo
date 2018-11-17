@@ -7,3 +7,6 @@ example/bench
 example/advanced
 tests/.merlin
 tests/dune
+example/dune
+example/templates/dune
+example/.merlin

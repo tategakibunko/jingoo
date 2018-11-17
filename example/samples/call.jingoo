@@ -1,0 +1,5 @@
+{%- macro present (name) -%}
+Hello, I am {{ name }}.{{ caller() }}
+{%- endmacro -%}
+{{ present ("Bob") }}
+{% call present ("Alice") %} I'm a programmer.{% endcall %}

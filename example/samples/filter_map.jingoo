@@ -1,0 +1,2 @@
+[ {% for x in persons | map (null, attribute="name") %}{{x}} {% endfor %}]
+[ {% for x in persons | map (attr ("extra.age")) %}{{x}} {% endfor %}]

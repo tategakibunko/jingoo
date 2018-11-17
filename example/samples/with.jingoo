@@ -1,0 +1,4 @@
+{% with foo = 10, hoge = 20 -%}
+foo: {{ foo }}
+hoge: {{ hoge }}
+{%- endwith %}

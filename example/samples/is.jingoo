@@ -1,0 +1,7 @@
+- 6 is divisibleby 4: {{ 6 is divisibleby 4 }}
+- 6 is divisibleby (4): {% 6 is divisibleby (4) %}
+- divisibleby(3,6): {{ divisibleby(3,6) }}
+- 3 is iterable: {% 3 is iterable %}
+- [1,2,3] is iterable: {% [1,2,3] is iterable %}
+- "hoge" is iterable: {{ "hoge" is iterable }}
+- null is iterable: {% null is iterable %}

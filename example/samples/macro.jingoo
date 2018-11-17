@@ -1,0 +1,6 @@
+{% macro li (content) %}<li>{{ content }}</li>{% endmacro -%}
+<ol>
+  {{ li ('Item1') }}
+  {{ li ('Item2') }}
+  {{ li ('Item3') }}
+</ol>

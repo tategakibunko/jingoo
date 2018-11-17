@@ -1,0 +1,4 @@
+List sliced in 4:
+{% for s in slice (4, list) -%}
+- [{% for x in s %} {{ x }}{% endfor %} ]
+{% endfor -%}

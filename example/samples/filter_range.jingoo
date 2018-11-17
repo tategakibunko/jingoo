@@ -1,0 +1,3 @@
+- range(0,3): {% for x in range(0,3) %}{{x}}{% endfor %}
+- range(3,0): {% for x in range(3,0) %}{{x}}{% endfor %}
+- range("a","e"): {% for x in range("a","e") %}{{x}}{% endfor %}

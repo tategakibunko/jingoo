@@ -1,0 +1,4 @@
+Batch of length 4 padded with "X":
+| 10 | 20 | 30 | 40 |
+| 50 | 60 | 70 | 80 |
+| 90 | 100 | X | X |

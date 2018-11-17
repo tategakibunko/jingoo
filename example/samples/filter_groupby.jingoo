@@ -1,0 +1,6 @@
+{%- for g in persons | groupby (attr('sex')) | sort (attribute='grouper') -%}
+- Gender: {{ g.grouper }}
+  {%- for p in g.list | sort (attribute='name') %}
+  - {{ p.name }}
+  {%- endfor %}
+{% endfor -%}
