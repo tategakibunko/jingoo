@@ -116,6 +116,13 @@ See [samples](https://github.com/tategakibunko/jingoo/tree/master/example/sample
 
 `*.jingoo` is template example and `*.expected` is expected string.
 
+## Documentation
+
+[http://tategakibunko.github.io/jingoo/](http://tategakibunko.github.io/jingoo/)
+
+## Playground
+
+[https://sagotch.github.io/try-jingoo/](https://sagotch.github.io/try-jingoo/)
 
 ## License
 
