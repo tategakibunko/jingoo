@@ -644,6 +644,18 @@ let test_fold _ctx =
   test (Tlist [Tint 0;Tint 1;Tint 2;Tint 3;Tint 4;Tint 5;Tint 6;Tint 7;Tint 8;Tint 9]) ;
   test (Tarray [|Tint 0;Tint 1;Tint 2;Tint 3;Tint 4;Tint 5;Tint 6;Tint 7;Tint 8;Tint 9|])
 
+let test_fold_str _ctx =
+  let str = "abc" in
+  assert_equal_tvalue
+    (Tstr str)
+    (jg_fold (func_arg2 @@ fun ?kwargs:_ -> jg_plus) (Tstr "") (Tstr str))
+
+let test_fold_mbstr _ctx =
+  let mbstr = "日本語" in
+  assert_equal_tvalue
+    (Tstr mbstr)
+    (jg_fold (func_arg2 @@ fun ?kwargs:_ -> jg_plus) (Tstr "") (Tstr mbstr))
+
 let test_forall _ctx =
   let test res seq =
     assert_equal_tvalue
@@ -747,6 +759,8 @@ let suite = "runtime test" >::: [
   "test_select" >:: test_select;
   "test_reject" >:: test_reject;
   "test_fold" >:: test_fold;
+  "test_fold_str" >:: test_fold_str;
+  "test_fold_mbstr" >:: test_fold_mbstr;
   "test_forall" >:: test_forall;
   "test_type_volatile" >:: test_type_volatile;
   "test_type_lazy" >:: test_type_lazy
