@@ -1,0 +1,11 @@
+{%- set hoge = "ok" -%}
+{%- set foo, bar = ("foo", "bar") -%}
+hoge: {{ hoge }}
+foo: {{ foo }}
+bar: {{ bar }}
+
+{% set iterated = false -%}
+{%- for item in [ 1, 2, 3 ] -%}
+  {% set iterated = true %}
+{%- endfor -%}
+{%- if not iterated %}Did not iterate!{% endif %}

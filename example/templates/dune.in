@@ -1,0 +1,23 @@
+(rule
+  (targets templates.en.html)
+  (deps templates.en.jingoo ../jg_highlight.cmxs ../../src/jg_cmdline.exe (glob_files ../samples/*.{jingoo,expected,json}))
+  (action (run ../../src/jg_cmdline.exe
+          -dynlink "%%%ROOT_DIR%%%_build/default/example/jg_highlight.cmxs"
+          -template_dirs "%%%ROOT_DIR%%%example/templates,%%%ROOT_DIR%%%example/samples"
+          -i %%%ROOT_DIR%%%example/templates/templates.en.jingoo
+          -o %{targets})
+          )
+)
+
+(rule
+  (targets templates.fr.html)
+  (deps templates.fr.jingoo ../jg_highlight.cmxs ../../src/jg_cmdline.exe (glob_files ../samples/*.{jingoo,expected,json}))
+  (action (run ../../src/jg_cmdline.exe
+          -dynlink "%%%ROOT_DIR%%%_build/default/example/jg_highlight.cmxs"
+          -template_dirs "%%%ROOT_DIR%%%example/templates,%%%ROOT_DIR%%%example/samples"
+          -i %%%ROOT_DIR%%%example/templates/templates.fr.jingoo
+          -o %{targets})
+          )
+)
+
+(alias (name doc) (deps templates.en.html templates.fr.jingoo templates.fr.html templates.fr.jingoo templates.css) )

@@ -653,6 +653,26 @@ let test_forall _ctx =
   test true (Tlist [Tint 0;Tint 1;Tint 2;Tint 3;Tint 4;Tint 5;Tint 6;Tint 7;Tint 8;Tint 9]) ;
   test false (Tarray [|Tint 0;Tint 10;Tint 2|])
 
+let test_type_volatile _ctx =
+  let x =
+    Tvolatile (let i = ref 0 in fun () -> incr i ; Tint !i)
+  in
+  let i1 = (jg_force x) in
+  let i2 = (jg_force x) in
+  let i3 = (jg_force x) in
+  assert_equal_tvalue
+    (Tlist [ Tint 1 ; Tint 2 ; Tint 3])
+    (Tlist [ i1 ; i2 ; i3 ])
+
+let test_type_lazy _ctx =
+  let x = Tlazy (let i = ref 0 in lazy (incr i ; Tint !i)) in
+  let i1 = (jg_force x) in
+  let i2 = (jg_force x) in
+  let i3 = (jg_force x) in
+  assert_equal_tvalue
+    (Tlist [ Tint 1 ; Tint 1 ; Tint 1])
+    (Tlist [ i1 ; i2 ; i3 ])
+
 let suite = "runtime test" >::: [
   "test_escape" >:: test_escape;
   "test_string_of_tvalue" >:: test_string_of_tvalue;
@@ -728,4 +748,6 @@ let suite = "runtime test" >::: [
   "test_reject" >:: test_reject;
   "test_fold" >:: test_fold;
   "test_forall" >:: test_forall;
+  "test_type_volatile" >:: test_type_volatile;
+  "test_type_lazy" >:: test_type_lazy
 ]

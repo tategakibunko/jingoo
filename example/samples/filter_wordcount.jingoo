@@ -1,0 +1,2 @@
+Word count for "hoge hage hige" = {{ "hoge hage hige" | wordcount }}
+Word count for "hoge hage" = {{ "hoge hage" | wordcount }}

@@ -1,0 +1,4 @@
+{{ { links : [ [ "http://yahoo.co.jp", "yahoo japan" ],
+	       [ "http://google.co.jp", "google japan" ] ]
+   , obj: { name: "alice", age: 42, sex: "F" }
+   } }}

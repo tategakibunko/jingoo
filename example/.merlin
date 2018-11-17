@@ -1,0 +1,20 @@
+B /home/jsagot/.opam/4.07.0/lib/bytes
+B /home/jsagot/.opam/4.07.0/lib/ocaml
+B /home/jsagot/.opam/4.07.0/lib/re
+B /home/jsagot/.opam/4.07.0/lib/seq
+B /home/jsagot/.opam/4.07.0/lib/uchar
+B /home/jsagot/.opam/4.07.0/lib/uucp
+B /home/jsagot/.opam/4.07.0/lib/uutf
+B ../_build/default/example/.jg_highlight.objs
+B ../_build/default/example/.test.eobjs
+B ../_build/default/src/.jingoo.objs
+S /home/jsagot/.opam/4.07.0/lib/bytes
+S /home/jsagot/.opam/4.07.0/lib/ocaml
+S /home/jsagot/.opam/4.07.0/lib/re
+S /home/jsagot/.opam/4.07.0/lib/seq
+S /home/jsagot/.opam/4.07.0/lib/uchar
+S /home/jsagot/.opam/4.07.0/lib/uucp
+S /home/jsagot/.opam/4.07.0/lib/uutf
+S .
+S ../src
+FLG -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs -w @a-4-29-40-41-42-44-45-48-58-59-60-40 -strict-sequence -strict-formats -short-paths -keep-locs

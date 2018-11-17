@@ -10,8 +10,5 @@
 (alias
   (name runtest)
   (action
-     (setenv
-        OUNIT_TESTDATA_DIR "%%%OUNIT_TESTDATA_DIR%%%" (run ./test.exe)
-     )
-  )
+     (setenv OUNIT_TESTDATA_DIR "%%%ROOT_DIR%%%/tests/data" (run ./test.exe) ) )
 )

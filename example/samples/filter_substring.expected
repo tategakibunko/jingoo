@@ -1,0 +1,2 @@
+- substring (3, 2, "hogehoge"): "eh"
+- substring (0, 2, "日本語"): "日本"

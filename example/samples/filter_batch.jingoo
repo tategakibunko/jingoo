@@ -1,0 +1,4 @@
+Batch of length 4 padded with "X":
+{% for row in batch (4, list, fill_with="X") -%}
+|{% for x in row %} {{ x }} |{% endfor %}
+{% endfor -%}

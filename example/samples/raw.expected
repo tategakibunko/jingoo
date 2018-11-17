@@ -1,0 +1,2 @@
+Not expanded: {{ hoge }}
+Not a for loop: {% for x in long_list %}{{x}}{% endfor %}

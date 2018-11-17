@@ -1,0 +1,1 @@
+{{ 'this phrase should be in title case!' | title }}

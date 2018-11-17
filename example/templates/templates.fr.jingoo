@@ -1,0 +1,57 @@
+{% extends "templates.en.jingoo" %}
+
+{% block and_or %}
+  <p class="p">
+    L'évaluation des tests booléens est séquentiel, de gauche à droite.
+  </p>
+  <p class="p">
+    Dans <code>e1 && e2</code>,
+    <code>e1</code> est évalué, et si <code>e1</code> retourne <code>false</code>, <code>e2</code>
+    n'est pas évalué du tout.
+  </p>
+  <p class="p">
+    Dans <code>e1 || e2</code>,
+    <code>e1</code> est évalué, et si <code>e1</code> retourne <code>true</code>, <code>e2</code>
+    n'est pas évalué du tout.
+  </p>
+  <p class="p">Utilisez les opérateurs <code>not</code> et <code>!</code> pour inverser un booléen.</p>
+{% endblock %}
+
+{% block section_for %}
+  <p class="p">Itérer sur chaque élément d'une séquence.</p>
+  <p class="p">
+    A l'intérieur d'une boucle <code>for</code>, vous pouvez acceder à certaines variables automatiques&nbsp;:
+  </p>
+  {{ dl([ [ 'loop.index', "L'index courant de la boucle, en commençant à 1." ]
+        , [ 'loop.index0', "L'index courant de la boucle, en commençant à 0." ]
+        , [ 'loop.revindex', "Le nombre d'itération restantes jusqu'à la fin. Retourne 1 lors de la dernière itération." ]
+        , [ 'loop.revindex0', "Le nombre d'itération restantes jusqu'à la fin. Retourne 0 lors de la dernière itération." ]
+        , [ 'loop.first', "<code>true</code> lors de la première iteration uniquement." ]
+        , [ 'loop.last', "<code>true</code> lors de la dernière iteration uniquement." ]
+        , [ 'loop.length', "Le nombre total d'éléments dans la séquence." ]
+        , [ 'loop.cycle', "Une fontion pour cycler sur une séquence donnée en paramètre (c.f. l'exemple ci-dessous)." ]
+        ]) }}
+{% endblock %}
+
+{% block section_set %}
+  <p class="p">
+    Lors de l'assignement d'une variable dans un block, la portée de cette dernière se limite
+    au block dans lequel elle a été défini (et à ses blocks enfants). C'est à dire que vous pouvez
+    accéder aux variables définies dans un block parent, mais pas les redfinir. Une affectation
+    masquera l'ancienne définition de la variable tant que vous ne serez au sein du block courant,
+    mais à l'exterieur du block, la variable sera toujours affectée à l'ancienne valeur.
+  </p>
+  <p class="p">
+    Seuls les blocks <code>if</code> dérogent à la règle et modifie la variable du scope parent.
+  </p>
+  <p class="p">
+    Voyez les <a href="#namespace">namespaces</a> pour des utiliser des variables modifiable par les
+    blocks enfants.
+  </p>
+{% endblock %}
+
+{% block section_namespace %}
+  <p class="p">
+    Les namespaces peuvent être utilisés pour créer des variables modifiables depuis un block enfant.
+  </p>
+{% endblock %}

@@ -1,0 +1,7 @@
+- 6 is divisibleby 4: false
+- 6 is divisibleby (4): false
+- divisibleby(3,6): true
+- 3 is iterable: false
+- [1,2,3] is iterable: true
+- "hoge" is iterable: true
+- null is iterable: true
