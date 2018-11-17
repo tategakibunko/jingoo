@@ -104,8 +104,8 @@ let env = {Jg_types.std_env with
   ]
 } in
 
-(* output 'd3b07384d113edec49eaa6238ad5ff00' *)
-Jg_template.from_string "{{msg | my_ext.to_md5}}" ~env ~models:[
+(* output '3cb988a734183289506ab7738261c827' *)
+Jg_template.from_string "{{msg | my_ext.to_md5(seed='aaa')}}" ~env ~models:[
   ("msg", Jg_types.Tstr "foo");
 ]
 ```
