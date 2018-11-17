@@ -26,7 +26,9 @@ opam install jingoo
    especially orders of arguments and supported optional arguments etc.
 3. Single line comment is not supported. Because single '#' is used very much especially in html.
 
-## Simple usage
+## Usage
+
+### Simple usage
 
 ```ocaml
 open Jingoo
@@ -38,7 +40,7 @@ let result = Jg_template.from_string "{{ msg }}" ~models:[("msg", Jg_types.Tstr 
 let result2 = Jg_template.from_file "hello.jingoo" ~models:[("msg", Jg_types.Tstr "hello, world!")]
 ```
 
-## Custom filter
+### Custom filter example
 
 Set your custom filter to `filters` field of environment.
 
@@ -66,7 +68,7 @@ Jg_template.from_string "{{id | to_mail(domain='gmail.com')}}" ~env ~models:[
 ]
 ```
 
-## Dynlink filter
+### Dynlink filter example
 
 1. Write your own filter(`my_ext.ml` for example) and add it by `Jg_stub.add`(namespace as `my_ext` and func_name as `to_md5` for example).
 
