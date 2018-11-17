@@ -31,10 +31,10 @@ opam install jingoo
 ```ocaml
 open Jingoo
 
-(* output from direct string *)
+(* output from direct string template *)
 let result = Jg_template.from_string "{{ msg }}" ~models:[("msg", Jg_types.Tstr "hello, world!")]
 
-(* or output from file *)
+(* or output from file template *)
 let result2 = Jg_template.from_file "hello.jingoo" ~models:[("msg", Jg_types.Tstr "hello, world!")]
 ```
 
@@ -110,13 +110,13 @@ Jg_template.from_string "{{msg | my_ext.to_md5}}" ~env ~models:[
 ]
 ```
 
-## cheatsheet
+## Cheatsheet
 
 See [samples](https://github.com/tategakibunko/jingoo/tree/master/example/samples) directory.
 
 `*.jingoo` is template example and `*.expected` is expected string.
 
 
-## license
+## License
 
 MIT License
