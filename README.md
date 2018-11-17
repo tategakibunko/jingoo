@@ -31,7 +31,11 @@ opam install jingoo
 ```ocaml
 open Jingoo
 
-Jg_template.from_file "hello.jingoo" ~models:[("msg", Jg_types.Tstr "hello, world!")]
+(* output from direct string *)
+let result = Jg_template.from_string "{{ msg }}" ~models:[("msg", Jg_types.Tstr "hello, world!")]
+
+(* or output from file *)
+let result2 = Jg_template.from_file "hello.jingoo" ~models:[("msg", Jg_types.Tstr "hello, world!")]
 ```
 
 ## Custom filter
