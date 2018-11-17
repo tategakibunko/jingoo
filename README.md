@@ -110,7 +110,7 @@ Jg_template.from_string "{{msg | my_ext.to_md5}}" ~env ~models:[
 
 See [samples](https://github.com/tategakibunko/jingoo/blob/master/samples) directory.
 
-*.jingoo is template example and *.expected is expected string.
+`*.jingoo` is template example and `*.expected` is expected string.
 
 
 ## license
