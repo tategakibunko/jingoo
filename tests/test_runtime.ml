@@ -247,7 +247,8 @@ let test_slice _ctx =
     Tlist [ Tint 4; Tint 5 ]
   ] in
   let result = jg_slice (Tint 2) lst in
-  assert_equal_tvalue expect result
+  assert_equal_tvalue expect result ;
+  assert_equal_tvalue (Tlist [ Tlist [] ; Tlist [] ]) (jg_slice (Tint 2) (Tlist []))
 
 let test_wordcount _ctx =
   assert_equal_tvalue (jg_wordcount (Tstr "hoge hige hage")) (Tint 3);
