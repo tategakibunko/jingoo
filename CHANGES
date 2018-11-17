@@ -9,6 +9,11 @@ version: 1.2.22
 o [PR#63] Dune build system, documentation and github pages.
 o [PR#64] Added jg_reject, jg_filter filter.
 o [PR#65] jg_range: generate an array instead of a list, and support char ranges.
+o [PR#66] Added jg_nth, jg_forall, jg_fold.
+o [PR#66] jg_plus(+ operator in template) supports array and list.
+o [PR#66] Some internal enhancements.
+* [PR#66] Fixed jg_slice.
+! [PR#66] Rename jg_filter to jg_select, to avoid wired naming(filter filter).
 
 version: 1.2.21, 2018-10-27
 ===========================
