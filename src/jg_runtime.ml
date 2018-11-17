@@ -892,7 +892,7 @@ let jg_batch ?(kwargs=[]) ?(defaults=[
       then box_array (Array.sub arr (i * c) c)
       else if fill_value = Tnull then box_array @@ Array.init (len1 mod c) (fun j -> arr.(i * c + j))
       else box_array @@ Array.init c (fun j -> if i * c + j < len1 then arr.(i * c + j) else fill_value)
-    | _ -> failwith "invalid args: batch"
+    | a, b -> failwith_type_error_2 "jg_batch" a b
 
 (** [jg_slice nb value] split [value] into [nb] chunks.
 
@@ -902,15 +902,29 @@ let jg_batch ?(kwargs=[]) ?(defaults=[
 
     See also {!val:jg_batch}.
  *)
-(* FIXME: implem is wrong.
-   jg_slice 3 [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
-   should return [ [0, 1, 2, 3], [4, 5, 6], [7, 8, 9] ]
- *)
-(* TODO ?(defaults = [("fill_with", Tnull)]) *)
-let jg_slice ?(kwargs=[]) ?defaults:_ len value =
-  match value with
-  | Tlist _ | Tarray _ -> jg_batch len value ~kwargs
-  | _ -> jg_batch len (jg_list value) ~kwargs
+let rec jg_slice ?(kwargs=[]) count value =
+  let pad = jg_get_kvalue "fill_with" kwargs in
+  match count, value with
+  | Tint c, Tlist l ->
+    let len = List.length l in
+    let min = len / c in
+    let rest = len mod c in
+    let max = if rest = 0 then min else min + 1 in
+    let nb i = if i < rest then max else min in
+    let rec slice res i rem =
+      if i = c then box_list @@ List.rev res
+      else
+        let n = nb i in
+        let s =
+          if n < max && pad <> Tnull then take n rem @ [ pad ] else take n rem
+        in
+        slice
+          (box_list s :: res)
+          (i + 1)
+          (after n rem)
+    in
+    slice [] 0 l
+  | _ -> jg_slice count (jg_list value) ~kwargs
 
 (** [jg_sublist i len list] returns the sub-list of [list],
     starting at the [i]-th element, and containing [len] elements, or
@@ -1319,7 +1333,7 @@ let std_filters = [
   ("fmt_float", func_arg2 jg_fmt_float);
   ("join", func_arg2 jg_join);
   ("split", func_arg2 jg_split);
-  ("slice", func_arg2 (jg_slice ~defaults:[("fill_with", Tnull)]));
+  ("slice", func_arg2 jg_slice);
   ("truncate", func_arg2 jg_truncate);
   ("range", func_arg2 jg_range);
   ("round", func_arg2 jg_round);

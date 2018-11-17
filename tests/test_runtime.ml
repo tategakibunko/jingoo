@@ -243,9 +243,8 @@ let test_random _ctx =
 let test_slice _ctx =
   let lst = Tlist [Tint 1; Tint 2; Tint 3; Tint 4; Tint 5] in
   let expect = Tlist [
-    Tlist [Tint 1; Tint 2];
-    Tlist [Tint 3; Tint 4];
-    Tlist [Tint 5];
+    Tlist [ Tint 1; Tint 2; Tint 3];
+    Tlist [ Tint 4; Tint 5 ]
   ] in
   let result = jg_slice (Tint 2) lst in
   assert_equal_tvalue expect result
