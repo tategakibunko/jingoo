@@ -89,7 +89,7 @@ let () =
 2. Compile it to `my_ext.cmxs` by `-shared` option.
 
 ```bash
-ocamfind ocamlopt -shared -o my_ext.cmxs my_ext.ml
+ocamlfind ocamlopt -shared -o my_ext.cmxs my_ext.ml
 ```
 
 3. Set `my_ext.cmxs` to `extensions` field of environment, and you can use your custom filter `my_ext.to_md5`.
