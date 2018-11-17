@@ -25,6 +25,18 @@ val from_file :
     [("msg", Tstr "hello, world!"); ("count", Tint 100); ]
 *)
 
+val from_chan :
+  ?env:environment ->
+  ?ctx:context ->
+  ?models:(string * tvalue) list ->
+  in_channel ->
+  string
+(** [from_chan env models chan]
+    return result string.
+
+    same as from_file but read template from {!type:Stdlib.in_channel}.
+*)
+
 val from_string :
   ?env:environment ->
   ?ctx:context ->
@@ -38,4 +50,3 @@ val from_string :
 
     nomally, this context is used internal parsing.
 *)
-

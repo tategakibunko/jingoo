@@ -45,7 +45,7 @@ let rec value_of_expr env ctx = function
   | BracketExpr(left, expr) ->
     (match value_of_expr env ctx expr with
      | Tstr prop -> jg_obj_lookup (value_of_expr env ctx left) prop
-     | Tint i -> jg_nth (value_of_expr env ctx left) i
+     | Tint i -> jg_nth_aux (value_of_expr env ctx left) i
      | _ -> Tnull)
   | TestOpExpr(IdentExpr(name), IdentExpr("defined")) -> jg_test_defined ctx name
   | TestOpExpr(IdentExpr(name), IdentExpr("undefined")) -> jg_test_undefined ctx name
@@ -73,12 +73,12 @@ let rec value_of_expr env ctx = function
     ) expr_list)
 
   | ApplyExpr(IdentExpr("eval"), [expr]) ->
-    let buffer = Buffer.create 256 in
-    let ctx = {ctx with serialize = true ; output = Buffer.add_string buffer } in
+    let value = ref Tnull in
+    let ctx = {ctx with serialize = true ; output = fun x -> value := x } in
     let str = string_of_tvalue @@ value_of_expr env ctx expr in
     let ast = ast_from_string str in
     let _ = List.fold_left (eval_statement env) ctx ast in
-    (Marshal.from_string (Buffer.contents buffer) 0 : tvalue)
+    !value
 
   | ApplyExpr(IdentExpr("safe"), [expr]) ->
      value_of_expr env ctx expr
@@ -202,26 +202,28 @@ and eval_statement env ctx = function
      | None -> ctx (* do nothing *)
     )
 
-  | IncludeStatement(IdentExpr(name), with_context) ->
-    eval_statement env ctx @@ IncludeStatement(LiteralExpr(jg_get_value ctx name), with_context)
+  | IncludeStatement(e, with_ctx) ->
+    begin match value_of_expr env ctx e with
+      | Tstr path ->
+        if with_ctx then
+          let ast = ast_from_file ~env path in
+          List.fold_left (eval_statement env) ctx ast
+        else
+          let ast = ast_from_file ~env path in
+          let ctx' = jg_init_context ctx.output env in
+          let _ = List.fold_left (eval_statement env) ctx' ast in
+          ctx
+      | x -> Jg_runtime.failwith_type_error_1 "Jg_interp:include" x
+    end
 
-  | IncludeStatement(LiteralExpr(Tstr path), true) ->
-    let ast = ast_from_file ~env path in
-    List.fold_left (eval_statement env) ctx ast
-
-  | IncludeStatement(LiteralExpr(Tstr path), false) ->
-    let ast = ast_from_file ~env path in
-    let ctx' = jg_init_context ctx.output env in
-    let _ = List.fold_left (eval_statement env) ctx' ast in
-    ctx
-
-  | RawIncludeStatement(IdentExpr(name)) ->
-    eval_statement env ctx @@ RawIncludeStatement(LiteralExpr(jg_get_value ctx name))
-
-  | RawIncludeStatement(LiteralExpr(Tstr path)) ->
-    let file_path = get_file_path env path in
-    let source = Jg_utils.read_file_as_string file_path in
-    jg_output ctx (Tstr source) ~safe:true
+  | RawIncludeStatement(e) ->
+    begin match value_of_expr env ctx e with
+      | Tstr path ->
+        let file_path = get_file_path env path in
+        let source = Jg_utils.read_file_as_string file_path in
+        jg_output ctx (Tstr source) ~safe:true
+      | x -> Jg_runtime.failwith_type_error_1 "Jg_interp:rawinclude" x
+    end
 
   | WithStatement(binds, ast) ->
     let kwargs = kwargs_of env ctx binds in
@@ -254,16 +256,20 @@ and eval_statement env ctx = function
     let arg_names = ident_names_of def_args in
     let kwargs = kwargs_of env ctx def_args in
     let macro = Macro (arg_names, kwargs, ast) in
+    let apply ~kwargs args =
+      let value = ref Tnull in
+      let ctx = { ctx with serialize = true ; output = fun x -> value := x } in
+      let ctx = jg_push_frame ctx in
+      ignore (jg_eval_aux ctx args kwargs macro @@ fun ctx ast ->
+              List.fold_left (eval_statement env) ctx ast) ;
+      !value
+    in
+    (* FIXME: generalize this for any number of arguments *)
     let fn =
-      let buffer = Buffer.create 256 in
-      Tfun (fun ?(kwargs=[]) args ->
-          Buffer.reset buffer ;
-          let ctx = { ctx with serialize = true ; output = Buffer.add_string buffer } in
-          let ctx = jg_push_frame ctx in
-          ignore (jg_eval_aux ctx args kwargs macro @@ fun ctx ast ->
-                  List.fold_left (eval_statement env) ctx ast) ;
-          (Marshal.from_string (Buffer.contents buffer) 0 : tvalue)
-        ) in
+      match List.length arg_names with
+      | 2 -> func_arg2 (fun ?(kwargs=kwargs) a b -> apply ~kwargs [a ; b])
+      | 3 -> func_arg3 (fun ?(kwargs=kwargs) a b c -> apply ~kwargs [a ; b ; c])
+      | _ -> Tfun (fun ?(kwargs=kwargs) args -> apply ~kwargs args) in
     jg_set_value ctx name fn ;
     ctx
 
@@ -369,17 +375,33 @@ and ast_from_lexbuf filename lexbuf =
   let ast = Jg_parser.input Jg_lexer.main lexbuf in
   ast
 
+and error e lexbuf =
+  let curr = lexbuf.Lexing.lex_curr_p in
+  let l = curr.Lexing.pos_lnum in
+  let c = curr.Lexing.pos_cnum - curr.Lexing.pos_bol in
+  let t = Lexing.lexeme lexbuf in
+  let msg = Printf.sprintf "Error line %d, col %d, token %s (%s)" l c t e in
+  raise (SyntaxError msg)
+
+and ast_from_chan filename ch =
+  let lexbuf = Lexing.from_channel ch in
+  try
+    let ast = ast_from_lexbuf filename lexbuf in
+    close_in ch;
+    ast
+  with SyntaxError e ->
+    close_in ch ;
+    error e lexbuf
+
 and ast_from_file ~env filename =
   let filename = get_file_path env filename in
   let ch = open_in filename in
-  let lexbuf = Lexing.from_channel ch in
-  let ast = ast_from_lexbuf (Some filename) lexbuf in
-  close_in ch;
-  ast
+  ast_from_chan (Some filename) ch
 
 and ast_from_string string =
   let lexbuf = Lexing.from_string string in
-  ast_from_lexbuf None lexbuf
+  try ast_from_lexbuf None lexbuf
+  with SyntaxError e -> error e lexbuf
 
 and eval_aux ~env ~ctx ast =
   let ast =
@@ -400,3 +422,9 @@ and from_string ?(env=std_env) ?(models=[]) ?file_path:_ ~output
     source =
   eval_aux ~env ~ctx @@
     ast_from_string source
+
+and from_chan ?(env=std_env) ?(models=[]) ?file_path ~output
+    ?(ctx = init_context ~env ~models ~output ())
+    chan =
+  eval_aux ~env ~ctx @@
+    ast_from_chan file_path chan

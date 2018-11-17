@@ -185,7 +185,7 @@ and jg_obj_lookup obj prop_name =
     | Thash(hash) -> (try Hashtbl.find hash prop_name with Not_found -> Tnull)
     | Tpat(fn) -> (try fn prop_name with Not_found -> Tnull)
     | Tlazy _ | Tvolatile _ -> jg_obj_lookup (jg_force obj) prop_name
-    | _ -> failwith ("jg_obj_lookup:not object when looking for '"  ^ prop_name ^ "'")
+    | _ -> failwith_type_error_1 ("jg_obj_lookup(\"" ^ prop_name ^ "\")") obj
 
 let jg_obj_lookup_by_name ctx obj_name prop_name =
   match jg_get_value ctx obj_name with
@@ -217,13 +217,20 @@ let jg_pop_filter ctx =
 
 (**/**)
 
-(* FIXME: invert n seq *)
-(** [jg_nth seq n] returns the [n]-th value of sequence [seq] *)
-let jg_nth value i =
+(**/**)
+let jg_nth_aux value i =
   match value with
   | Tarray a -> a.(i)
   | Tset l | Tlist l -> List.nth l i
-  | _ -> failwith_type_error_1 "jg_nth" value
+  | Tstr s -> Tstr (String.make 1 @@ String.get s i)
+  | _ -> failwith_type_error_1 "jg_nth_aux" value
+(**/**)
+
+(** [jg_nth n seq] returns the [n]-th value of sequence [seq] *)
+let jg_nth ?kwargs:_ i value =
+  match i with
+  | Tint i -> jg_nth_aux value i
+  | _ -> failwith_type_error_1 "jg_nth" i
 
 (** [jg_escape_html x] escape [x] string representation using {!Jg_utils.escape_html} *)
 let jg_escape_html ?kwargs:_ str =
@@ -249,15 +256,11 @@ let jg_apply_filters ?(autoescape=true) ?(safe=false) ctx text filters =
   if safe || not autoescape then text else jg_escape_html text
 
 let jg_output ?(autoescape=true) ?(safe=false) ctx value =
-  if ctx.serialize then ctx.output @@ Marshal.to_string value []
+  if ctx.serialize || (ctx.active_filters = [] && safe) then
+    ctx.output value
   else
-    begin
-      match ctx.active_filters, safe, value with
-      | [], true, value -> ctx.output @@ string_of_tvalue value
-      | _ ->
-        ctx.output @@ string_of_tvalue @@
-        jg_apply_filters ctx value ctx.active_filters ~safe ~autoescape
-    end ;
+    ctx.output @@
+    jg_apply_filters ctx value ctx.active_filters ~safe ~autoescape ;
   ctx
 
 let jg_obj_lookup_path obj path =
@@ -397,13 +400,13 @@ let rec jg_is_true = function
   | Tstr x -> x <> ""
   | Tint x -> x != 0
   | Tfloat x -> (x > epsilon_float) || (x < -. epsilon_float)
-  | Tlist x -> List.length x > 0
-  | Tset x -> List.length x > 0
-  | Tobj x -> List.length x > 0
+  | Tlist x -> x <> []
+  | Tset x -> x <> []
+  | Tobj x -> x <> []
   | Thash x -> Hashtbl.length x > 0
   | Tpat _ -> true
   | Tnull -> false
-  | Tfun _ -> failwith "jg_is_true:type error(function)"
+  | Tfun _ -> true
   | Tarray a -> Array.length a > 0
   | Tlazy fn -> jg_is_true (Lazy.force fn)
   | Tvolatile fn -> jg_is_true (fn ())
@@ -411,6 +414,12 @@ let rec jg_is_true = function
 let jg_not x =
   Tbool (not (jg_is_true x))
 
+(** [jg_plus a b]
+    The multi-purpose [+] operator.
+    Can add two numbers,
+    concat two strings or a string and a number,
+    append two sequences (list or array).
+  *)
 let jg_plus left right =
   match left, right with
     | Tint x1, Tint x2 -> Tint(x1+x2)
@@ -424,6 +433,11 @@ let jg_plus left right =
     | Tstr x1, Tstr x2 -> Tstr (x1 ^ x2)
     | Tstr x1, Tint x2 -> Tstr (x1 ^ string_of_int x2)
     | Tstr x1, Tfloat x2 -> Tstr (x1 ^ string_of_float x2)
+
+    | Tlist l1, Tlist l2 -> Tlist (List.append l1 l2)
+    | Tarray a1, Tlist l2 -> Tlist (List.append (Array.to_list a1) l2)
+    | Tlist l1, Tarray a2 -> Tlist (List.append l1 (Array.to_list a2))
+    | Tarray a1, Tarray a2 -> Tarray (Array.append a1 a2)
 
     | _, _ -> failwith_type_error_2 "jg_plus" left right
 
@@ -688,7 +702,7 @@ let jg_split ?kwargs:_ pat text =
   match pat, text with
     | Tstr pat, Tstr text ->
       let lst =
-	Re.Pcre.split ~rex:(Re.Pcre.regexp pat) text |>
+	Re.Str.split (Re.Str.regexp pat) text |>
 	  List.map (fun str -> Tstr str) in
       Tlist lst
   | _ -> failwith_type_error_2 "jg_split" pat text
@@ -740,15 +754,13 @@ let jg_abs ?kwargs:_ value =
     | Tint x -> Tint (abs x)
     | _ -> failwith_type_error_1 "jg_abs" value
 
-let jg_attr ?kwargs:_ obj prop =
-  match obj, prop with
-    | Tobj alist, Tstr prop ->
-      (try List.assoc prop alist with Not_found -> Tnull)
-    | Thash htbl, Tstr prop ->
-      (try Hashtbl.find htbl prop with Not_found -> Tnull)
-    | Tpat fn, Tstr prop ->
-      (try fn prop with Not_found -> Tnull)
-    | _ -> Tnull
+(** [jg_attr p o]
+    Return the [p] property of object [o]. Support dotted notation. *)
+let jg_attr ?kwargs:_ prop obj =
+  match prop with
+  | Tstr path ->
+    jg_obj_lookup_path obj (string_split_on_char '.' path)
+  | _ -> failwith_type_error_2 "jg_attr" prop obj
 
 (** TODO *)
 (* defaults=[ ("width", Tint 80) ] *)
@@ -806,7 +818,7 @@ let jg_random ?kwargs:_ lst =
 let jg_replace ?kwargs:_ src dst str =
   match src, dst, str with
     | Tstr src, Tstr dst, Tstr str ->
-      Tstr (Re.replace_string (Re.Pcre.regexp src) ~by:dst str)
+      Tstr (Re.Str.global_replace (Re.Str.regexp src) dst str)
     | _ -> failwith_type_error_3 "jg_replace" src dst str
 
 (** [jg_add a b] is [a + b]. It only support int and float.
@@ -880,7 +892,7 @@ let jg_batch ?(kwargs=[]) ?(defaults=[
       then box_array (Array.sub arr (i * c) c)
       else if fill_value = Tnull then box_array @@ Array.init (len1 mod c) (fun j -> arr.(i * c + j))
       else box_array @@ Array.init c (fun j -> if i * c + j < len1 then arr.(i * c + j) else fill_value)
-    | _ -> failwith "invalid args: batch"
+    | a, b -> failwith_type_error_2 "jg_batch" a b
 
 (** [jg_slice nb value] split [value] into [nb] chunks.
 
@@ -890,15 +902,29 @@ let jg_batch ?(kwargs=[]) ?(defaults=[
 
     See also {!val:jg_batch}.
  *)
-(* FIXME: implem is wrong.
-   jg_slice 3 [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 ]
-   should return [ [0, 1, 2, 3], [4, 5, 6], [7, 8, 9] ]
- *)
-(* TODO ?(defaults = [("fill_with", Tnull)]) *)
-let jg_slice ?(kwargs=[]) ?defaults:_ len value =
-  match value with
-  | Tlist _ | Tarray _ -> jg_batch len value ~kwargs
-  | _ -> jg_batch len (jg_list value) ~kwargs
+let rec jg_slice ?(kwargs=[]) count value =
+  let pad = jg_get_kvalue "fill_with" kwargs in
+  match count, value with
+  | Tint c, Tlist l ->
+    let len = List.length l in
+    let min = len / c in
+    let rest = len mod c in
+    let max = if rest = 0 then min else min + 1 in
+    let nb i = if i < rest then max else min in
+    let rec slice res i rem =
+      if i = c then box_list @@ List.rev res
+      else
+        let n = nb i in
+        let s =
+          if n < max && pad <> Tnull then take n rem @ [ pad ] else take n rem
+        in
+        slice
+          (box_list s :: res)
+          (i + 1)
+          (after n rem)
+    in
+    slice [] 0 l
+  | _ -> jg_slice count (jg_list value) ~kwargs
 
 (** [jg_sublist i len list] returns the sub-list of [list],
     starting at the [i]-th element, and containing [len] elements, or
@@ -1156,26 +1182,53 @@ let jg_min ?(kwargs=[]) arg =
   | Tlist (hd :: tl) -> jg_max_min_aux false hd List.iter tl kwargs
   | _ -> failwith_type_error_1 "jg_min" arg
 
-let jg_filter_aux name filter =
+let jg_select_aux name select =
   fun fn seq ->
-    let filtered l = match fn with
-      | Tfun fn -> Tlist (List.filter (fun x -> filter (unbox_bool @@ fn [x])) l)
+    let selected l = match fn with
+      | Tfun fn -> Tlist (List.filter (fun x -> select (unbox_bool @@ fn [x])) l)
       | _ -> failwith_type_error_2 name fn seq
     in
     match seq with
-    | Tarray a -> filtered (Array.to_list a)
-    | Tlist l -> filtered l
+    | Tarray a -> selected (Array.to_list a)
+    | Tlist l -> selected l
     | _ -> failwith_type_error_2 name fn seq
 
 (** [jg_reject fn seq]
     returns the elements of [seq] that {b don't} satify [fn]. *)
 let jg_reject =
-  fun ?kwargs:_ -> jg_filter_aux "jg_reject" not
+  fun ?kwargs:_ -> jg_select_aux "jg_reject" not
 
-(** [jg_filter fn seq]
+(** [jg_select fn seq]
     returns the elements of [seq] that satify [fn]. *)
-let jg_filter =
-  fun ?kwargs:_ -> jg_filter_aux "jg_filter" (fun x -> x)
+let jg_select =
+  fun ?kwargs:_ -> jg_select_aux "jg_select" (fun x -> x)
+
+(** [jg_fold fn acc [b1, ..., bn]] is [fn (... (fn (fn acc b1) b2) ...) bn].
+*)
+let jg_fold = fun ?kwargs:_ fn acc seq ->
+  let wrap fn acc x = fn [ acc ; x ] in
+  match fn, seq with
+  | Tfun fn, Tarray a -> Array.fold_left (wrap fn) acc a
+  | Tfun fn, Tlist l -> List.fold_left (wrap fn) acc l
+  | Tfun fn, Tstr s ->
+    let len = UTF8.length s in
+    let rec loop i acc =
+      if i >= len then acc
+      else
+        let x = UTF8.sub s i 1 in
+        loop (i + String.length x) ((wrap fn) acc (Tstr x))
+    in
+    loop 0 acc
+  | _ -> failwith_type_error_3 "jg_fold" fn acc seq
+
+(** [for_all fn seq]
+    checks if all elements of the sequence [seq] satisfy the predicate [fn].
+*)
+let jg_forall = fun ?kwargs:_ fn seq ->
+  match seq, fn with
+  | (Tlist l, Tfun fn) -> Tbool (List.for_all (fun x -> unbox_bool @@ fn [x]) l)
+  | (Tarray l, Tfun fn) -> Tbool (Array.for_all (fun x -> unbox_bool @@ fn [x]) l)
+  | _ -> failwith_type_error_2 "jg_forall" fn seq
 
 (** [jg_test_divisibleby divisor dividend]
     tests if [dividend] is divisible by [divisor]. *)
@@ -1245,7 +1298,6 @@ let jg_test_sequence ?kwargs:_ target =
 let jg_test_string ?kwargs:_ target =
   jg_strp target
 
-
 let std_filters = [
   (* built-in filters *)
   ("abs", func_arg1 jg_abs);
@@ -1281,19 +1333,22 @@ let std_filters = [
   ("fmt_float", func_arg2 jg_fmt_float);
   ("join", func_arg2 jg_join);
   ("split", func_arg2 jg_split);
-  ("slice", func_arg2 (jg_slice ~defaults:[("fill_with", Tnull)]));
+  ("slice", func_arg2 jg_slice);
   ("truncate", func_arg2 jg_truncate);
   ("range", func_arg2 jg_range);
   ("round", func_arg2 jg_round);
   ("groupby", func_arg2 jg_groupby);
   ("map", func_arg2 jg_map);
   ("reject", func_arg2 jg_reject);
-  ("filter", func_arg2 jg_filter);
+  ("select", func_arg2 jg_select);
+  ("nth", func_arg2 jg_nth);
+  ("forall", func_arg2 jg_forall);
 
   ("replace", func_arg3 jg_replace);
   ("substring", func_arg3 jg_substring);
   ("sublist", func_arg3 jg_sublist);
   ("wordwrap", func_arg3 jg_wordwrap);
+  ("fold", func_arg3 jg_fold);
 
   (* built-in tests *)
   ("divisibleby", func_arg2 jg_test_divisibleby);

@@ -47,7 +47,7 @@ and context = {
   namespace_table : (string, frame) Hashtbl.t;
   active_filters : string list;
   serialize: bool;
-  output : string -> unit;
+  output : tvalue -> unit;
 }
 
 and frame = (string, tvalue) Hashtbl.t
@@ -174,6 +174,7 @@ val unbox_array : tvalue -> tvalue array
 val unbox_obj : tvalue -> (string * tvalue) list
 val unbox_hash : tvalue -> (string, tvalue) Hashtbl.t
 val unbox_pat : tvalue -> (string -> tvalue)
+val unbox_lazy : tvalue -> tvalue Lazy.t
 
 (** {2 Helpers for function writing} *)
 

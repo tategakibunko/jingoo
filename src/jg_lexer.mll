@@ -12,14 +12,12 @@
   type lexer_context = {
     mutable mode : lexer_mode;
     mutable terminator : string option;
-    mutable eof : bool;
     mutable token_required : bool ;
   }
 
   let ctx = {
     mode = `Html;
     terminator = None;
-    eof = false;
     token_required = false
   }
 
@@ -53,7 +51,6 @@
     ctx.token_required <- token_required
 
   let reset_context () =
-    ctx.eof <- false;
     ctx.mode <- `Html;
     ctx.terminator <- None;
     ctx.token_required <- false;
@@ -107,7 +104,12 @@ rule main = parse
     add_char '}';
     main lexbuf
   }
-  | "{%" blank+ "raw" blank+ "%}" { raw lexbuf }
+  | ("{%" | (blank | newline)* "{%-")
+       blank* "raw" blank*
+     ("%}" | "-%}" (blank | newline)*) as str {
+    String.iter (function '\n' -> Lexing.new_line lexbuf | _ -> () ) str;
+    raw lexbuf
+  }
   | ("{%" | (blank | newline)* "{%-") as str {
     String.iter (function '\n' -> Lexing.new_line lexbuf | _ -> () ) str;
     if ctx.mode = `Logic then fail lexbuf @@ "Unexpected '{%' token" ;
@@ -256,11 +258,7 @@ rule main = parse
       | _ -> fail lexbuf @@ spf "unexpected token:%c" c
   }
   | eof {
-    match ctx.eof with
-      | true -> EOF
-      | _ ->
-	ctx.eof <- true;
-	TEXT (get_buf ())
+      match get_buf () with "" -> EOF | s -> TEXT s
   }
 
 and comment = parse
@@ -271,7 +269,12 @@ and comment = parse
   }
 
 and raw = parse
-  | "{%" blank+ "endraw" blank+ "%}" { TEXT (get_buf()) }
+  | ("{%" | (blank | newline)* "{%-")
+      blank* "endraw" blank*
+    ("%}" | "-%}" (blank | newline)*) as str {
+    String.iter (function '\n' -> Lexing.new_line lexbuf | _ -> () ) str ;
+    TEXT (get_buf())
+  }
   | _ as c {
     if c = '\n' then Lexing.new_line lexbuf;
     add_char c;
@@ -279,13 +282,16 @@ and raw = parse
   }
 
 and string_literal terminator = parse
-  | '\\' ['\\' '\"' 'n' 't' 'r'] {
+  | '\\' (_ as c) {
     let chr =
-      match Lexing.lexeme_char lexbuf 1 with
-        | 'n' -> '\n'
-        | 't' -> '\t'
-        | 'r' -> '\r'
-        | c -> c in
+      match c with
+      | '\\' -> '\\'
+      | 'n' -> '\n'
+      | 't' -> '\t'
+      | 'r' -> '\r'
+      | c when c = terminator -> c
+      | c -> fail lexbuf @@ spf "illegal backslash escape:%c" c
+    in
     add_char chr;
     string_literal terminator lexbuf
   }

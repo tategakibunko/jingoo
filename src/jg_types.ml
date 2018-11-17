@@ -22,7 +22,7 @@ and context = {
   namespace_table : (string, frame) Hashtbl.t;
   active_filters : string list;
   serialize: bool;
-  output : string -> unit
+  output : tvalue -> unit
 }
 
 and frame = (string, tvalue) Hashtbl.t
@@ -167,6 +167,9 @@ let unbox_pat = function
   | Tpat pat -> pat
   | _ -> raise @@ Invalid_argument "unbox_pat"
 
+let unbox_lazy = function
+  | Tlazy l -> l
+  | _ -> raise @@ Invalid_argument "unbox_lazy"
 
 let rec func_arg1 (f: ?kwargs:kwargs -> tvalue -> tvalue) =
   Tfun (fun ?(kwargs=[]) args ->
