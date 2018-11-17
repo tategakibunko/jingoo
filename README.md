@@ -18,7 +18,7 @@ sudo make install
 opam install jingoo
 ```
 
-## difference between Jinja2 and Jingoo
+## Difference between Jinja2 and Jingoo
 
 1. i18n features are not supported yet.
 2. Cause of language difference between ocaml and python,
