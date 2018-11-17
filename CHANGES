@@ -14,6 +14,7 @@ o [PR#66] jg_plus(+ operator in template) supports array and list.
 o [PR#66] Some internal enhancements.
 * [PR#66] Fixed jg_slice.
 ! [PR#66] Rename jg_filter to jg_select, to avoid wired naming(filter filter).
+o [PR#67] Started writing documentation for template designers.
 
 version: 1.2.21, 2018-10-27
 ===========================
