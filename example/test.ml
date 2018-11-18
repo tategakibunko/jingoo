@@ -1,6 +1,31 @@
 open Jingoo
 open Jg_types
 
+(* Copy of Filename.remove_extension which is available in 4.04 *)
+let is_dir_sep s i = match Sys.os_type with
+  | "Win32" | "Cygwin" ->
+    let c = s.[i] in c = '/' || c = '\\' || c = ':'
+  | _ -> (* normally "Unix" *)
+    s.[i] = '/'
+let extension_len name =
+  let rec check i0 i =
+    if i < 0 || is_dir_sep name i then 0
+    else if name.[i] = '.' then check i0 (i - 1)
+    else String.length name - i0
+  in
+  let rec search_dot i =
+    if i < 0 || is_dir_sep name i then 0
+    else if name.[i] = '.' then check i (i - 1)
+    else search_dot (i - 1)
+  in
+  search_dot (String.length name - 1)
+let filename_extension name =
+  let l = extension_len name in
+  if l = 0 then "" else String.sub name (String.length name - l) l
+let filename_remove_extension name =
+  let l = extension_len name in
+  if l = 0 then name else String.sub name 0 (String.length name - l)
+
 let file_contents file =
   let ic = open_in file in
   let n = in_channel_length ic in
@@ -24,8 +49,8 @@ let ls dir filter =
     loop [] [dir]
 
 let test jingoo_f =
-  let html_f = Filename.remove_extension jingoo_f ^ ".expected" in
-  let models_f = Filename.remove_extension jingoo_f ^ ".models" in
+  let html_f = filename_remove_extension jingoo_f ^ ".expected" in
+  let models_f = filename_remove_extension jingoo_f ^ ".models" in
   let models =
     if Sys.file_exists models_f then
       let value = ref Tnull in
@@ -52,5 +77,5 @@ let test jingoo_f =
     prerr_endline @@ s
 
 let () =
-  let jingoo = ls (Sys.getenv "DOC_SAMPLE_DIR") (fun f -> Filename.extension f = ".jingoo") in
+  let jingoo = ls (Sys.getenv "DOC_SAMPLE_DIR") (fun f -> filename_extension f = ".jingoo") in
   List.iter test (List.sort compare jingoo)
