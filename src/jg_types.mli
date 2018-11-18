@@ -232,10 +232,7 @@ val func_kw_3 : ?name:string -> (?kwargs:kwargs -> tvalue -> tvalue -> tvalue ->
 
    [{{ x | foo (10,20) }}] is equivalent too [{{ foo (10,20,x) }}].
 
-   Also, built-in function are written as functions returning functions until the last parameter
-   is given.
-
-   It allows you to use partial application in you templates [{{ list | map (foo (10,20)) }}]
+   Functions support partial application. e.g. [{{ list | map (foo (10,20)) }}]
 
    There is two kind of arguments: {{:#type-args} unnamed arguments} and {{:#type-kwargs} keyword arguments}.
 
