@@ -1221,7 +1221,7 @@ let jg_fold = fun ?kwargs:_ fn acc seq ->
       if i >= len then acc
       else
         let x = UTF8.sub s i 1 in
-        loop (i + String.length x) ((wrap fn) acc (Tstr x))
+        loop (i + 1) ((wrap fn) acc (Tstr x))
     in
     loop 0 acc
   | _ -> failwith_type_error_3 "jg_fold" fn acc seq
