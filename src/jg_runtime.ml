@@ -1190,7 +1190,7 @@ let jg_fold = fun fn acc seq ->
 let jg_forall = fun fn seq ->
   match seq, fn with
   | (Tlist l, Tfun fn) -> Tbool (List.for_all (fun x -> unbox_bool @@ fn x) l)
-  | (Tarray l, Tfun fn) -> Tbool (Array.for_all (fun x -> unbox_bool @@ fn x) l)
+  | (Tarray l, Tfun fn) -> Tbool (Jg_utils.array_for_all (fun x -> unbox_bool @@ fn x) l)
   | _ -> failwith_type_error_2 "jg_forall" fn seq
 
 (** [jg_test_divisibleby divisor dividend]

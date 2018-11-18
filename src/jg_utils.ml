@@ -277,11 +277,20 @@ let string_split_on_char sep s =
   done;
 sub s 0 !j :: !r
 
-(* Copied from Array module to ensure compatibility with 4.02 *)
+(* Copy of Array.exists which is available in 4.03.0 *)
 let array_exists p a =
   let n = Array.length a in
   let rec loop i =
     if i = n then false
     else if p (Array.unsafe_get a i) then true
     else loop (succ i) in
+  loop 0
+
+(* Copy of Array.for_all which is available in 4.03.0 *)
+let array_for_all p a =
+  let n = Array.length a in
+  let rec loop i =
+    if i = n then true
+    else if p (Array.unsafe_get a i) then loop (succ i)
+    else false in
   loop 0
