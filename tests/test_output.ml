@@ -97,7 +97,7 @@ let test_loop_revindex0 test_ctxt =
 
 let test_loop_cycle test_ctxt =
   assert_interp ~test_ctxt
-    "{% for i in range(1,3) %}{{loop.cycle(\"hoge\",\"hige\",\"hage\")}}\
+    "{% for i in range(1,3) %}{{loop.cycle([\"hoge\",\"hige\",\"hage\"])}}\
     {% endfor %}"
     "hogehigehage"
 ;;

@@ -38,16 +38,18 @@ let test jingoo_f =
     else []
   in
   let expected = file_contents html_f in
-  let res = Jg_template.from_file ~models jingoo_f in
-  if res <> expected then begin
+  try
+    match Jg_template.from_file ~models jingoo_f with
+    | res when res = expected -> prerr_endline @@ "--- OK: " ^ jingoo_f
+    | res ->
       prerr_endline @@ "--- Error: " ^ jingoo_f ;
       prerr_endline @@ "--- Expected: " ;
       prerr_endline @@ expected ;
       prerr_endline @@ "--- Got: " ;
       prerr_endline @@ res ;
-      failwith jingoo_f ;
-    end
-  else prerr_endline @@ "--- OK: " ^ jingoo_f
+  with Failure s ->
+    prerr_endline @@ "--- Failure: " ^ jingoo_f ;
+    prerr_endline @@ s
 
 let () =
   let jingoo = ls (Sys.getenv "DOC_SAMPLE_DIR") (fun f -> Filename.extension f = ".jingoo") in

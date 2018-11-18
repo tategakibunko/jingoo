@@ -13,47 +13,6 @@ open Jg_types
 
 (**/**)
 
-let type_string_of_tvalue = function
-  | Tint _ -> "int"
-  | Tfloat _ -> "float"
-  | Tstr _ -> "string"
-  | Tbool _ -> "bool"
-  | Tobj _ -> "obj"
-  | Thash _ -> "hash"
-  | Tlist _ -> "list"
-  | Tpat _ -> "pat"
-  | Tset _ -> "set"
-  | Tfun _ -> "function"
-  | Tnull -> "null"
-  | Tarray _ -> "array"
-  | Tlazy _ -> "lazy"
-  | Tvolatile _ -> "volatile"
-
-let failwith_type_error name args =
-  failwith @@
-  Printf.sprintf "type error: %s(%s)" name @@
-  String.concat "," @@
-  List.map
-    (fun (k, v) -> (if k <> "" then "" else k ^ "=") ^ type_string_of_tvalue v)
-    args
-
-let failwith_type_error_1 name x =
-  failwith @@
-  Printf.sprintf "type error: %s(%s)" name (type_string_of_tvalue x)
-
-let failwith_type_error_2 name a b =
-  failwith @@
-  Printf.sprintf "type error: %s(%s, %s)"
-    name (type_string_of_tvalue a) (type_string_of_tvalue b)
-
-let failwith_type_error_3 name a b c =
-  failwith @@
-  Printf.sprintf "type error: %s(%s, %s, %s)"
-    name
-    (type_string_of_tvalue a)
-    (type_string_of_tvalue b)
-    (type_string_of_tvalue c)
-
 let jg_strp = function
   | Tstr _ -> Tbool true
   | _ -> Tbool false
@@ -195,7 +154,7 @@ let jg_obj_lookup_by_name ctx obj_name prop_name =
 
 let jg_get_func ctx name =
   match jg_get_value ctx name with
-    | Tfun f -> Tfun f
+    | Tfun _ as f -> f
     | _ -> failwith @@ spf "undefined function %s" name
 
 let jg_set_macro ctx name macro =
@@ -227,22 +186,25 @@ let jg_nth_aux value i =
 (**/**)
 
 (** [jg_nth n seq] returns the [n]-th value of sequence [seq] *)
-let jg_nth ?kwargs:_ i value =
+let jg_nth i value =
   match i with
   | Tint i -> jg_nth_aux value i
   | _ -> failwith_type_error_1 "jg_nth" i
 
 (** [jg_escape_html x] escape [x] string representation using {!Jg_utils.escape_html} *)
-let jg_escape_html ?kwargs:_ str =
+let jg_escape_html str =
   match str with
     | Tstr str -> Tstr(Jg_utils.escape_html str)
     | other -> Tstr(Jg_utils.escape_html @@ string_of_tvalue other)
 
 (**/**)
-let jg_apply ?(name="<lambda>") ?(kwargs=[]) f args =
-  match f with
-    | Tfun fn -> fn args ~kwargs
-    | _ -> failwith @@ spf "invalid apply: %s(%s) is not function(%s)" name (string_of_tvalue f) (type_string_of_tvalue f)
+let jg_apply ?(name="<lambda>") ?kwargs f args =
+  if args = [] then
+    let fn = unbox_fun f in
+    Tfun (fun ?kwargs:kw x -> fn ?kwargs:(merge_kwargs kwargs kw) x)
+  else
+    try List.fold_left (fun fn a -> (unbox_fun fn) ?kwargs a) f args
+    with _ -> func_failure ~name ?kwargs args
 
 let jg_apply_filters ?(autoescape=true) ?(safe=false) ctx text filters =
   let (safe, text) = List.fold_left (fun (safe, text) name ->
@@ -266,12 +228,17 @@ let jg_output ?(autoescape=true) ?(safe=false) ctx value =
 let jg_obj_lookup_path obj path =
   List.fold_left (fun obj key -> jg_obj_lookup obj key) obj path
 
+let jg_length_aux x =
+  match x with
+    | Tlist lst -> List.length lst
+    | Tset lst -> List.length lst
+    | Tstr str -> Jg_utils.strlen str
+    | Tarray arr -> Array.length arr
+    | _ -> failwith_type_error_1 "jg_length" x
+
 (* FIXME: only declare loop once and use volatile values updated with each iteration *)
 let jg_iter_mk_ctx ctx iterator itm len i =
-  let cycle = Tfun (fun ?kwargs:_ args ->
-      let args_len = List.length args in
-      List.nth args (i mod args_len)
-    ) in
+  let cycle = func_1 (fun set -> jg_nth_aux set (i mod jg_length_aux set)) in
   let ctx = jg_push_frame ctx in
   let () = jg_bind_names ctx iterator itm in
   let () =
@@ -492,7 +459,7 @@ let jg_or left right =
 (** [jg_compare x y] returns [0] if [x] is equal to [y],
     a negative integer if [x] is less than [y],
     and a positive integer if [x] is greater than [y]. *)
-let rec jg_compare ?kwargs:_ left right =
+let rec jg_compare left right =
   Tint (jg_compare_aux left right)
 
 (**/**)
@@ -635,34 +602,34 @@ let jg_get_kvalue ?(defaults=[]) name kwargs =
 (**/**)
 
 (** [jg_upper s] Apply upper case to [s]. *)
-let jg_upper ?kwargs:_ x =
+let jg_upper x =
   match x with
     | Tstr str -> Tstr (Jg_utils.UTF8.uppercase str)
     | other -> Tstr (string_of_tvalue other)
 
 (** [jg_upper s] Apply lower case to [s]. *)
-let jg_lower ?kwargs:_ x =
+let jg_lower x =
   match x with
     | Tstr str -> Tstr (Jg_utils.UTF8.lowercase str)
     | other -> Tstr (string_of_tvalue other)
 
 (** [jg_capitalize txt]
     Apply uppercase to the first letter of [txt] and lowercase to the rest *)
-let jg_capitalize ?kwargs:_ value =
+let jg_capitalize value =
   match value with
     | Tstr str -> Tstr (Jg_utils.UTF8.capitalize str)
     | _ -> failwith_type_error_1 "jg_capitalize" value
 
 (** [jg_title txt] Apply titlecase (lower case except for first letter
     of all words which is upper cased) to [txt]. *)
-let jg_title ?kwargs:_ text =
+let jg_title text =
   match text with
     | Tstr text -> Tstr (Jg_utils.UTF8.titlecase text)
     | _ -> failwith_type_error_1 "jg_title" text
 
 (** [jg_int x] turns [x] into an integer.
     Support int, float and string types. *)
-let jg_int ?kwargs:_ x =
+let jg_int x =
   match x with
     | Tint _ -> x
     | Tfloat x -> Tint (int_of_float  x)
@@ -671,7 +638,7 @@ let jg_int ?kwargs:_ x =
 
 (** [jg_float x] turns [x] into a float.
     Support int, float and string types. *)
-let jg_float ?kwargs:_ x =
+let jg_float x =
   match x with
     | Tfloat _ -> x
     | Tint x -> Tfloat (float_of_int x)
@@ -680,7 +647,7 @@ let jg_float ?kwargs:_ x =
 
 (** [jg_join sep seq] concatenates the string representation of values
     in [seq], inserting the separator [sep] between each. *)
-let jg_join ?kwargs:_ join_str lst =
+let jg_join join_str lst =
   match join_str, lst with
     | Tstr str, Tlist lst
     | Tstr str, Tset lst ->
@@ -698,7 +665,7 @@ let jg_join ?kwargs:_ join_str lst =
 
 (** [jg_split pat text] returns the list of all (possibly empty) substrings
     of [text] that are delimited by [pat] regex. *)
-let jg_split ?kwargs:_ pat text =
+let jg_split pat text =
   match pat, text with
     | Tstr pat, Tstr text ->
       let lst =
@@ -711,7 +678,7 @@ let jg_split ?kwargs:_ pat text =
     returns a string of length [len], containing the substring of [s]
     that starts at position [start] and has length [len]
   *)
-let jg_substring ?kwargs:_ base count str =
+let jg_substring base count str =
   match base, count, str with
     | Tint base, Tint count, Tstr str ->
       Tstr (substring base count str)
@@ -720,43 +687,38 @@ let jg_substring ?kwargs:_ base count str =
     | _ -> failwith_type_error_3 "jg_substring" base count str
 
 (** [jg_truncate len str] is a shorthand for [jg_substring 0 len str] *)
-let jg_truncate ?kwargs:_ len str =
+let jg_truncate len str =
   match len, str with
     | Tint len, Tstr str ->
       Tstr (substring 0 len str)
     | _ -> failwith_type_error_2 "jg_truncate" len str
 
 (** [jg_strlen s] returns the length (number of characters) of [s] *)
-let jg_strlen ?kwargs:_ x =
+let jg_strlen x =
   match x with
     | Tstr str -> Tint (Jg_utils.strlen str)
     | _ -> failwith_type_error_1 "jg_strlen" x
 
 (** [jg_length seq] returns the number of of elements in sequence [seq].
     If [seq] is a string [jg_strlen seq] is returned. *)
-let jg_length ?kwargs:_ x =
-  match x with
-    | Tlist lst -> Tint (List.length lst)
-    | Tset lst -> Tint (List.length lst)
-    | Tstr str -> Tint (Jg_utils.strlen str)
-    | Tarray arr -> Tint (Array.length arr)
-    | _ -> failwith_type_error_1 "jg_length" x
+let jg_length x =
+  Tint (jg_length_aux x)
 
-let jg_md5 ?kwargs:_ x =
+let jg_md5 x =
   match x with
     | Tstr str ->
       Tstr(str |> Jg_utils.UTF8.lowercase |> Digest.string |> Digest.to_hex)
     | _ -> failwith_type_error_1 "jg_md5" x
 
 (** [jg_abs x] Return the absolute value of [x]. *)
-let jg_abs ?kwargs:_ value =
+let jg_abs value =
   match value with
     | Tint x -> Tint (abs x)
     | _ -> failwith_type_error_1 "jg_abs" value
 
 (** [jg_attr p o]
     Return the [p] property of object [o]. Support dotted notation. *)
-let jg_attr ?kwargs:_ prop obj =
+let jg_attr prop obj =
   match prop with
   | Tstr path ->
     jg_obj_lookup_path obj (string_split_on_char '.' path)
@@ -764,25 +726,25 @@ let jg_attr ?kwargs:_ prop obj =
 
 (** TODO *)
 (* defaults=[ ("width", Tint 80) ] *)
-let jg_center ?kwargs:_ ?defaults:_ value =
+let jg_center ?defaults:_ value =
   value (* TODO *)
 
 (** [jg_default default value]
     Return [value] if different from [Tnull], and [default] otherwise. *)
-let jg_default ?kwargs:_ default value =
+let jg_default default value =
   match value with
     | Tnull -> default
     | other -> other
 
 (** TODO: keyword arguments *)
 (* defaults = [ ("case_sensitive", Tbool true) ; ("by", Tstr "key")] *)
-let jg_dictsort ?kwargs:_ ?defaults:_ value =
+let jg_dictsort ?defaults:_ value =
   match value with
     | Tobj alist ->
       Tobj (List.sort (fun a b -> String.compare (fst a) (fst b)) alist)
     | _ -> value
 
-let jg_reverse ?kwargs:_ lst =
+let jg_reverse lst =
   match lst with
     | Tlist lst -> Tlist (List.rev lst)
     | Tarray a ->
@@ -793,7 +755,7 @@ let jg_reverse ?kwargs:_ lst =
 (** [jg_last seq].
     Return the last element of sequence [seq].
 *)
-let jg_last ?kwargs:_ lst =
+let jg_last lst =
   match lst with
     | Tlist lst
     | Tset lst ->
@@ -805,7 +767,7 @@ let jg_last ?kwargs:_ lst =
     | Tarray a -> Array.get a (Array.length a - 1)
     | _ -> failwith_type_error_1 "jg_last" lst
 
-let jg_random ?kwargs:_ lst =
+let jg_random lst =
   let knuth a =
     for i = Array.length a - 1 downto 1 do
       let j = Random.int i in
@@ -820,7 +782,7 @@ let jg_random ?kwargs:_ lst =
     | Tarray a -> Tarray (knuth @@ Array.copy a)
     | _ -> failwith_type_error_1 "jg_random" lst
 
-let jg_replace ?kwargs:_ src dst str =
+let jg_replace src dst str =
   match src, dst, str with
     | Tstr src, Tstr dst, Tstr str ->
       Tstr (Re.Str.global_replace (Re.Str.regexp src) dst str)
@@ -838,7 +800,7 @@ let jg_add a b = match a, b with
 
 (** [jg_sum seq] is the sum of elements in [seq] produced using {!val:jg_add}.
  *)
-let jg_sum ?kwargs:_ lst =
+let jg_sum lst =
   match lst with
   | Tset l
   | Tlist l -> List.fold_left jg_add (Tint 0) l
@@ -846,13 +808,13 @@ let jg_sum ?kwargs:_ lst =
   | _ -> failwith_type_error_1 "jg_sum" lst
 
 (** [jg_trim s] returns [s] with leading and trailing whitespace. *)
-let jg_trim ?kwargs:_ str =
+let jg_trim str =
   match str with
     | Tstr str -> Tstr (Jg_utils.UTF8.trim str)
     | _ -> failwith_type_error_1 "jg_trim" str
 
 (** [jg_list x] convert [x] to a list. Support list, tuple, string and array. *)
-let jg_list ?kwargs:_ value =
+let jg_list value =
   match value with
     | Tlist lst | Tset lst -> Tlist lst
     | Tstr str ->
@@ -873,9 +835,7 @@ let jg_list ?kwargs:_ value =
     If [fill_with=v] keyword argument is given, the last chunk will be filled
     with [v] instead of [null] if needed.
  *)
-let jg_batch ?(kwargs=[]) ?(defaults=[
-  ("fill_with", Tnull)
-]) count value =
+let jg_batch ?(defaults = [ ("fill_with", Tnull) ]) ?(kwargs = []) count value =
   let fill_value = jg_get_kvalue "fill_with" kwargs ~defaults in
   match count, value with
     | Tint slice_count, Tlist lst ->
@@ -935,7 +895,7 @@ let rec jg_slice ?(kwargs=[]) count value =
     starting at the [i]-th element, and containing [len] elements, or
     all elements after the [i]-th if len is [null].
 *)
-let jg_sublist ?kwargs:_ base count lst =
+let jg_sublist base count lst =
   match base, count, lst with
     | Tint base, Tint count, Tlist lst -> Tlist (after base lst |> take count)
     | Tint base, Tnull, Tlist lst -> Tlist (after base lst)
@@ -943,7 +903,7 @@ let jg_sublist ?kwargs:_ base count lst =
 
 (** [jg_wordcount str] count (non-empty) words in [str] using spacing
     as delimiter between words. *)
-let jg_wordcount ?kwargs:_ str =
+let jg_wordcount str =
   match str with
     | Tstr str ->
       let space = ref true in
@@ -960,7 +920,7 @@ let jg_wordcount ?kwargs:_ str =
 (* FIXME: common method make no sens to me... *)
 (** [jg_round meth x] rounds [x] using [meth] rounding method.
     Supported methods are ["ceil"] and ["floor"]. *)
-let jg_round ?kwargs:_ how value =
+let jg_round how value =
   match how, value with
     | _, Tint x -> Tint x
     | Tstr "floor", Tfloat x -> Tfloat (floor x)
@@ -970,7 +930,7 @@ let jg_round ?kwargs:_ how value =
       spf "invalid args:round method %s not supported(jg_round)" other
     | _ -> failwith_type_error_2 "jg_round" how value
 
-let jg_fmt_float ?kwargs:_ digit_count value =
+let jg_fmt_float digit_count value =
   match digit_count, value with
     | Tint digit_count, Tfloat value ->
       let fmt = Scanf.format_from_string (spf "%%.%df" digit_count) "%f" in
@@ -980,7 +940,7 @@ let jg_fmt_float ?kwargs:_ digit_count value =
 (** [jg_range start stop] returns a sequence of values going from [start]
      to (or downto) [stop].
     Support integers and string with one ascii character. *)
-let jg_range ?kwargs:_ start stop =
+let jg_range start stop =
   let range start stop fn =
     let sign = if start < stop then (+) else (-) in
     let len = (if start < stop then stop - start else start - stop) + 1 in
@@ -1009,7 +969,7 @@ let jg_urlize_regexp =
           ; compl [ set ":.?" ]
           ])
 
-let jg_urlize ?kwargs:_ text =
+let jg_urlize text =
   match text with
     | Tstr text ->
       Tstr (Re.replace (Lazy.force jg_urlize_regexp) text
@@ -1020,7 +980,7 @@ let jg_striptags_regexp =
   let open Re in
   lazy (compile @@ seq [ char '<' ; opt (char '?') ; rep1 (compl [ char '>' ]) ; char '>' ])
 
-let jg_striptags ?kwargs:_ text =
+let jg_striptags text =
   match text with
     | Tstr text ->
       Tstr (Re.replace_string (Lazy.force jg_striptags_regexp) ~by:"" text)
@@ -1040,7 +1000,7 @@ let jg_sort ?(kwargs=[]) lst =
   let jg_compare = ref jg_compare_aux in
   List.iter (function ("reverse", Tbool true) -> reverse := true
                     | ("attribute", Tstr name) -> attribute := name
-                    | ("compare", Tfun fn) -> jg_compare := fun a b -> unbox_int (fn [ a ; b ])
+                    | ("compare", fn) -> jg_compare := fun a b -> unbox_int (jg_apply fn [ a ; b ])
                     | (kw, _) -> failwith kw) kwargs;
   let compare = match !attribute with
     | "" -> !jg_compare
@@ -1056,14 +1016,14 @@ let jg_sort ?(kwargs=[]) lst =
 (** [jg_xmlattr o] Format a string containing keys/values representation
     of object [o] so it can be used as xml attributes.
     i.e. ['key1="value1" key2="value2"] *)
-let jg_xmlattr ?kwargs:_ obj =
+let jg_xmlattr obj =
   match obj with
     | Tobj alist ->
       List.map (fun (name, value) -> spf "%s=\"%s\"" name (string_of_tvalue value)) alist |>
 	String.concat " " |> box_string
     | _ -> failwith_type_error_1 "jg_xmlattr" obj
 
-let jg_wordwrap ?kwargs:_ width break_long_words text =
+let jg_wordwrap width break_long_words text =
   match width, break_long_words, text with
     | Tint width, Tbool break_long_words, Tstr text ->
       let concat_line s1 s2 = if s1 = "" then s2 else String.concat " " [s1; s2] in
@@ -1095,7 +1055,7 @@ module JgHashtbl = Hashtbl.Make (struct
 
 let fun_or_attribute ~kwargs ~arg =
   match arg with
-  | Tfun fn -> fun x -> fn ~kwargs [x]
+  | Tfun fn -> fun x -> fn ~kwargs x
   | _ -> match kwargs with
     | [ ("attribute", Tstr path) ] ->
       fun x -> jg_obj_lookup_path x (string_split_on_char '.' path)
@@ -1190,7 +1150,7 @@ let jg_min ?(kwargs=[]) arg =
 let jg_select_aux name select =
   fun fn seq ->
     let selected l = match fn with
-      | Tfun fn -> Tlist (List.filter (fun x -> select (unbox_bool @@ fn [x])) l)
+      | Tfun fn -> Tlist (List.filter (fun x -> select (unbox_bool @@ fn x)) l)
       | _ -> failwith_type_error_2 name fn seq
     in
     match seq with
@@ -1200,22 +1160,20 @@ let jg_select_aux name select =
 
 (** [jg_reject fn seq]
     returns the elements of [seq] that {b don't} satify [fn]. *)
-let jg_reject =
-  fun ?kwargs:_ -> jg_select_aux "jg_reject" not
+let jg_reject = jg_select_aux "jg_reject" not
 
 (** [jg_select fn seq]
     returns the elements of [seq] that satify [fn]. *)
-let jg_select =
-  fun ?kwargs:_ -> jg_select_aux "jg_select" (fun x -> x)
+let jg_select = jg_select_aux "jg_select" (fun x -> x)
 
 (** [jg_fold fn acc [b1, ..., bn]] is [fn (... (fn (fn acc b1) b2) ...) bn].
 *)
-let jg_fold = fun ?kwargs:_ fn acc seq ->
-  let wrap fn acc x = fn [ acc ; x ] in
+let jg_fold = fun fn acc seq ->
+  let wrap fn acc x = jg_apply fn [ acc ; x ] in
   match fn, seq with
-  | Tfun fn, Tarray a -> Array.fold_left (wrap fn) acc a
-  | Tfun fn, Tlist l -> List.fold_left (wrap fn) acc l
-  | Tfun fn, Tstr s ->
+  | Tfun _, Tarray a -> Array.fold_left (wrap fn) acc a
+  | Tfun _, Tlist l -> List.fold_left (wrap fn) acc l
+  | Tfun _, Tstr s ->
     let len = UTF8.length s in
     let rec loop i acc =
       if i >= len then acc
@@ -1229,28 +1187,28 @@ let jg_fold = fun ?kwargs:_ fn acc seq ->
 (** [for_all fn seq]
     checks if all elements of the sequence [seq] satisfy the predicate [fn].
 *)
-let jg_forall = fun ?kwargs:_ fn seq ->
+let jg_forall = fun fn seq ->
   match seq, fn with
-  | (Tlist l, Tfun fn) -> Tbool (List.for_all (fun x -> unbox_bool @@ fn [x]) l)
-  | (Tarray l, Tfun fn) -> Tbool (Array.for_all (fun x -> unbox_bool @@ fn [x]) l)
+  | (Tlist l, Tfun fn) -> Tbool (List.for_all (fun x -> unbox_bool @@ fn x) l)
+  | (Tarray l, Tfun fn) -> Tbool (Array.for_all (fun x -> unbox_bool @@ fn x) l)
   | _ -> failwith_type_error_2 "jg_forall" fn seq
 
 (** [jg_test_divisibleby divisor dividend]
     tests if [dividend] is divisible by [divisor]. *)
-let jg_test_divisibleby ?kwargs:_ num target =
+let jg_test_divisibleby num target =
   match num, target with
     | Tint 0, _ -> Tbool(false)
     | Tint n, Tint t ->  Tbool(t mod n = 0)
     | _ -> Tbool(false)
 
 (** [jg_test_even x] tests if [x] is even (only works with int). *)
-let jg_test_even ?kwargs:_ x =
+let jg_test_even x =
   match x with
     | Tint x -> Tbool(x mod 2 = 0)
     | _ -> Tbool(false)
 
 (** [jg_test_odd x] tests if [x] is odd (only works with int). *)
-let jg_test_odd ?kwargs:_ x =
+let jg_test_odd x =
   match x with
     | Tint x -> Tbool(x mod 2 = 1)
     | _ -> Tbool(false)
@@ -1260,29 +1218,29 @@ let jg_test_iterable_aux = function
   | _ -> false
 
 (** [jg_test_upper x] tests if [x] is iterable. *)
-let jg_test_iterable ?kwargs:_ = fun x -> Tbool (jg_test_iterable_aux x)
+let jg_test_iterable = fun x -> Tbool (jg_test_iterable_aux x)
 
 (** [jg_test_upper x] tests if [x] is an lowercased string. *)
-let jg_test_lower ?kwargs:_ x =
+let jg_test_lower x =
   match x with
     | Tstr str -> Tbool(Jg_utils.UTF8.is_lower str)
     | _ -> Tbool(false)
 
 (** [jg_test_upper x] tests if [x] is an uppercased string. *)
-let jg_test_upper ?kwargs:_ x =
+let jg_test_upper x =
   match x with
     | Tstr str -> Tbool(Jg_utils.UTF8.is_upper str)
     | _ -> Tbool(false)
 
 (** [jg_test_number x] tests if [x] is a number (i.e. an int or a float). *)
-let jg_test_number ?kwargs:_ x =
+let jg_test_number x =
   match x with
     | Tint _ -> Tbool(true)
     | Tfloat _ -> Tbool(true)
     | _ -> Tbool(false)
 
 (** [jg_test_sameas x y] tests if [y] and [x] are physically equals. *)
-let jg_test_sameas ?kwargs:_ value target =
+let jg_test_sameas value target =
   match value, target with
     | Tstr x, Tstr y -> Tbool(x == y)
     | Tint x, Tint y -> Tbool(x == y)
@@ -1296,75 +1254,75 @@ let jg_test_sameas ?kwargs:_ value target =
     | _ -> Tbool(false)
 
 (** [jg_test_sequence x] tests if [x] is sequence (i.e. a list or an array). *)
-let jg_test_sequence ?kwargs:_ target =
+let jg_test_sequence target =
   jg_test_iterable target
 
 (** [jg_test_string x] tests if [x] is of type string. *)
-let jg_test_string ?kwargs:_ target =
+let jg_test_string target =
   jg_strp target
 
 let std_filters = [
   (* built-in filters *)
-  ("abs", func_arg1 jg_abs);
-  ("capitalize", func_arg1 jg_capitalize);
-  ("escape", func_arg1 jg_escape_html);
-  ("e", func_arg1 jg_escape_html); (* alias for escape *)
-  ("float", func_arg1 jg_float);
-  ("int", func_arg1 jg_int);
-  ("last", func_arg1 jg_last);
-  ("length", func_arg1 jg_length);
-  ("list", func_arg1 jg_list);
-  ("lower", func_arg1 jg_lower);
-  ("max", func_arg1 jg_max);
-  ("md5", func_arg1 jg_md5);
-  ("min", func_arg1 jg_min);
-  ("strlen", func_arg1 jg_strlen);
-  ("sum", func_arg1 jg_sum);
-  ("striptags", func_arg1 jg_striptags);
-  ("sort", func_arg1 jg_sort);
-  ("upper", func_arg1 jg_upper);
-  ("random", func_arg1 jg_random);
-  ("reverse", func_arg1 jg_reverse);
-  ("title", func_arg1 jg_title);
-  ("trim", func_arg1 jg_trim);
-  ("urlize", func_arg1 jg_urlize);
-  ("wordcount", func_arg1 jg_wordcount);
-  ("xmlattr", func_arg1 jg_xmlattr);
+  ("abs", func_1 jg_abs);
+  ("capitalize", func_1 jg_capitalize);
+  ("escape", func_1 jg_escape_html);
+  ("e", func_1 jg_escape_html); (* alias for escape *)
+  ("float", func_1 jg_float);
+  ("int", func_1 jg_int);
+  ("last", func_1 jg_last);
+  ("length", func_1 jg_length);
+  ("list", func_1 jg_list);
+  ("lower", func_1 jg_lower);
+  ("max", func_kw_1 jg_max);
+  ("md5", func_1 jg_md5);
+  ("min", func_kw_1 jg_min);
+  ("strlen", func_1 jg_strlen);
+  ("sum", func_1 jg_sum);
+  ("striptags", func_1 jg_striptags);
+  ("sort", func_kw_1 jg_sort);
+  ("upper", func_1 jg_upper);
+  ("random", func_1 jg_random);
+  ("reverse", func_1 jg_reverse);
+  ("title", func_1 jg_title);
+  ("trim", func_1 jg_trim);
+  ("urlize", func_1 jg_urlize);
+  ("wordcount", func_1 jg_wordcount);
+  ("xmlattr", func_1 jg_xmlattr);
 
-  ("attr", func_arg2 jg_attr);
-  ("batch", func_arg2 (jg_batch ~defaults:[("fill_with", Tnull)]));
-  ("default", func_arg2 jg_default);
-  ("d", func_arg2 jg_default); (* alias for default *)
-  ("fmt_float", func_arg2 jg_fmt_float);
-  ("join", func_arg2 jg_join);
-  ("split", func_arg2 jg_split);
-  ("slice", func_arg2 jg_slice);
-  ("truncate", func_arg2 jg_truncate);
-  ("range", func_arg2 jg_range);
-  ("round", func_arg2 jg_round);
-  ("groupby", func_arg2 jg_groupby);
-  ("map", func_arg2 jg_map);
-  ("reject", func_arg2 jg_reject);
-  ("select", func_arg2 jg_select);
-  ("nth", func_arg2 jg_nth);
-  ("forall", func_arg2 jg_forall);
+  ("attr", func_2 jg_attr);
+  ("batch", func_kw_2 (jg_batch ?defaults:None));
+  ("default", func_2 jg_default);
+  ("d", func_2 jg_default); (* alias for default *)
+  ("fmt_float", func_2 jg_fmt_float);
+  ("join", func_2 jg_join);
+  ("split", func_2 jg_split);
+  ("slice", func_kw_2 jg_slice);
+  ("truncate", func_2 jg_truncate);
+  ("range", func_2 jg_range);
+  ("round", func_2 jg_round);
+  ("groupby", func_kw_2 jg_groupby);
+  ("map", func_kw_2 jg_map);
+  ("reject", func_2 jg_reject);
+  ("select", func_2 jg_select);
+  ("nth", func_2 jg_nth);
+  ("forall", func_2 jg_forall);
 
-  ("replace", func_arg3 jg_replace);
-  ("substring", func_arg3 jg_substring);
-  ("sublist", func_arg3 jg_sublist);
-  ("wordwrap", func_arg3 jg_wordwrap);
-  ("fold", func_arg3 jg_fold);
+  ("replace", func_3 jg_replace);
+  ("substring", func_3 jg_substring);
+  ("sublist", func_3 jg_sublist);
+  ("wordwrap", func_3 jg_wordwrap);
+  ("fold", func_3 jg_fold);
 
   (* built-in tests *)
-  ("divisibleby", func_arg2 jg_test_divisibleby);
-  ("even", func_arg1 jg_test_even);
-  ("iterable", func_arg1 jg_test_iterable);
-  ("number", func_arg1 jg_test_number);
-  ("odd", func_arg1 jg_test_odd);
-  ("sameas", func_arg2 jg_test_sameas);
-  ("compare", func_arg2 jg_compare);
-  ("sequence", func_arg1 jg_test_sequence);
-  ("string", func_arg1 jg_test_string);
+  ("divisibleby", func_2 jg_test_divisibleby);
+  ("even", func_1 jg_test_even);
+  ("iterable", func_1 jg_test_iterable);
+  ("number", func_1 jg_test_number);
+  ("odd", func_1 jg_test_odd);
+  ("sameas", func_2 jg_test_sameas);
+  ("compare", func_2 jg_compare);
+  ("sequence", func_1 jg_test_sequence);
+  ("string", func_1 jg_test_string);
 ]
 
 let jg_load_extensions extensions =

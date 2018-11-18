@@ -41,7 +41,7 @@ and tvalue =
   | Tpat of (string -> tvalue)
   | Tlist of tvalue list
   | Tset of tvalue list
-  | Tfun of (?kwargs:kwargs -> args -> tvalue)
+  | Tfun of (?kwargs:kwargs -> tvalue -> tvalue)
   | Tarray of tvalue array
   | Tlazy of tvalue Lazy.t
   | Tvolatile of (unit -> tvalue)
@@ -127,78 +127,152 @@ let box_pat fn = Tpat fn
 let box_lazy z = Tlazy z
 let box_fun z = Tfun z
 
+(**/**)
+let type_string_of_tvalue = function
+  | Tint _ -> "int"
+  | Tfloat _ -> "float"
+  | Tstr _ -> "string"
+  | Tbool _ -> "bool"
+  | Tobj _ -> "obj"
+  | Thash _ -> "hash"
+  | Tlist _ -> "list"
+  | Tpat _ -> "pat"
+  | Tset _ -> "set"
+  | Tfun _ -> "function"
+  | Tnull -> "null"
+  | Tarray _ -> "array"
+  | Tlazy _ -> "lazy"
+  | Tvolatile _ -> "volatile"
+
+let invalid_argument x name =
+  raise @@ Invalid_argument (name ^ ":" ^ type_string_of_tvalue x)
+
+let failwith_type_error name args =
+  failwith @@
+  Printf.sprintf "type error: %s(%s)" name @@
+  String.concat "," @@
+  List.map
+    (fun (k, v) -> (if k = "" then "" else k ^ "=") ^ type_string_of_tvalue v)
+    args
+
+let failwith_type_error_1 name x =
+  failwith @@
+  Printf.sprintf "type error: %s(%s)" name (type_string_of_tvalue x)
+
+let failwith_type_error_2 name a b =
+  failwith @@
+  Printf.sprintf "type error: %s(%s, %s)"
+    name (type_string_of_tvalue a) (type_string_of_tvalue b)
+
+let failwith_type_error_3 name a b c =
+  failwith @@
+  Printf.sprintf "type error: %s(%s, %s, %s)"
+    name
+    (type_string_of_tvalue a)
+    (type_string_of_tvalue b)
+    (type_string_of_tvalue c)
+(**/**)
+
 let unbox_int = function
   | Tint x -> x
-  | _ -> raise @@ Invalid_argument "unbox_int"
+  | x -> invalid_argument x "unbox_int"
 
 let unbox_float = function
   | Tfloat f -> f
-  | _ -> raise @@ Invalid_argument "unbox_float"
+  | x -> invalid_argument x "unbox_float"
 
 let unbox_string = function
   | Tstr s -> s
-  | _ -> raise @@ Invalid_argument "unbox_string"
+  | x -> invalid_argument x "unbox_string"
 
 let unbox_bool = function
   | Tbool b -> b
-  | _ -> raise @@ Invalid_argument "unbox_bool"
+  | x -> invalid_argument x "unbox_bool"
 
 let unbox_list = function
   | Tlist lst -> lst
-  | _ -> raise @@ Invalid_argument "unbox_list"
+  | x -> invalid_argument x "unbox_list"
 
 let unbox_set = function
   | Tset lst -> lst
-  | _ -> raise @@ Invalid_argument "unbox_set"
+  | x -> invalid_argument x "unbox_set"
 
 let unbox_array = function
   | Tarray lst -> lst
-  | _ -> raise @@ Invalid_argument "unbox_array"
+  | x -> invalid_argument x "unbox_array"
 
 let unbox_obj = function
   | Tobj alist -> alist
-  | _ -> raise @@ Invalid_argument "unbox_obj"
+  | x -> invalid_argument x "unbox_obj"
 
 let unbox_hash = function
   | Thash hash -> hash
-  | _ -> raise @@ Invalid_argument "unbox_hash"
+  | x -> invalid_argument x "unbox_hash"
 
 let unbox_pat = function
   | Tpat pat -> pat
-  | _ -> raise @@ Invalid_argument "unbox_pat"
+  | x -> invalid_argument x "unbox_pat"
 
 let unbox_lazy = function
   | Tlazy l -> l
-  | _ -> raise @@ Invalid_argument "unbox_lazy"
+  | x -> invalid_argument x "unbox_lazy"
 
-let rec func_arg1 (f: ?kwargs:kwargs -> tvalue -> tvalue) =
-  Tfun (fun ?(kwargs=[]) args ->
-    match args with
-    | a1 :: _ -> f a1 ~kwargs
-    | [] ->
-       let f' = f ~kwargs in
-       func_arg1 (fun ?kwargs:_ a1 -> f' a1)
-  )
+let unbox_fun = function
+  | Tfun fn -> fn
+  | x -> invalid_argument x "unbox_fun"
 
-let func_arg2 (f: ?kwargs:kwargs -> tvalue -> tvalue -> tvalue) =
-  Tfun (fun ?(kwargs=[]) args ->
-    match args with
-    | a1 :: a2 :: _ -> f a1 a2 ~kwargs
-    | a1 :: _ ->
-       let f' = f a1 ~kwargs in
-       func_arg1 (fun ?kwargs:_ a2 -> f' a2)
-    | _ -> Tnull
-  )
+let func_failure ?(name = "<lambda>") ?(kwargs = []) args =
+  failwith_type_error name (kwargs @ List.map (fun x -> "", x) args)
 
-let func_arg3 (f: ?kwargs:kwargs -> tvalue -> tvalue -> tvalue -> tvalue) =
-  Tfun (fun ?(kwargs=[]) args ->
-    match args with
-    | a1 :: a2 :: a3 :: _ -> f a1 a2 a3 ~kwargs
-    | a1 :: a2 :: _ ->
-       let f' = f a1 a2 ~kwargs in
-       func_arg1 (fun ?kwargs:_ a3 -> f' a3)
-    | a1 :: _ ->
-       let f' = f a1 ~kwargs in
-       func_arg2 (fun ?kwargs:_ a2 a3 -> f' a2 a3)
-    | _ -> Tnull
-  )
+let merge_kwargs a b = match a, b with
+  | None, x | x, None -> x
+  | Some a, Some b -> Some ((List.filter (fun (x, _) -> not @@ List.mem_assoc x b) a) @ b)
+
+let func_kw f n =
+  if n = 0 then Tfun (fun ?kwargs _ -> f ?kwargs [])
+  else
+    let rec aux ?kwargs:kw acc rem =
+      Tfun
+        (fun ?kwargs x ->
+           let kwargs = merge_kwargs kw kwargs in
+           if rem = 1
+           then f ?kwargs (List.rev @@ x :: acc)
+           else aux ?kwargs (x :: acc) (rem - 1))
+    in
+    aux [] n
+
+let func f n =
+  if n = 0 then Tfun (fun ?kwargs:_ _ -> f [])
+  else
+    let rec aux acc rem =
+      Tfun
+        (fun ?kwargs:_ x ->
+           if rem = 1
+           then f (List.rev @@ x :: acc)
+           else aux (x :: acc) (rem - 1))
+    in
+    aux [] n
+
+let func_kw_1 ?name f =
+  let f = fun ?kwargs -> function [ a ] -> f ?kwargs a
+                                | args -> func_failure ?name ?kwargs args in
+  func_kw f 1
+
+let func_kw_2 ?name f =
+  let f = fun ?kwargs -> function [ a ; b ] -> f ?kwargs a b
+                                | args -> func_failure ?name ?kwargs args in
+  func_kw f 2
+
+let func_kw_3 ?name f =
+  let f = fun ?kwargs -> function [ a ; b ; c ] -> f ?kwargs a b c
+                                | args -> func_failure ?name ?kwargs args in
+  func_kw f 3
+
+let func_1 ?name f =
+  func (function [ a ] -> f a | args -> func_failure ?name args) 1
+
+let func_2 ?name f =
+  func (function [ a ; b ] -> f a b | args -> func_failure ?name args) 2
+
+let func_3 ?name f =
+  func (function [ a ; b ; c ] -> f a b c | args -> func_failure ?name args) 3

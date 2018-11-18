@@ -85,7 +85,7 @@ let rec value_of_expr env ctx = function
 
   | ApplyExpr(expr, args) ->
     let name = apply_name_of expr in
-    let nargs = nargs_of env ctx args in
+    let nargs = if args = [] then [ Tnull ] else nargs_of env ctx args in
     let kwargs = kwargs_of env ctx args in
     let callable = value_of_expr env ctx expr in
     (match callable with
@@ -213,7 +213,7 @@ and eval_statement env ctx = function
           let ctx' = jg_init_context ctx.output env in
           let _ = List.fold_left (eval_statement env) ctx' ast in
           ctx
-      | x -> Jg_runtime.failwith_type_error_1 "Jg_interp:include" x
+      | x -> failwith_type_error_1 "Jg_interp:include" x
     end
 
   | RawIncludeStatement(e) ->
@@ -222,7 +222,7 @@ and eval_statement env ctx = function
         let file_path = get_file_path env path in
         let source = Jg_utils.read_file_as_string file_path in
         jg_output ctx (Tstr source) ~safe:true
-      | x -> Jg_runtime.failwith_type_error_1 "Jg_interp:rawinclude" x
+      | x -> failwith_type_error_1 "Jg_interp:rawinclude" x
     end
 
   | WithStatement(binds, ast) ->
@@ -264,12 +264,7 @@ and eval_statement env ctx = function
               List.fold_left (eval_statement env) ctx ast) ;
       !value
     in
-    (* FIXME: generalize this for any number of arguments *)
-    let fn =
-      match List.length arg_names with
-      | 2 -> func_arg2 (fun ?(kwargs=kwargs) a b -> apply ~kwargs [a ; b])
-      | 3 -> func_arg3 (fun ?(kwargs=kwargs) a b c -> apply ~kwargs [a ; b ; c])
-      | _ -> Tfun (fun ?(kwargs=kwargs) args -> apply ~kwargs args) in
+    let fn = func_kw (fun ?(kwargs=kwargs) args -> apply ~kwargs args) (List.length arg_names) in
     jg_set_value ctx name fn ;
     ctx
 

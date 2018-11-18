@@ -66,7 +66,7 @@ and tvalue =
   | Tpat of (string -> tvalue)
   | Tlist of tvalue list
   | Tset of tvalue list
-  | Tfun of (?kwargs:kwargs -> args -> tvalue)
+  | Tfun of (?kwargs:kwargs -> tvalue -> tvalue)
   | Tarray of tvalue array
   | Tlazy of tvalue Lazy.t
   | Tvolatile of (unit -> tvalue)
@@ -158,7 +158,7 @@ val box_hash : (string, tvalue) Hashtbl.t -> tvalue
 val box_array : tvalue array -> tvalue
 val box_pat : (string -> tvalue) -> tvalue
 val box_lazy : tvalue Lazy.t -> tvalue
-val box_fun : (?kwargs:kwargs -> args -> tvalue) -> tvalue
+val box_fun : (?kwargs:kwargs -> tvalue -> tvalue) -> tvalue
 
 (** {2 Unboxing OCaml values}
     Unboxing operations raise [Invalid_argument] in case of type error.
@@ -175,12 +175,19 @@ val unbox_obj : tvalue -> (string * tvalue) list
 val unbox_hash : tvalue -> (string, tvalue) Hashtbl.t
 val unbox_pat : tvalue -> (string -> tvalue)
 val unbox_lazy : tvalue -> tvalue Lazy.t
+val unbox_fun : tvalue -> (?kwargs:kwargs -> tvalue -> tvalue)
 
 (** {2 Helpers for function writing} *)
 
-val func_arg1 : (?kwargs:kwargs -> tvalue -> tvalue) -> tvalue
-val func_arg2 : (?kwargs:kwargs -> tvalue -> tvalue -> tvalue) -> tvalue
-val func_arg3 : (?kwargs:kwargs -> tvalue -> tvalue -> tvalue -> tvalue) -> tvalue
+val func : (tvalue list -> tvalue) -> int -> tvalue
+val func_1 : ?name:string -> (tvalue -> tvalue) -> tvalue
+val func_2 : ?name:string -> (tvalue -> tvalue -> tvalue) -> tvalue
+val func_3 : ?name:string -> (tvalue -> tvalue -> tvalue -> tvalue) -> tvalue
+
+val func_kw : (?kwargs:kwargs -> tvalue list -> tvalue) -> int -> tvalue
+val func_kw_1 : ?name:string -> (?kwargs:kwargs -> tvalue -> tvalue) -> tvalue
+val func_kw_2 : ?name:string -> (?kwargs:kwargs -> tvalue -> tvalue -> tvalue) -> tvalue
+val func_kw_3 : ?name:string -> (?kwargs:kwargs -> tvalue -> tvalue -> tvalue -> tvalue) -> tvalue
 
 (** {2:notes-tvalue Notes about some data types }
 
@@ -241,3 +248,14 @@ val func_arg3 : (?kwargs:kwargs -> tvalue -> tvalue -> tvalue -> tvalue) -> tval
    Note that kwargs may be defined at any place: [slice(4, fill_with=0, [1,2,3,4,5])].
 
  *)
+
+(**/**)
+(** Function exported for internal usage but not documented *)
+
+val type_string_of_tvalue : tvalue -> string
+val failwith_type_error : string -> (string * tvalue) list -> 'a
+val failwith_type_error_1 : string -> tvalue -> 'a
+val failwith_type_error_2 : string -> tvalue -> tvalue -> 'a
+val failwith_type_error_3 : string -> tvalue -> tvalue -> tvalue -> 'a
+val merge_kwargs : kwargs option -> kwargs option -> kwargs option
+val func_failure : ?name:string -> ?kwargs:kwargs -> tvalue list -> 'a
