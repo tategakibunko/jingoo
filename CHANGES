@@ -4,7 +4,7 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
-version: 1.2.22
+version: 1.3.0
 ===========================
 o [PR#63] Dune build system, documentation and github pages.
 o [PR#64] Added jg_reject, jg_filter filter.
@@ -16,6 +16,7 @@ o [PR#66] Some internal enhancements.
 ! [PR#66] Rename jg_filter to jg_select, to avoid wired naming(filter filter).
 o [PR#67] Started writing documentation for template designers.
 * [PR#68] Fixed jg_fold for multi byte string.
+o [PR#69] Reworked Tfun to provide partial application for all functions.
 
 version: 1.2.21, 2018-10-27
 ===========================
