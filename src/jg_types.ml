@@ -45,7 +45,6 @@ and tvalue =
   | Tarray of tvalue array
   | Tlazy of tvalue Lazy.t
   | Tvolatile of (unit -> tvalue)
-and args = tvalue list
 and kwargs = (string * tvalue) list
 
 and ast = statement list
