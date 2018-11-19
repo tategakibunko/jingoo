@@ -37,7 +37,7 @@ gh-pages: doc
 	&& mkdir "$$tmp"templates \
 	&& mv $(OCAML_DOC_DIR)* "$$tmp"ocaml \
 	&& mv $(TEMPLATES_DOC_DIR)templates/templates.css "$$tmp"templates \
-	&& mv $(TEMPLATES_DOC_DIR)/templates/templates.*.html "$$tmp"templates \
+	&& mv $(TEMPLATES_DOC_DIR)templates/templates.*.html "$$tmp"templates \
 	&& mv $(TEMPLATES_DOC_DIR)index.html "$$tmp"\
 	&& (! git show-ref --verify --quiet refs/heads/gh-pages \
 	    || git branch -D -f gh-pages) \
