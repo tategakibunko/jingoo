@@ -2,7 +2,7 @@ Dependencies
 ============
 
 1. ocaml (>= 4.02.3)
-2. dune
+2. dune (>= 1.4.0)
 3. re
 4. uutf (>= 0.9.4)
 5. uucp

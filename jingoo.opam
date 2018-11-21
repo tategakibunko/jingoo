@@ -6,15 +6,12 @@ bug-reports: "https://github.com/tategakibunko/jingoo/issues"
 dev-repo: "git+https://github.com/tategakibunko/jingoo.git"
 license: "BSD-3"
 synopsis: "Template engine almost compatible with Jinja2(python template engine)"
-build: [
-  [make] {ocaml-native}
-  [make "byte"] {!ocaml-native}
-]
+build: [make "all"]
 install: [make "install"]
-remove: ["ocamlfind" "remove" "jingoo"]
+remove: [make "uninstall"]
 depends: [
   "ocaml" {>= "4.02.3"}
-  "dune" { build & >= "1.4.0" }
+  "dune" {build & >= "1.4.0"}
   "re"
   "uutf" {>= "0.9.4"}
   "uucp"

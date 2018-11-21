@@ -47,25 +47,27 @@ Set your custom filter to `filters` field of environment.
 ```ocaml
 open Jingoo
 
-(* define custom filter 'to_mail' *)
 let to_mail ?(kwargs=[]) ?(defaults=[]) value =
   let id = Jg_runtime.string_of_tvalue value in
   let domain = Jg_runtime.string_of_tvalue (Jg_runtime.jg_get_kvalue "domain" kwargs ~defaults) in
-  Jg_types.Tstr (spf "%s@%s" id domain)
+  Jg_types.Tstr (id ^ "@" ^ domain)
 
-(* set your extension to 'filters' field *)
-let env = {Jg_types.std_env with
-  filters = [
-    ("to_mail", Jg_runtime.func_arg1 (to_mail ~defaults:[
-      ("domain", Jg_types.Tstr "gmail.com");
-    ]));
-  ]
-} in
-
-(* output 'foo@gmail.com' *)
-Jg_template.from_string "{{id | to_mail(domain='gmail.com')}}" ~env ~models:[
-  ("id", Jg_types.Tstr "foo")
-]
+let () =
+  let result = Jg_template.from_string "{{id | to_mail(domain='gmail.com')}}"
+    (* set your extension to 'filters' field of environment *)
+    ~env:{Jg_types.std_env with
+      filters = [
+        (* CAUTION!: if jingoo <= 1.2.21, use 'Jg_runtime.func_arg1' instead of 'Jg_types.func_kw_1' *)
+        ("to_mail", Jg_types.func_kw_1 (to_mail ~defaults:[
+          ("domain", Jg_types.Tstr "gmail.com");
+        ]));
+      ]
+    }
+    ~models:[
+      ("id", Jg_types.Tstr "foo")
+    ] in
+  (* should output 'foo@gmail.com' *)
+  print_endline result
 ```
 
 ### Dynlink filter example
@@ -83,7 +85,8 @@ let to_md5 ?(kwargs=[]) ?(defaults=[]) value =
   | _ -> Jg_types.Tnull
 
 let () =
-  Jg_stub.add_func ~namespace:"my_ext" ~func_name:"to_md5" (Jg_runtime.func_arg1 (to_md5 ~defaults:[
+  (* CAUTION!: if jingoo <= 1.2.21, use 'Jg_runtime.func_arg1' instead of 'Jg_types.func_kw_1' *)
+  Jg_stub.add_func ~namespace:"my_ext" ~func_name:"to_md5" (Jg_types.func_kw_1 (to_md5 ~defaults:[
     ("seed", Jg_types.Tstr "");
   ]))
 ```
@@ -99,17 +102,18 @@ ocamlfind ocamlopt -shared -o my_ext.cmxs my_ext.ml
 ```ocaml
 open Jingoo
 
-(* set your extension to 'extensions' field *)
-let env = {Jg_types.std_env with
-  extensions = [
-    "my_ext.cmxs";
-  ]
-} in
-
-(* output '3cb988a734183289506ab7738261c827' *)
-Jg_template.from_string "{{msg | my_ext.to_md5(seed='aaa')}}" ~env ~models:[
-  ("msg", Jg_types.Tstr "foo");
-]
+let result = Jg_template.from_string "{{msg | my_ext.to_md5(seed='aaa')}}"
+  (* set your extension to 'extensions' field *)
+  ~env:{Jg_types.std_env with
+    extensions = [
+      "my_ext.cmxs";
+    ]
+  }
+  ~models:[
+    ("msg", Jg_types.Tstr "foo");
+  ] in
+(* should output '3cb988a734183289506ab7738261c827' *)
+print_endline result
 ```
 
 ## Cheatsheet
