@@ -179,14 +179,14 @@ val unbox_fun : tvalue -> (?kwargs:kwargs -> tvalue -> tvalue)
 (** {2 Helpers for function writing} *)
 
 val func : (tvalue list -> tvalue) -> int -> tvalue
-val func_1 : ?name:string -> (tvalue -> tvalue) -> tvalue
-val func_2 : ?name:string -> (tvalue -> tvalue -> tvalue) -> tvalue
-val func_3 : ?name:string -> (tvalue -> tvalue -> tvalue -> tvalue) -> tvalue
+val func_arg1 : ?name:string -> (tvalue -> tvalue) -> tvalue
+val func_arg2 : ?name:string -> (tvalue -> tvalue -> tvalue) -> tvalue
+val func_arg3 : ?name:string -> (tvalue -> tvalue -> tvalue -> tvalue) -> tvalue
 
 val func_kw : (?kwargs:kwargs -> tvalue list -> tvalue) -> int -> tvalue
-val func_kw_1 : ?name:string -> (?kwargs:kwargs -> tvalue -> tvalue) -> tvalue
-val func_kw_2 : ?name:string -> (?kwargs:kwargs -> tvalue -> tvalue -> tvalue) -> tvalue
-val func_kw_3 : ?name:string -> (?kwargs:kwargs -> tvalue -> tvalue -> tvalue -> tvalue) -> tvalue
+val func_arg1_kw : ?name:string -> (?kwargs:kwargs -> tvalue -> tvalue) -> tvalue
+val func_arg2_kw : ?name:string -> (?kwargs:kwargs -> tvalue -> tvalue -> tvalue) -> tvalue
+val func_arg3_kw : ?name:string -> (?kwargs:kwargs -> tvalue -> tvalue -> tvalue -> tvalue) -> tvalue
 
 (** {2:notes-tvalue Notes about some data types }
 

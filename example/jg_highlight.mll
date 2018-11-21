@@ -155,7 +155,7 @@ and string buffer term = parse
 
 open Jg_types
 
-let highlight ?kwargs:_ = function
+let highlight = function
   | Tstr s ->
     begin try
         let buffer = Buffer.create (String.length s) in
@@ -167,7 +167,7 @@ let highlight ?kwargs:_ = function
         Tstr (Buffer.contents buffer)
       with _ -> failwith s
     end
-  | x -> Jg_runtime.failwith_type_error_1 "highlight" x
+  | x -> Jg_types.failwith_type_error_1 "highlight" x
 
 let () =
   Jg_stub.add_func ~namespace:"jg_highlight" ~func_name:"highlight" (func_arg1 highlight)

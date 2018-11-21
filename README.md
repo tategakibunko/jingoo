@@ -57,8 +57,8 @@ let () =
     (* set your extension to 'filters' field of environment *)
     ~env:{Jg_types.std_env with
       filters = [
-        (* CAUTION!: if jingoo <= 1.2.21, use 'Jg_runtime.func_arg1' instead of 'Jg_types.func_kw_1' *)
-        ("to_mail", Jg_types.func_kw_1 (to_mail ~defaults:[
+        (* CAUTION!: if jingoo <= 1.2.21, use 'Jg_runtime.func_arg1' instead of 'Jg_types.func_arg1_kw' *)
+        ("to_mail", Jg_types.func_arg1_kw (to_mail ~defaults:[
           ("domain", Jg_types.Tstr "gmail.com");
         ]));
       ]
@@ -85,8 +85,8 @@ let to_md5 ?(kwargs=[]) ?(defaults=[]) value =
   | _ -> Jg_types.Tnull
 
 let () =
-  (* CAUTION!: if jingoo <= 1.2.21, use 'Jg_runtime.func_arg1' instead of 'Jg_types.func_kw_1' *)
-  Jg_stub.add_func ~namespace:"my_ext" ~func_name:"to_md5" (Jg_types.func_kw_1 (to_md5 ~defaults:[
+  (* CAUTION!: if jingoo <= 1.2.21, use 'Jg_runtime.func_arg1' instead of 'Jg_types.func_arg1_kw' *)
+  Jg_stub.add_func ~namespace:"my_ext" ~func_name:"to_md5" (Jg_types.func_arg1_kw (to_md5 ~defaults:[
     ("seed", Jg_types.Tstr "");
   ]))
 ```

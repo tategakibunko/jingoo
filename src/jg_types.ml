@@ -252,26 +252,26 @@ let func f n =
     in
     aux [] n
 
-let func_kw_1 ?name f =
+let func_arg1_kw ?name f =
   let f = fun ?kwargs -> function [ a ] -> f ?kwargs a
                                 | args -> func_failure ?name ?kwargs args in
   func_kw f 1
 
-let func_kw_2 ?name f =
+let func_arg2_kw ?name f =
   let f = fun ?kwargs -> function [ a ; b ] -> f ?kwargs a b
                                 | args -> func_failure ?name ?kwargs args in
   func_kw f 2
 
-let func_kw_3 ?name f =
+let func_arg3_kw ?name f =
   let f = fun ?kwargs -> function [ a ; b ; c ] -> f ?kwargs a b c
                                 | args -> func_failure ?name ?kwargs args in
   func_kw f 3
 
-let func_1 ?name f =
+let func_arg1 ?name f =
   func (function [ a ] -> f a | args -> func_failure ?name args) 1
 
-let func_2 ?name f =
+let func_arg2 ?name f =
   func (function [ a ; b ] -> f a b | args -> func_failure ?name args) 2
 
-let func_3 ?name f =
+let func_arg3 ?name f =
   func (function [ a ; b ; c ] -> f a b c | args -> func_failure ?name args) 3
