@@ -355,6 +355,95 @@ and import_macros env ctx stmts =
   let mapper = { default_mapper with statement } in
   mapper.ast mapper stmts
 
+
+(** [dead_code_elimination ast] perform a dead code elimination on [ast].
+    It is able to remove from ast:
+    - macro and function definitions not being actually used in ast
+*)
+and dead_code_elimination stmts =
+  let open Jg_ast_mapper in
+  let used = Hashtbl.create 512 in
+  let local_variables : (string * string list) list ref = ref [("", [])] in
+  let push_block name = local_variables := (name, []) :: !local_variables in
+  let pop_block () = local_variables := List.tl !local_variables in
+  let set_local x =
+    let fst, snd = List.hd !local_variables in
+    local_variables := (fst, x :: snd ) :: (List.tl !local_variables) in
+  let is_local (x : string) = List.exists (fun (_, l) -> List.mem x l) !local_variables in
+  let scope () =
+    let rec loop = function
+      | [] -> ""
+      | ("", _) :: tl -> loop tl
+      | (s, _) :: _ -> s in
+    loop !local_variables in
+  let rec maybe_set = function
+    | SetExpr set -> List.iter maybe_set set
+    | IdentExpr id -> set_local id
+    | KeywordExpr (id, _) -> maybe_set id
+    | _ -> () in
+  let statement self = function
+    | SetStatement (id, _) as s ->
+      maybe_set id ;
+      default_mapper.statement self s
+    | ForStatement (id, _, _) as s ->
+      push_block "" ;
+      maybe_set id ;
+      let s = default_mapper.statement self s in
+      pop_block () ;
+      s
+    | FunctionStatement (IdentExpr id, args, _)
+    | MacroStatement (IdentExpr id, args, _) as s ->
+      push_block id ;
+      set_local id ;
+      List.iter maybe_set args ;
+      let s = default_mapper.statement self s in
+      pop_block () ;
+      s
+    | FunctionStatement (_, _, _)
+    | MacroStatement (_, _, _)
+    | TextStatement (_)
+    | ExpandStatement (_)
+    | IfStatement (_)
+    | IncludeStatement (_, _)
+    | RawIncludeStatement _
+    | ExtendsStatement _
+    | ImportStatement (_, _)
+    | FromImportStatement (_, _)
+    | BlockStatement (_, _)
+    | FilterStatement (_, _)
+    | CallStatement (_, _, _, _)
+    | WithStatement (_, _)
+    | AutoEscapeStatement (_, _)
+    | NamespaceStatement (_, _)
+    | Statements (_)
+      as s -> default_mapper.statement self s
+  in
+  let expression self = function
+    | IdentExpr name as x when not (is_local name) ->
+      Hashtbl.add used name (scope ()) ; x
+    | e -> default_mapper.expression self e in
+  let mapper = { default_mapper with expression ; statement } in
+  let _ = mapper.ast mapper stmts in
+  let statement self = function
+    | MacroStatement (IdentExpr id, _, _)
+    | FunctionStatement (IdentExpr id, _, _) as s ->
+      (* Find if name is present in instructions called from toplevel *)
+      let rec loop n lists =
+        if List.mem "" (List.hd lists) then default_mapper.statement self s
+        else
+          let list' =
+            List.hd lists
+            |> List.map (Hashtbl.find_all used)
+            |> List.flatten
+            |> List.sort_uniq compare in
+          if List.mem list' lists then Statements []
+          else loop (n+1) (list' :: lists)
+      in
+      loop 0 [ List.sort_uniq compare @@ Hashtbl.find_all used id ]
+    | s -> default_mapper.statement self s in
+  let mapper = { default_mapper with statement } in
+  mapper.ast mapper stmts
+
 and get_file_path env file_name =
   Jg_utils.get_file_path file_name ~template_dirs:env.template_dirs
 
