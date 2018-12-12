@@ -560,32 +560,16 @@ let jg_not_eq left right =
   Tbool (not @@ jg_eq_eq_aux left right)
 
 let jg_lt left right =
-  match left, right with
-    | Tint x1, Tint x2 -> Tbool(x1<x2)
-    | Tfloat x1, Tfloat x2 -> Tbool(x1<x2)
-    | Tstr x1, Tstr x2 -> Tbool(x1<x2)
-    | _, _ -> failwith_type_error_2 "jg_lt" left right
+  Tbool (jg_compare_aux left right < 0)
 
 let jg_gt left right =
-  match left, right with
-    | Tint x1, Tint x2 -> Tbool(x1>x2)
-    | Tfloat x1, Tfloat x2 -> Tbool(x1>x2)
-    | Tstr x1, Tstr x2 -> Tbool(x1>x2)
-    | _, _ -> failwith_type_error_2 "jg_gt" left right
+  Tbool (jg_compare_aux left right > 0)
 
 let jg_lteq left right =
-  match left, right with
-    | Tint x1, Tint x2 -> Tbool(x1<=x2)
-    | Tfloat x1, Tfloat x2 -> Tbool(x1<=x2)
-    | Tstr x1, Tstr x2 -> Tbool(x1<=x2)
-    | _, _ -> failwith_type_error_2 "jg_lteq" left right
+  Tbool (jg_compare_aux left right <= 0)
 
 let jg_gteq left right =
-  match left, right with
-    | Tint x1, Tint x2 -> Tbool(x1>=x2)
-    | Tfloat x1, Tfloat x2 -> Tbool(x1>=x2)
-    | Tstr x1, Tstr x2 -> Tbool(x1>=x2)
-    | _, _ -> failwith_type_error_2 "jg_gteq" left right
+  Tbool (jg_compare_aux left right >= 0)
 
 (** [jg_inop x seq] Test if [seq] contains element [x]. *)
 let jg_inop left right =
