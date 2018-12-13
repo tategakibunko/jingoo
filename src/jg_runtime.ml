@@ -89,36 +89,6 @@ let rec string_of_tvalue ?(default = "") = function
 and string_of_obj default obj =
   string_of_tvalue ~default @@ jg_obj_lookup obj "__str__"
 
-and dump_expr = function
-  | IdentExpr(str) -> spf "IdentExpr(%s)" str
-  | LiteralExpr(tvalue) -> spf "LiteralExpr(%s)" (string_of_tvalue tvalue)
-  | NotOpExpr(_) -> "NotOpExpr"
-  | NegativeOpExpr(_) -> "NegativeOpExpr"
-  | PlusOpExpr(_,_) -> "PlusOpExpr"
-  | MinusOpExpr(_,_) -> "MinusExpr"
-  | TimesOpExpr(_,_) -> "TimesOpExpr"
-  | PowerOpExpr(_,_) -> "PowerOpExpr"
-  | DivOpExpr(_,_) -> "DivOpExpr"
-  | ModOpExpr(_,_) -> "ModOpExpr"
-  | AndOpExpr(_,_) -> "AndOpExpr"
-  | OrOpExpr(_,_) -> "OrOpExpr"
-  | NotEqOpExpr(_,_) -> "NotEqOpExpr"
-  | EqEqOpExpr(_,_) -> "EqEqExpr"
-  | LtOpExpr(_,_) -> "LtOpExpr"
-  | GtOpExpr(_,_) -> "GtOpExpr"
-  | LtEqOpExpr(_,_) -> "LtEqOpExpr"
-  | GtEqOpExpr(_,_) -> "GtEqOpExpr"
-  | DotExpr(_,_) -> "DotExpr"
-  | BracketExpr(_,_) -> "BracketExpr"
-  | ListExpr(_) -> "ListExpr"
-  | SetExpr(_) -> "SetExpr"
-  | ObjExpr(_) -> "ObjExpr"
-  | InOpExpr(_,_) -> "InOpExpr"
-  | KeywordExpr(_,_) -> "KeywordExpr"
-  | AliasExpr(_,_) -> "AliasExpr"
-  | ApplyExpr(_,_) -> "ApplyExpr"
-  | TestOpExpr(_,_) -> "TestOpExpr"
-
 and jg_bind_names ctx names values =
   match names, values with
     | [name], value -> jg_set_value ctx name value

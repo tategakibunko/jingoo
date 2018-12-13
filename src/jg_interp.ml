@@ -95,7 +95,7 @@ let rec value_of_expr env ctx = function
        | Some macro -> ignore @@ eval_macro env ctx name nargs kwargs macro; Tnull
        | None -> Tnull))
 
-  | expr -> failwith @@ spf "syntax error: value_of_expr:%s" (dump_expr expr)
+  | expr -> failwith @@ spf "syntax error: value_of_expr:%s" (show_expression expr)
 
 and apply_name_of = function
   | IdentExpr(name) -> name
