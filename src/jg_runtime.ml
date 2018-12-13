@@ -206,53 +206,63 @@ let jg_length_aux x =
     | Tarray arr -> Array.length arr
     | _ -> failwith_type_error_1 "jg_length" x
 
-(* FIXME: only declare loop once and use volatile values updated with each iteration *)
-let jg_iter_mk_ctx ctx iterator itm len i =
-  let cycle = func_arg1_no_kw (fun set -> jg_nth_aux set (i mod jg_length_aux set)) in
+let jg_iter_loop_var len ctx =
+  let i = ref 0 in
+  let cycle = func_arg1_no_kw (fun set -> jg_nth_aux set (!i mod jg_length_aux set)) in
   let ctx = jg_push_frame ctx in
-  let () = jg_bind_names ctx iterator itm in
   let () =
     jg_set_value ctx "loop" @@
     Tpat (function
-        | "index0" -> Tint i
-        | "index" -> Tint (i+1)
-        | "revindex0" -> Tint (len - i - 1)
-        | "revindex" -> Tint (len - i)
-        | "first" -> Tbool (i=0)
-        | "last" -> Tbool (i=len-1)
+        | "index0" -> Tint !i
+        | "index" -> Tint (!i + 1)
+        | "revindex0" -> Tint (len - !i - 1)
+        | "revindex" -> Tint (len - !i)
+        | "first" -> Tbool (!i = 0)
+        | "last" -> Tbool (!i = len-1)
         | "length" -> Tint len
         | "cycle" -> cycle
         | _ -> raise Not_found
       ) in
+  (ctx, i)
+
+let jg_iter_mk_ctx ctx iterator itm =
+  let ctx = jg_push_frame ctx in
+  let () = jg_bind_names ctx iterator itm in
   ctx
 
 let jg_iter_hash ctx iterator f h =
-  let i = ref 0 in
-  let len = Hashtbl.length h in
+  let (ctx, i) = jg_iter_loop_var (Hashtbl.length h) ctx in
   Hashtbl.iter
     (fun k v ->
        let itm = Tset [ box_string k ; v ] in
-       let () = f @@ jg_iter_mk_ctx ctx iterator itm len (!i) in
+       let () = f @@ jg_iter_mk_ctx ctx iterator itm in
        incr i)
     h
 
 let jg_iter_obj ctx iterator f l =
-  let len = List.length l in
-  List.iteri
-    (fun i (k, v) ->
+  let (ctx, i) = jg_iter_loop_var (List.length l) ctx in
+  List.iter
+    (fun (k, v) ->
        let itm = Tset [ box_string k ; v ] in
-       f @@ jg_iter_mk_ctx ctx iterator itm len i)
+       let () = f @@ jg_iter_mk_ctx ctx iterator itm in
+       incr i)
     l
 
 let jg_iter_array ctx iterator f a =
-  let len = Array.length a in
-  Array.iteri (fun i itm -> f @@ jg_iter_mk_ctx ctx iterator itm len i) a
+  let (ctx, i) = jg_iter_loop_var (Array.length a) ctx in
+  Array.iter (fun itm -> f @@ jg_iter_mk_ctx ctx iterator itm ; incr i) a
 
 let jg_iter_str ctx iterator f s =
-  let len = String.length s in
-  String.iteri (fun i itm ->
+  let (ctx, i) = jg_iter_loop_var (String.length s) ctx in
+  String.iter (fun itm ->
       let itm = Tstr (String.make 1 itm) in
-      f @@ jg_iter_mk_ctx ctx iterator itm len i) s
+      let () = f @@ jg_iter_mk_ctx ctx iterator itm in
+      incr i)
+    s
+
+let jg_iter_list ctx iterator f l =
+  let (ctx, i) = jg_iter_loop_var (List.length l) ctx in
+  List.iter (fun itm -> f @@ jg_iter_mk_ctx ctx iterator itm ; incr i) l
 
 let jg_iter ctx iterator f iterable =
   match iterable with
@@ -260,9 +270,7 @@ let jg_iter ctx iterator f iterable =
   | Tobj l -> jg_iter_obj ctx iterator f l
   | Tarray a -> jg_iter_array ctx iterator f a
   | Tstr s -> jg_iter_str ctx iterator f s
-  | Tlist l | Tset l ->
-    let len = List.length l in
-    List.iteri (fun i itm -> f @@ jg_iter_mk_ctx ctx iterator itm len i) l
+  | Tlist l | Tset l -> jg_iter_list ctx iterator f l
   | _ -> ()
 
 let jg_eval_aux ctx args kwargs macro f =
