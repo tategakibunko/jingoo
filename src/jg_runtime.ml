@@ -330,6 +330,9 @@ let jg_eval_macro ?(caller=false) ctx macro_name args kwargs macro f =
 
 let jg_test_defined_aux ctx name fn =
   fn (jg_get_value ctx name)
+
+let jg_test_obj_defined_aux ctx name prop fn =
+  fn (jg_obj_lookup_by_name ctx name prop)
 (**/**)
 
 (* TODO: do not hard code them in jg_interp but use something like std_filters instead. *)
@@ -344,14 +347,10 @@ let jg_test_undefined ctx name =
 let jg_test_none = jg_test_undefined
 
 let jg_test_obj_defined ctx obj_name prop_name =
-  match jg_get_value ctx obj_name with
-    | Tobj(alist) -> Tbool (List.mem_assoc prop_name alist)
-    | _ -> Tbool(false)
+  Tbool (jg_test_obj_defined_aux ctx obj_name prop_name @@ (<>) Tnull)
 
 let jg_test_obj_undefined ctx obj_name prop_name =
-  match jg_test_obj_defined ctx obj_name prop_name with
-    | Tbool status -> Tbool (not status)
-    | _ -> failwith "invalid test:jg_test_obj_defined"
+  Tbool (jg_test_obj_defined_aux ctx obj_name prop_name @@ (=) Tnull)
 
 (** FIXME: this should check the value and not the context *)
 let jg_test_escaped ctx =
@@ -561,32 +560,16 @@ let jg_not_eq left right =
   Tbool (not @@ jg_eq_eq_aux left right)
 
 let jg_lt left right =
-  match left, right with
-    | Tint x1, Tint x2 -> Tbool(x1<x2)
-    | Tfloat x1, Tfloat x2 -> Tbool(x1<x2)
-    | Tstr x1, Tstr x2 -> Tbool(x1<x2)
-    | _, _ -> failwith_type_error_2 "jg_lt" left right
+  Tbool (jg_compare_aux left right < 0)
 
 let jg_gt left right =
-  match left, right with
-    | Tint x1, Tint x2 -> Tbool(x1>x2)
-    | Tfloat x1, Tfloat x2 -> Tbool(x1>x2)
-    | Tstr x1, Tstr x2 -> Tbool(x1>x2)
-    | _, _ -> failwith_type_error_2 "jg_gt" left right
+  Tbool (jg_compare_aux left right > 0)
 
 let jg_lteq left right =
-  match left, right with
-    | Tint x1, Tint x2 -> Tbool(x1<=x2)
-    | Tfloat x1, Tfloat x2 -> Tbool(x1<=x2)
-    | Tstr x1, Tstr x2 -> Tbool(x1<=x2)
-    | _, _ -> failwith_type_error_2 "jg_lteq" left right
+  Tbool (jg_compare_aux left right <= 0)
 
 let jg_gteq left right =
-  match left, right with
-    | Tint x1, Tint x2 -> Tbool(x1>=x2)
-    | Tfloat x1, Tfloat x2 -> Tbool(x1>=x2)
-    | Tstr x1, Tstr x2 -> Tbool(x1>=x2)
-    | _, _ -> failwith_type_error_2 "jg_gteq" left right
+  Tbool (jg_compare_aux left right >= 0)
 
 (** [jg_inop x seq] Test if [seq] contains element [x]. *)
 let jg_inop left right =
