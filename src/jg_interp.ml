@@ -399,6 +399,9 @@ and dead_code_elimination stmts =
       let s = default_mapper.statement self s in
       pop_block () ;
       s
+    | CallStatement(macro, _, _, _) as s ->
+      maybe_set macro ;
+      default_mapper.statement self s
     | FunctionStatement (_, _, _)
     | MacroStatement (_, _, _)
     | TextStatement (_)
@@ -411,7 +414,6 @@ and dead_code_elimination stmts =
     | FromImportStatement (_, _)
     | BlockStatement (_, _)
     | FilterStatement (_, _)
-    | CallStatement (_, _, _, _)
     | WithStatement (_, _)
     | AutoEscapeStatement (_, _)
     | NamespaceStatement (_, _)
