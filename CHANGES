@@ -17,6 +17,7 @@ o [PR#66] Some internal enhancements.
 o [PR#67] Started writing documentation for template designers.
 * [PR#68] Fixed jg_fold for multi byte string.
 o [PR#69] Reworked Tfun to provide partial application for all functions.
+o [PR#72] Function definition helpers: made function using kwargs the default, added _no_kw variants.
 
 version: 1.2.21, 2018-10-27
 ===========================
