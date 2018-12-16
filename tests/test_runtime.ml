@@ -685,6 +685,35 @@ let test_type_lazy _ctx =
     (Tlist [ Tint 1 ; Tint 1 ; Tint 1])
     (Tlist [ i1 ; i2 ; i3 ])
 
+(*
+  https://github.com/tategakibunko/jingoo/pull/69
+  https://github.com/tategakibunko/jingoo/pull/72
+*)
+let test_func_arg1 _ctx =
+  let to_mail ?(kwargs=[]) ?(defaults=[]) value =
+    let id = string_of_tvalue value in
+    let domain = string_of_tvalue (jg_get_kvalue "domain" kwargs ~defaults) in
+    Tstr (id ^ "@" ^ domain) in
+  let jg_to_mail = func_arg1 ~name:"to_mail" (to_mail ~defaults:[("domain", Tstr "gmail.com")]) in
+  let jg_to_mail_bad = func_arg1_no_kw ~name:"to_mail_bad" (to_mail ~defaults:[("domain", Tstr "gmail.com")]) in
+
+  assert_equal_tvalue
+    (jg_apply ~name:"to_mail"
+       ~kwargs:[("domain", Tstr "hotmail.com")]
+       jg_to_mail [Tstr "foo"])
+    (Tstr "foo@hotmail.com");
+
+  assert_equal_tvalue
+    (jg_apply ~name:"to_mail_ex"
+       ~kwargs:[]
+       jg_to_mail_bad [Tstr "foo"])
+    (Tstr "foo@gmail.com");
+
+  assert_raises (Failure "type error: to_mail_bad(domain=string,string)")
+    (fun _ -> ignore (jg_apply ~name:"to_mail_bad"
+                        ~kwargs:[("domain", Tstr "hotmail.com")]
+                        jg_to_mail_bad [Tstr "foo"]))
+
 let suite = "runtime test" >::: [
   "test_escape" >:: test_escape;
   "test_string_of_tvalue" >:: test_string_of_tvalue;
@@ -763,5 +792,6 @@ let suite = "runtime test" >::: [
   "test_fold_mbstr" >:: test_fold_mbstr;
   "test_forall" >:: test_forall;
   "test_type_volatile" >:: test_type_volatile;
-  "test_type_lazy" >:: test_type_lazy
+  "test_type_lazy" >:: test_type_lazy;
+  "test_func_arg1" >:: test_func_arg1;
 ]
