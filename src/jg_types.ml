@@ -227,7 +227,7 @@ let merge_kwargs a b = match a, b with
   | None, x | x, None -> x
   | Some a, Some b -> Some ((List.filter (fun (x, _) -> not @@ List.mem_assoc x b) a) @ b)
 
-let func_kw f n =
+let func f n =
   if n = 0 then Tfun (fun ?kwargs _ -> f ?kwargs [])
   else
     let rec aux ?kwargs:kw acc rem =
@@ -240,38 +240,38 @@ let func_kw f n =
     in
     aux [] n
 
-let func f n =
+let func_arg1 ?name f =
+  let f = fun ?kwargs -> function [ a ] -> f ?kwargs a
+                                | args -> func_failure ?name ?kwargs args in
+  func f 1
+
+let func_arg2 ?name f =
+  let f = fun ?kwargs -> function [ a ; b ] -> f ?kwargs a b
+                                | args -> func_failure ?name ?kwargs args in
+  func f 2
+
+let func_arg3 ?name f =
+  let f = fun ?kwargs -> function [ a ; b ; c ] -> f ?kwargs a b c
+                                | args -> func_failure ?name ?kwargs args in
+  func f 3
+
+let func_no_kw ?name f n =
   if n = 0 then Tfun (fun ?kwargs:_ _ -> f [])
   else
     let rec aux acc rem =
       Tfun
-        (fun ?kwargs:_ x ->
-           if rem = 1
-           then f (List.rev @@ x :: acc)
+        (fun ?(kwargs=[]) x ->
+           if kwargs <> [] then func_failure ?name (List.rev @@ x :: acc)
+           else if rem = 1 then f (List.rev @@ x :: acc)
            else aux (x :: acc) (rem - 1))
     in
     aux [] n
 
-let func_arg1_kw ?name f =
-  let f = fun ?kwargs -> function [ a ] -> f ?kwargs a
-                                | args -> func_failure ?name ?kwargs args in
-  func_kw f 1
+let func_arg1_no_kw ?name f =
+  func_no_kw (function [ a ] -> f a | args -> func_failure ?name args) 1
 
-let func_arg2_kw ?name f =
-  let f = fun ?kwargs -> function [ a ; b ] -> f ?kwargs a b
-                                | args -> func_failure ?name ?kwargs args in
-  func_kw f 2
+let func_arg2_no_kw ?name f =
+  func_no_kw (function [ a ; b ] -> f a b | args -> func_failure ?name args) 2
 
-let func_arg3_kw ?name f =
-  let f = fun ?kwargs -> function [ a ; b ; c ] -> f ?kwargs a b c
-                                | args -> func_failure ?name ?kwargs args in
-  func_kw f 3
-
-let func_arg1 ?name f =
-  func (function [ a ] -> f a | args -> func_failure ?name args) 1
-
-let func_arg2 ?name f =
-  func (function [ a ; b ] -> f a b | args -> func_failure ?name args) 2
-
-let func_arg3 ?name f =
-  func (function [ a ; b ; c ] -> f a b c | args -> func_failure ?name args) 3
+let func_arg3_no_kw ?name f =
+  func_no_kw (function [ a ; b ; c ] -> f a b c | args -> func_failure ?name args) 3

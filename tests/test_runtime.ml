@@ -409,7 +409,7 @@ let test_sort_compare _ctx =
   let lower_fst_cmp = function
     | [a; b] -> jg_compare (jg_lower (jg_nth_aux a 0)) (jg_lower (jg_nth_aux b 0))
     | _ -> failwith "invalid args" in
-  let jg_lower_fst_cmp = func lower_fst_cmp 2 in
+  let jg_lower_fst_cmp = func_no_kw lower_fst_cmp 2 in
   assert_equal_tvalue (jg_sort data) data;
   assert_equal_tvalue
     (Tlist [Tset [Tstr "A"; Tint 0]; Tset [Tstr "b"; Tint 1]; Tset [Tstr "Z"; Tint 2]])
@@ -624,7 +624,7 @@ let carol = Tobj [ "name", Tstr "carol" ; "age", Tint 20]
 
 let test_select_aux jg_select expected =
   let persons = Tlist [ alice ; bob ; carol ] in
-  let select = func_arg1 @@ fun x ->
+  let select = func_arg1_no_kw @@ fun x ->
     Tbool (unbox_int (List.assoc "age" (unbox_obj x)) > 30)
   in
   assert_equal_tvalue expected (jg_select select persons)
@@ -639,7 +639,7 @@ let test_fold _ctx =
   let test seq =
     assert_equal_tvalue
       (Tint 45)
-      (jg_fold (func_arg2 jg_add) (Tint 0) seq)
+      (jg_fold (func_arg2_no_kw jg_add) (Tint 0) seq)
   in
   test (Tlist [Tint 0;Tint 1;Tint 2;Tint 3;Tint 4;Tint 5;Tint 6;Tint 7;Tint 8;Tint 9]) ;
   test (Tarray [|Tint 0;Tint 1;Tint 2;Tint 3;Tint 4;Tint 5;Tint 6;Tint 7;Tint 8;Tint 9|])
@@ -648,19 +648,19 @@ let test_fold_str _ctx =
   let str = "abc" in
   assert_equal_tvalue
     (Tstr str)
-    (jg_fold (func_arg2 jg_plus) (Tstr "") (Tstr str))
+    (jg_fold (func_arg2_no_kw jg_plus) (Tstr "") (Tstr str))
 
 let test_fold_mbstr _ctx =
   let mbstr = "日本語" in
   assert_equal_tvalue
     (Tstr mbstr)
-    (jg_fold (func_arg2 jg_plus) (Tstr "") (Tstr mbstr))
+    (jg_fold (func_arg2_no_kw jg_plus) (Tstr "") (Tstr mbstr))
 
 let test_forall _ctx =
   let test res seq =
     assert_equal_tvalue
       (Tbool res)
-      (jg_forall (func_arg1 @@ fun x -> Tbool (unbox_int x < 10)) seq)
+      (jg_forall (func_arg1_no_kw @@ fun x -> Tbool (unbox_int x < 10)) seq)
   in
   test true (Tlist [Tint 0;Tint 1;Tint 2;Tint 3;Tint 4;Tint 5;Tint 6;Tint 7;Tint 8;Tint 9]) ;
   test false (Tarray [|Tint 0;Tint 10;Tint 2|])

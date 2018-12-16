@@ -264,7 +264,7 @@ and eval_statement env ctx = function
               List.fold_left (eval_statement env) ctx ast) ;
       !value
     in
-    let fn = func_kw (fun ?(kwargs=kwargs) args -> apply ~kwargs args) (List.length arg_names) in
+    let fn = func (fun ?(kwargs=kwargs) args -> apply ~kwargs args) (List.length arg_names) in
     jg_set_value ctx name fn ;
     ctx
 
