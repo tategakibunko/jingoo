@@ -238,7 +238,7 @@ let jg_length_aux x =
 
 (* FIXME: only declare loop once and use volatile values updated with each iteration *)
 let jg_iter_mk_ctx ctx iterator itm len i =
-  let cycle = func_arg1 (fun set -> jg_nth_aux set (i mod jg_length_aux set)) in
+  let cycle = func_arg1_no_kw (fun set -> jg_nth_aux set (i mod jg_length_aux set)) in
   let ctx = jg_push_frame ctx in
   let () = jg_bind_names ctx iterator itm in
   let () =
@@ -1246,66 +1246,66 @@ let jg_test_string target =
 
 let std_filters = [
   (* built-in filters *)
-  ("abs", func_arg1 jg_abs);
-  ("capitalize", func_arg1 jg_capitalize);
-  ("escape", func_arg1 jg_escape_html);
-  ("e", func_arg1 jg_escape_html); (* alias for escape *)
-  ("float", func_arg1 jg_float);
-  ("int", func_arg1 jg_int);
-  ("last", func_arg1 jg_last);
-  ("length", func_arg1 jg_length);
-  ("list", func_arg1 jg_list);
-  ("lower", func_arg1 jg_lower);
-  ("max", func_arg1_kw jg_max);
-  ("md5", func_arg1 jg_md5);
-  ("min", func_arg1_kw jg_min);
-  ("strlen", func_arg1 jg_strlen);
-  ("sum", func_arg1 jg_sum);
-  ("striptags", func_arg1 jg_striptags);
-  ("sort", func_arg1_kw jg_sort);
-  ("upper", func_arg1 jg_upper);
-  ("random", func_arg1 jg_random);
-  ("reverse", func_arg1 jg_reverse);
-  ("title", func_arg1 jg_title);
-  ("trim", func_arg1 jg_trim);
-  ("urlize", func_arg1 jg_urlize);
-  ("wordcount", func_arg1 jg_wordcount);
-  ("xmlattr", func_arg1 jg_xmlattr);
+  ("abs", func_arg1_no_kw jg_abs);
+  ("capitalize", func_arg1_no_kw jg_capitalize);
+  ("escape", func_arg1_no_kw jg_escape_html);
+  ("e", func_arg1_no_kw jg_escape_html); (* alias for escape *)
+  ("float", func_arg1_no_kw jg_float);
+  ("int", func_arg1_no_kw jg_int);
+  ("last", func_arg1_no_kw jg_last);
+  ("length", func_arg1_no_kw jg_length);
+  ("list", func_arg1_no_kw jg_list);
+  ("lower", func_arg1_no_kw jg_lower);
+  ("max", func_arg1 jg_max);
+  ("md5", func_arg1_no_kw jg_md5);
+  ("min", func_arg1 jg_min);
+  ("strlen", func_arg1_no_kw jg_strlen);
+  ("sum", func_arg1_no_kw jg_sum);
+  ("striptags", func_arg1_no_kw jg_striptags);
+  ("sort", func_arg1 jg_sort);
+  ("upper", func_arg1_no_kw jg_upper);
+  ("random", func_arg1_no_kw jg_random);
+  ("reverse", func_arg1_no_kw jg_reverse);
+  ("title", func_arg1_no_kw jg_title);
+  ("trim", func_arg1_no_kw jg_trim);
+  ("urlize", func_arg1_no_kw jg_urlize);
+  ("wordcount", func_arg1_no_kw jg_wordcount);
+  ("xmlattr", func_arg1_no_kw jg_xmlattr);
 
-  ("attr", func_arg2 jg_attr);
-  ("batch", func_arg2_kw (jg_batch ?defaults:None));
-  ("default", func_arg2 jg_default);
-  ("d", func_arg2 jg_default); (* alias for default *)
-  ("fmt_float", func_arg2 jg_fmt_float);
-  ("join", func_arg2 jg_join);
-  ("split", func_arg2 jg_split);
-  ("slice", func_arg2_kw jg_slice);
-  ("truncate", func_arg2 jg_truncate);
-  ("range", func_arg2 jg_range);
-  ("round", func_arg2 jg_round);
-  ("groupby", func_arg2_kw jg_groupby);
-  ("map", func_arg2_kw jg_map);
-  ("reject", func_arg2 jg_reject);
-  ("select", func_arg2 jg_select);
-  ("nth", func_arg2 jg_nth);
-  ("forall", func_arg2 jg_forall);
+  ("attr", func_arg2_no_kw jg_attr);
+  ("batch", func_arg2 (jg_batch ?defaults:None));
+  ("default", func_arg2_no_kw jg_default);
+  ("d", func_arg2_no_kw jg_default); (* alias for default *)
+  ("fmt_float", func_arg2_no_kw jg_fmt_float);
+  ("join", func_arg2_no_kw jg_join);
+  ("split", func_arg2_no_kw jg_split);
+  ("slice", func_arg2 jg_slice);
+  ("truncate", func_arg2_no_kw jg_truncate);
+  ("range", func_arg2_no_kw jg_range);
+  ("round", func_arg2_no_kw jg_round);
+  ("groupby", func_arg2 jg_groupby);
+  ("map", func_arg2 jg_map);
+  ("reject", func_arg2_no_kw jg_reject);
+  ("select", func_arg2_no_kw jg_select);
+  ("nth", func_arg2_no_kw jg_nth);
+  ("forall", func_arg2_no_kw jg_forall);
 
-  ("replace", func_arg3 jg_replace);
-  ("substring", func_arg3 jg_substring);
-  ("sublist", func_arg3 jg_sublist);
-  ("wordwrap", func_arg3 jg_wordwrap);
-  ("fold", func_arg3 jg_fold);
+  ("replace", func_arg3_no_kw jg_replace);
+  ("substring", func_arg3_no_kw jg_substring);
+  ("sublist", func_arg3_no_kw jg_sublist);
+  ("wordwrap", func_arg3_no_kw jg_wordwrap);
+  ("fold", func_arg3_no_kw jg_fold);
 
   (* built-in tests *)
-  ("divisibleby", func_arg2 jg_test_divisibleby);
-  ("even", func_arg1 jg_test_even);
-  ("iterable", func_arg1 jg_test_iterable);
-  ("number", func_arg1 jg_test_number);
-  ("odd", func_arg1 jg_test_odd);
-  ("sameas", func_arg2 jg_test_sameas);
-  ("compare", func_arg2 jg_compare);
-  ("sequence", func_arg1 jg_test_sequence);
-  ("string", func_arg1 jg_test_string);
+  ("divisibleby", func_arg2_no_kw jg_test_divisibleby);
+  ("even", func_arg1_no_kw jg_test_even);
+  ("iterable", func_arg1_no_kw jg_test_iterable);
+  ("number", func_arg1_no_kw jg_test_number);
+  ("odd", func_arg1_no_kw jg_test_odd);
+  ("sameas", func_arg2_no_kw jg_test_sameas);
+  ("compare", func_arg2_no_kw jg_compare);
+  ("sequence", func_arg1_no_kw jg_test_sequence);
+  ("string", func_arg1_no_kw jg_test_string);
 ]
 
 let jg_load_extensions extensions =
