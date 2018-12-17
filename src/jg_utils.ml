@@ -143,47 +143,30 @@ let rec substring base count str =
   else
     UTF8.sub str base count
 
-(** [escape_html str] replaces '&', '"', '<' and '>'
+(** [escape_html str] replaces '&', '"', '\'', '<' and '>'
     with their corresponding character entities (using entity number) *)
 let escape_html str =
-  let buflen = ref 0 in
-  let strlen = ref 0 in
-  String.iter (fun c ->
-      incr strlen ;
-      match c with
-      | '&' | '"' | '<' | '>' -> buflen := !buflen + 5 (* "&#xx;" *)
-      | _ -> incr buflen
-    ) str ;
-  if !buflen = !strlen then str
-  else
-    let buf = Bytes.create !buflen in
-    let i = ref 0 in
-    let len = ref 0 in
-    let j = ref 0 in
-    let copy () =
-      if !len <> 0 then begin
-        Bytes.blit_string str !i buf !j !len ;
-        j := !j + !len ;
-        i := !i + !len ;
-        len := 0
-      end
-    in
-    let add_string s =
-      copy () ;
-      Bytes.blit_string s 0 buf !j 5 ;
-      j := !j + 5 ;
-      incr i
-    in
-    String.iter (fun c ->
-        match c with
-        | '&' -> add_string "&#38;"
-        | '"' -> add_string "&#34;"
-        | '<' -> add_string "&#60;"
-        | '>' -> add_string "&#62;"
-        | _ -> incr len
-      ) str ;
-    copy () ;
-    Bytes.unsafe_to_string buf
+  let strlen = String.length str in
+  let rec loop acc i =
+    if i < strlen then
+      match String.unsafe_get str i with
+      | '&' | '"' | '\'' | '<' | '>' -> loop (acc + 5) (i + 1) (* "&#xx;" *)
+      | _ -> loop (acc + 1) (i + 1)
+    else if acc = strlen then str
+    else
+      let buf = Bytes.create acc in
+      let rec loop istr ibuf =
+        if istr = strlen then Bytes.unsafe_to_string buf
+        else match String.unsafe_get str istr with
+          | '&'  -> Bytes.blit_string "&#38;" 0 buf ibuf 5 ; loop (istr + 1) (ibuf + 5)
+          | '"'  -> Bytes.blit_string "&#34;" 0 buf ibuf 5 ; loop (istr + 1) (ibuf + 5)
+          | '\'' -> Bytes.blit_string "&#39;" 0 buf ibuf 5 ; loop (istr + 1) (ibuf + 5)
+          | '<'  -> Bytes.blit_string "&#60;" 0 buf ibuf 5 ; loop (istr + 1) (ibuf + 5)
+          | '>'  -> Bytes.blit_string "&#62;" 0 buf ibuf 5 ; loop (istr + 1) (ibuf + 5)
+          | c -> Bytes.unsafe_set buf ibuf c ; loop (istr + 1) (ibuf + 1)
+      in loop 0 0
+  in
+  loop 0 0
 
 let chomp str =
   Re.replace_string (Re.compile @@ Re.seq [ Re.rep1 (Re.compl [ Re.notnl ]) ; Re.eos ] ) ~by:"" str
