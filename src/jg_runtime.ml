@@ -1146,6 +1146,11 @@ let jg_forall = fun fn seq ->
   | (Tarray l, Tfun fn) -> Tbool (Jg_utils.array_for_all (fun x -> unbox_bool @@ fn x) l)
   | _ -> failwith_type_error_2 "jg_forall" fn seq
 
+
+(** [jg_pprint v] Pretty print variable [v]. Useful for debugging. *)
+let jg_pprint v =
+  Tstr (show_tvalue v)
+
 (** [jg_test_divisibleby divisor dividend]
     tests if [dividend] is divisible by [divisor]. *)
 let jg_test_divisibleby num target =
@@ -1241,6 +1246,8 @@ let std_filters = [
   ("urlize", func_arg1_no_kw jg_urlize);
   ("wordcount", func_arg1_no_kw jg_wordcount);
   ("xmlattr", func_arg1_no_kw jg_xmlattr);
+  ("pprint", func_arg1_no_kw jg_pprint);
+
 
   ("attr", func_arg2_no_kw jg_attr);
   ("batch", func_arg2 (jg_batch ?defaults:None));
