@@ -1137,7 +1137,7 @@ let jg_fold = fun fn acc seq ->
     loop 0 acc
   | _ -> failwith_type_error_3 "jg_fold" fn acc seq
 
-(** [for_all fn seq]
+(** [jg_forall fn seq]
     checks if all elements of the sequence [seq] satisfy the predicate [fn].
 *)
 let jg_forall = fun fn seq ->
