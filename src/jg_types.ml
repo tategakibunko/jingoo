@@ -18,26 +18,35 @@ type environment = {
 
 and context = {
   frame_stack : frame list;
-  macro_table : (string, macro) Hashtbl.t;
-  namespace_table : (string, frame) Hashtbl.t;
+  macro_table : (string, macro) Hashtbl.t; [@printer fun fmt _ -> fprintf fmt "macro_table"]
+  namespace_table : (string, frame) Hashtbl.t; [@printer fun fmt _ -> fprintf fmt "namespace_table"]
   active_filters : string list;
   serialize: bool;
   output : tvalue -> unit
 }
 
-and frame = (string, tvalue) Hashtbl.t
+and frame = (string, tvalue) Hashtbl.t [@printer fun fmt _ -> fprintf fmt "frame"]
 and macro = Macro of macro_arg_names * macro_defaults * macro_code
 and macro_arg_names = string list
 and macro_defaults = kwargs
 and macro_code = statement list
 and tvalue =
-    Tnull
+  | Tnull
   | Tint of int
   | Tbool of bool
   | Tfloat of float
   | Tstr of string
   | Tobj of (string * tvalue) list
   | Thash of (string, tvalue) Hashtbl.t
+        [@printer fun fmt ht ->
+          let ht =
+            Hashtbl.fold (fun k v acc -> (k, v) :: acc) ht []
+            |> List.sort compare in
+          fprintf fmt "Thash (%a)"
+            (Format.pp_print_list
+               ~pp_sep:(fun fmt () -> Format.pp_print_char fmt ';')
+               (fun fmt (k, v) -> fprintf fmt "(\"%s\", %a)" k pp_tvalue v) )
+            ht ]
   | Tpat of (string -> tvalue)
   | Tlist of tvalue list
   | Tset of tvalue list
@@ -45,9 +54,12 @@ and tvalue =
   | Tarray of tvalue array
   | Tlazy of tvalue Lazy.t
   | Tvolatile of (unit -> tvalue)
+[@@deriving show { with_path = false }]
+
 and kwargs = (string * tvalue) list
 
 and ast = statement list
+[@@deriving show { with_path = false }]
 
 and statement =
     TextStatement of string
@@ -69,6 +81,7 @@ and statement =
   | NamespaceStatement of string * (string * expression) list
   | Statements of ast
   | FunctionStatement of expression * arguments * ast
+[@@deriving show { with_path = false }]
 
 and expression =
     IdentExpr of string

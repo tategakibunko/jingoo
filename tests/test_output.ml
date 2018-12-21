@@ -1,4 +1,5 @@
 open OUnit2
+open Jingoo
 open Jg_types
 
 let assert_eq_string = assert_equal ~printer:(fun x -> "\"" ^ x ^ "\"")

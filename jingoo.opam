@@ -12,6 +12,7 @@ remove: [make "uninstall"]
 depends: [
   "ocaml" {>= "4.02.3"}
   "dune" {build & >= "1.4.0"}
+  "ppx_deriving"
   "re"
   "uutf" {>= "0.9.4"}
   "uucp"

@@ -70,10 +70,12 @@ and tvalue =
   | Tarray of tvalue array
   | Tlazy of tvalue Lazy.t
   | Tvolatile of (unit -> tvalue)
+
 and kwargs = (string * tvalue) list
 
 (**/**)
 and ast = statement list
+[@@deriving show { with_path = false }]
 
 and statement =
     TextStatement of string
