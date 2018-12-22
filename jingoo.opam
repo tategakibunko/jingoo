@@ -10,7 +10,7 @@ build: [make "all"]
 install: [make "install"]
 remove: [make "uninstall"]
 depends: [
-  "ocaml" {>= "4.02.3"}
+  "ocaml" {>= "4.04.0"}
   "dune" {build & >= "1.4.0"}
   "ppx_deriving"
   "re"
