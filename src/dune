@@ -7,6 +7,7 @@
   (wrapped true)
   (synopsis "jingoo library")
   (libraries unix dynlink re uutf uucp)
+  (preprocess (pps ppx_deriving.show))
   (modules
     jg_types
     jg_utils

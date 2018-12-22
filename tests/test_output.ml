@@ -1,4 +1,5 @@
 open OUnit2
+open Jingoo
 open Jg_types
 
 let assert_eq_string = assert_equal ~printer:(fun x -> "\"" ^ x ^ "\"")
@@ -216,6 +217,13 @@ let test_invalid_iterable test_ctxt =
   let source = "{% for i in 3 %}{{i}}{% endfor %}" in
   assert_interp ~test_ctxt ~env:{std_env with strict_mode = false} source "";
   assert_interp_raises ~env:{std_env with strict_mode = true} source (Failure "3 is not iterable")
+;;
+
+let test_pprint test_ctxt =
+  assert_interp ~test_ctxt "{{ 'foo' | pprint | safe }}" "(Tstr \"foo\")";
+  assert_interp ~test_ctxt "{{ 100 | pprint | safe }}" "(Tint 100)";
+  assert_interp ~test_ctxt "{{ pprint | pprint | safe }}" "(Tfun <fun>)"
+;;
 
 let suite = "runtime test" >::: [
   "test_expand_escape" >:: test_expand_escape;
@@ -245,5 +253,6 @@ let suite = "runtime test" >::: [
   "test_with" >:: test_with;
   "test_white_space_control" >:: test_white_space_control;
   "test_invalid_iterable" >:: test_invalid_iterable;
+  "test_pprint" >:: test_pprint;
 ]
 ;;

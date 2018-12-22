@@ -1,25 +1,11 @@
 open OUnit2
+open Jingoo
 open Jg_types
 open Jg_runtime
 
 let assert_equal_tvalue =
-  let rec printer = function
-    | Tint x -> Printf.sprintf "Tint %d" x
-    | Tfloat x -> Printf.sprintf "Tfloat %f" x
-    | Tstr x -> Printf.sprintf "Tstr \"%s\"" (String.escaped x)
-    | Tbool x -> Printf.sprintf "Tbool %b" x
-    | Tobj _ -> Printf.sprintf "<Tobj>"
-    | Thash _ -> Printf.sprintf "<Thash>"
-    | Tlist x -> Printf.sprintf "Tlist [ %s ]" (String.concat ";" @@ List.map printer x)
-    | Tpat _ -> Printf.sprintf "<Tpat>"
-    | Tset _ -> Printf.sprintf "<Tset>"
-    | Tfun _ -> Printf.sprintf "<Tfun>"
-    | Tnull -> Printf.sprintf "Tnull"
-    | Tarray x -> Printf.sprintf "Tarray [| %s |]" (String.concat ";" @@ List.map printer @@ Array.to_list x)
-    | Tlazy _ -> Printf.sprintf "Tlazy"
-    | Tvolatile _ -> Printf.sprintf "Tvolatile" in
   let cmp a b = jg_eq_eq a b = Tbool true in
-  assert_equal ~cmp ~printer
+  assert_equal ~cmp ~printer:Jg_types.show_tvalue
 
 let test_persons = Tlist [
   Tobj [("name", Tstr "taro"); ("age", Tint 12); ("extra", Tobj [

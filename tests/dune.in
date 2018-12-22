@@ -1,10 +1,6 @@
-(copy_files ../src/*.ml{,l,y})
-
 (executable
   (name test)
-  (libraries unix dynlink re uutf uucp
-   	     oUnit
-  )
+  (libraries jingoo unix dynlink re uutf uucp oUnit)
 )
 
 (alias
