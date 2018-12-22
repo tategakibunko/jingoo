@@ -1219,6 +1219,24 @@ let jg_test_sequence target =
 let jg_test_string target =
   jg_strp target
 
+(** [func_arg1] (Deprecated)
+    Link to Jg_types.func_arg1 to keep backward compatibility for jingoo(<= 1.2.21).
+    Use Jg_types.func_arg1 instead for jingoo(>= 1.3.0)
+*)
+let func_arg1 = Jg_types.func_arg1
+
+(** [func_arg2] (Deprecated)
+    Link to Jg_types.func_arg1 to keep backward compatibility for jingoo(<= 1.2.21).
+    Use Jg_types.func_arg2 instead for jingoo(>= 1.3.0)
+*)
+let func_arg2 = Jg_types.func_arg2
+
+(** [func_arg2] (Deprecated)
+    Link to Jg_types.func_arg1 to keep backward compatibility for jingoo(<= 1.2.21).
+    Use Jg_types.func_arg3 instead for jingoo(>= 1.3.0)
+*)
+let func_arg3 = Jg_types.func_arg3
+
 let std_filters = [
   (* built-in filters *)
   ("abs", func_arg1_no_kw jg_abs);
@@ -1247,7 +1265,6 @@ let std_filters = [
   ("wordcount", func_arg1_no_kw jg_wordcount);
   ("xmlattr", func_arg1_no_kw jg_xmlattr);
   ("pprint", func_arg1_no_kw jg_pprint);
-
 
   ("attr", func_arg2_no_kw jg_attr);
   ("batch", func_arg2 (jg_batch ?defaults:None));
