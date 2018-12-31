@@ -1346,7 +1346,7 @@ let func_arg2 = Jg_types.func_arg2
 *)
 let func_arg3 = Jg_types.func_arg3
 
-let std_filters = [
+let std_filters = [|
   (* built-in filters *)
   ("abs", func_arg1_no_kw jg_abs);
   ("capitalize", func_arg1_no_kw jg_capitalize);
@@ -1412,7 +1412,7 @@ let std_filters = [
 
   ("printf", Tfun (fun ?kwargs:_ -> jg_printf) )
 
-]
+|]
 
 let jg_load_extensions extensions =
   List.iter (fun ext ->
@@ -1429,7 +1429,7 @@ let jg_load_extensions extensions =
 *)
 let jg_init_context ?(models=[]) output env =
   let model_frame = Hashtbl.create (List.length models) in
-  let top_frame = Hashtbl.create (List.length std_filters + List.length env.filters + 2) in
+  let top_frame = Hashtbl.create (Array.length std_filters + List.length env.filters + 2) in
   let ctx = {
     frame_stack = [ model_frame ; top_frame ];
     macro_table = Hashtbl.create 10;
@@ -1438,10 +1438,8 @@ let jg_init_context ?(models=[]) output env =
     serialize = false;
     output
   } in
-  let set_values hash alist = List.iter (fun (n, v) -> Hashtbl.add hash n v) alist in
-  set_values model_frame models;
-  set_values top_frame std_filters;
-  set_values top_frame env.filters;
-
+  List.iter (fun (n, v) -> Hashtbl.add model_frame n v) models;
+  Array.iter (fun (n, v) -> Hashtbl.add top_frame n v) std_filters;
+  List.iter (fun (n, v) -> Hashtbl.add top_frame n v) env.filters;
   Hashtbl.add top_frame "jg_is_autoescape" (Tbool env.autoescape);
   ctx
