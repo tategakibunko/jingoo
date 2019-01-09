@@ -335,7 +335,13 @@ let test_urlize _ctx =
     (jg_urlize @@ Tstr "http://gallica.bnf.fr/ark:/12148/bpt6k1249555/f41.image<br>Le 20 juin 1794") ;
   assert_equal_tvalue
     (Tstr "(<a href=\"http://foo.foo/foo(foo)(foo)\">http://foo.foo/foo(foo)(foo)</a>)")
-    (jg_urlize @@ Tstr "(http://foo.foo/foo(foo)(foo))")
+    (jg_urlize @@ Tstr "(http://foo.foo/foo(foo)(foo))") ;
+  assert_equal_tvalue
+    (Tstr "<img src=\"http://foo.foo/foo.jpg\">")
+    (jg_urlize @@ Tstr "<img src=\"http://foo.foo/foo.jpg\">") ;
+  assert_equal_tvalue
+    (Tstr "<a href='http://foo.foo'>foo</a>")
+    (jg_urlize @@ Tstr "<a href='http://foo.foo'>foo</a>")
 
 let test_title _ctx =
   assert_equal_tvalue
