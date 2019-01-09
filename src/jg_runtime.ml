@@ -913,13 +913,15 @@ let jg_urlize_regexp =
   let open Re in
   lazy (compile @@
         group @@
+        let delim op cl = seq [ char op ; rep (compl [ char cl ]) ; char cl ] in
+        let or_paren r = alt [ r ; delim '(' ')' ; delim '[' ']' ; delim '{' '}' ] in
         seq
           [ alt [ str "http" ; str "https" ; str "ftp" ; str "file" ]
           ; str "://"
-          ; rep (alt [ alnum ; set "._-@:~/\\" ])
-          ; opt (seq [ char '?' ; rep (alt [ alnum ; set "._-@:!/\\" ; set "%+=&" ]) ])
-          ; opt (seq [ char '#' ; rep (alt [ alnum ; set "._-" ]) ])
-          ; compl [ set ":.?" ]
+          ; rep1 (or_paren (alt [ alnum ; set "._-@:~/\\" ]))
+          ; opt (seq [ char '?' ; rep (or_paren (alt [ alnum ; set "._-@:!/\\[]" ; set "%+=&" ]) ) ])
+          ; opt (seq [ char '#' ; rep (or_paren (alt [ alnum ; set "._-" ]) ) ])
+          ; or_paren (compl [ set " !\"'(),.:;<>?[]{}" ])
           ])
 
 let jg_urlize text =

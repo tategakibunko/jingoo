@@ -325,7 +325,17 @@ let test_urlize _ctx =
     (jg_urlize @@ Tstr "go to http://yahoo.co.jp.") ;
   assert_equal_tvalue
     (Tstr "want to go to <a href=\"http://user@foo:8080/bar/?baz=0\">http://user@foo:8080/bar/?baz=0</a>?")
-    (jg_urlize @@ Tstr "want to go to http://user@foo:8080/bar/?baz=0?") 
+    (jg_urlize @@ Tstr "want to go to http://user@foo:8080/bar/?baz=0?") ;
+  assert_equal_tvalue
+    (Tstr "(<a href=\"http://foo.foo\">http://foo.foo</a>)")
+    (jg_urlize @@ Tstr "(http://foo.foo)") ;
+  assert_equal_tvalue
+    (Tstr "<a href=\"http://gallica.bnf.fr/ark:/12148/bpt6k1249555/f41.image\">\
+           http://gallica.bnf.fr/ark:/12148/bpt6k1249555/f41.image</a><br>Le 20 juin 1794")
+    (jg_urlize @@ Tstr "http://gallica.bnf.fr/ark:/12148/bpt6k1249555/f41.image<br>Le 20 juin 1794") ;
+  assert_equal_tvalue
+    (Tstr "(<a href=\"http://foo.foo/foo(foo)(foo)\">http://foo.foo/foo(foo)(foo)</a>)")
+    (jg_urlize @@ Tstr "(http://foo.foo/foo(foo)(foo))")
 
 let test_title _ctx =
   assert_equal_tvalue
