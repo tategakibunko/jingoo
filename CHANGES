@@ -21,6 +21,8 @@ o [PR#72] Function definition helpers: made function using kwargs the default, a
 o [PR#73] Rewrite Jg_utils.escape in a more efficient way.
 * [PR#73] Added escape for single quote(U+0027).
 ! [PR#74] Enhanced pretty-printer and added `pprint` filter.
+o [PR#76] For loops: only declare 'loop' variable once instead of doing it for each iteration.
+* [PR#76] Fix jg_iter_str (unicode safe).
 
 version: 1.2.21, 2018-10-27
 ===========================
