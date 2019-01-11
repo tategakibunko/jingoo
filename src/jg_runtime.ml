@@ -253,12 +253,13 @@ let jg_iter_array ctx iterator f a =
   Array.iter (fun itm -> f @@ jg_iter_mk_ctx ctx iterator itm ; incr i) a
 
 let jg_iter_str ctx iterator f s =
-  let (ctx, i) = jg_iter_loop_var (String.length s) ctx in
-  String.iter (fun itm ->
-      let itm = Tstr (String.make 1 itm) in
-      let () = f @@ jg_iter_mk_ctx ctx iterator itm in
-      incr i)
-    s
+  let len = UTF8.length s in
+  let (ctx, i) = jg_iter_loop_var len ctx in
+  for j = 0 to len - 1 do
+    let s1 = UTF8.sub s j 1 in
+    let () = f @@ jg_iter_mk_ctx ctx iterator (Tstr s1) in
+    incr i
+  done
 
 let jg_iter_list ctx iterator f l =
   let (ctx, i) = jg_iter_loop_var (List.length l) ctx in

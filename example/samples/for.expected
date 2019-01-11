@@ -4,3 +4,16 @@
 - 3: odd
 - 4: even
 - 5: odd
+<a href="http://yahoo.co.jp">yahoo japan</a>
+<a href="http://google.co.jp">google japan</a>
+<a href="http://yahoo.co.jp">yahoo japan</a>
+<a href="http://google.co.jp">google japan</a>
+- name: alice
+- age: 42
+- sex: F
+a(1)
+b(2)
+c(3)
+日(1)
+本(2)
+語(3)
