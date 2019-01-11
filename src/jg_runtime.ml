@@ -921,21 +921,34 @@ let jg_range start stop =
 let jg_urlize_regexp =
   let open Re in
   lazy (compile @@
-        group @@
-        seq
-          [ alt [ str "http" ; str "https" ; str "ftp" ; str "file" ]
-          ; str "://"
-          ; rep (alt [ alnum ; set "._-@:~/\\" ])
-          ; opt (seq [ char '?' ; rep (alt [ alnum ; set "._-@:!/\\" ; set "%+=&" ]) ])
-          ; opt (seq [ char '#' ; rep (alt [ alnum ; set "._-" ]) ])
-          ; compl [ set ":.?" ]
-          ])
+        seq [ group (opt (alt [ char '"' ; char '\'' ]) )
+            ; group begin
+                let delim op cl = seq [ char op ; rep (compl [ char cl ]) ; char cl ] in
+                let or_paren r = alt [ r ; delim '(' ')' ; delim '[' ']' ; delim '{' '}' ] in
+                seq
+                  [ alt [ str "http" ; str "https" ; str "ftp" ; str "file" ]
+                  ; str "://"
+                  ; rep1 (or_paren (alt [ alnum ; set "._-@:~/\\" ]))
+                  ; opt (seq [ char '?' ; rep (or_paren (alt [ alnum ; set "._-@:!/\\[]" ; set "%+=&" ]) ) ])
+                  ; opt (seq [ char '#' ; rep (or_paren (alt [ alnum ; set "._-" ]) ) ])
+                  ; or_paren (compl [ set " !\"'(),.:;<>?[]{}" ])
+                  ]
+              end
+            ; group (opt (alt [ char '"' ; char '\'' ]) )
+            ])
 
 let jg_urlize text =
   match text with
     | Tstr text ->
       Tstr (Re.replace (Lazy.force jg_urlize_regexp) text
-              ~f:(fun g -> let h = Re.Group.get g 1 in "<a href=\"" ^ h ^ "\">" ^ h ^ "</a>") )
+              ~f:(fun g ->
+                  let o = Re.Group.get g 1 in
+                  let h = Re.Group.get g 2 in
+                  let c = Re.Group.get g 3 in
+                  match o, h, c with
+                  | "", h, "" -> "<a href=\"" ^ h ^ "\">" ^ h ^ "</a>"
+                  | o, h, c -> o ^ h ^ c
+                ) )
     | _ -> failwith_type_error_1 "jg_urlize" text
 
 let jg_striptags_regexp =
