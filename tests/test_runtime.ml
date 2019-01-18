@@ -717,6 +717,13 @@ let test_func_arg1 _ctx =
                         ~kwargs:[("domain", Tstr "hotmail.com")]
                         jg_to_mail_bad [Tstr "foo"]))
 
+let test_printf _ctx =
+  assert_equal_tvalue
+    (Tstr "8 apples, 4 people, that's 0.5 apple per person.")
+    (jg_apply (Tfun (fun ?kwargs:_ -> jg_printf))
+       [ Tstr "%d %s, %d people, that's %.1f apple per person."
+       ; Tint 8 ; Tstr "apples" ; Tint 4 ; Tfloat 0.5 ])
+
 let suite = "runtime test" >::: [
   "test_escape" >:: test_escape;
   "test_string_of_tvalue" >:: test_string_of_tvalue;
@@ -797,4 +804,5 @@ let suite = "runtime test" >::: [
   "test_type_volatile" >:: test_type_volatile;
   "test_type_lazy" >:: test_type_lazy;
   "test_func_arg1" >:: test_func_arg1;
+  "test_printf" >:: test_printf;
 ]
