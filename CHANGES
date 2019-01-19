@@ -24,6 +24,7 @@ o [PR#73] Rewrite Jg_utils.escape in a more efficient way.
 o [PR#75] Improved jg_urlize_regexp for real-world usage.
 o [PR#76] For loops: only declare 'loop' variable once instead of doing it for each iteration.
 * [PR#76] Fix jg_iter_str (unicode safe).
+o [PR#77] Added jg_printf function.
 
 version: 1.2.21, 2018-10-27
 ===========================
