@@ -1,0 +1,1 @@
+{{ printf ("%d %s, %d people, that's %.1f apple per person.", 8, "apples", 4, 0.5) }}

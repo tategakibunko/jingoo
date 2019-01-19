@@ -57,7 +57,7 @@
 {% set filter_names_list =
 [ 'abs', 'attr', 'batch', 'capitalize', 'default', 'escape', 'eval',
 'float', 'fold', 'forall', 'groupby', 'int', 'join', 'last', 'length',
-'list', 'lower', 'map', 'max', 'md5', 'min', 'nth', 'random', 'range',
+'list', 'lower', 'map', 'max', 'md5', 'min', 'nth', 'printf', 'random', 'range',
 'reject', 'replace', 'reverse', 'round', 'select', 'slice', 'sort',
 'split', 'striptag', 'strlen', 'sublist', 'substring', 'sum', 'title',
 'truncate', 'trim', 'upper', 'urlize', 'wordcount', 'wordwrap',
@@ -323,6 +323,17 @@
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'nth' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'printf' ], 'filter_prinf', false) %}
+        <p class="p">
+          {{ code ('printf(fmt, a1, a2, ..., aN)') }}
+          Fill {{ code ('fmt') }} with {{ code ('a1) }} {{ code ('a2) }} ... {{ code ('aN) }}.
+          Support a subset of OCaml {{ code ('format) }} type: {{ code ('%d) }} {{ code ('%s) }} and {{ code ('%f) }}.
+        </p>
+        <p class="p">
+          NB: {{ code ('%s] would accept any type as long as it can to represented as a string.
+        </p>
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'random' ], '', false) %}
