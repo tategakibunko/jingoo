@@ -506,7 +506,7 @@ let rec jg_eq_eq_aux left right =
 
 and jg_array_eq_eq a1 a2 =
   try
-    array_iter2
+    Array.iter2
       (fun a b ->
          if not @@ jg_eq_eq_aux a b
          then raise @@ Invalid_argument "jg_array_eq_eq")
@@ -554,7 +554,7 @@ let jg_gteq left right =
 let jg_inop left right =
   match left, right with
     | value, Tlist lst -> Tbool (List.exists (jg_eq_eq_aux value) lst)
-    | value, Tarray a -> Tbool (array_exists (jg_eq_eq_aux value) a)
+    | value, Tarray a -> Tbool (Array.exists (jg_eq_eq_aux value) a)
     | _ -> Tbool false
 
 (**/**)
@@ -683,7 +683,7 @@ let jg_abs value =
 let jg_attr prop obj =
   match prop with
   | Tstr path ->
-    jg_obj_lookup_path obj (string_split_on_char '.' path)
+    jg_obj_lookup_path obj (String.split_on_char '.' path)
   | _ -> failwith_type_error_2 "jg_attr" prop obj
 
 (** TODO *)
@@ -980,7 +980,7 @@ let jg_sort ?(kwargs=[]) lst =
   let compare = match !attribute with
     | "" -> !jg_compare
     | att ->
-      let path = string_split_on_char '.' att in
+      let path = String.split_on_char '.' att in
       fun a b -> !jg_compare (jg_obj_lookup_path a path) (jg_obj_lookup_path b path) in
   let compare = if !reverse then fun a b -> compare b a else compare in
   match lst with
@@ -1033,7 +1033,7 @@ let fun_or_attribute ~kwargs ~arg =
   | Tfun fn -> fun x -> fn ~kwargs x
   | _ -> match kwargs with
     | [ ("attribute", Tstr path) ] ->
-      fun x -> jg_obj_lookup_path x (string_split_on_char '.' path)
+      fun x -> jg_obj_lookup_path x (String.split_on_char '.' path)
     | _ -> raise Not_found
 
 let jg_groupby_aux fn length iter collection =
@@ -1091,7 +1091,7 @@ let jg_max_min_aux is_max fst iter value kwargs =
   let compare =
     match kwargs with
     | [("attribute", Tstr att)] ->
-      let path = string_split_on_char '.' att in
+      let path = String.split_on_char '.' att in
       fun a b -> jg_compare_aux (jg_obj_lookup_path a path) (jg_obj_lookup_path b path)
     | _ -> jg_compare_aux in
   let compare = if is_max then compare else fun a b -> compare b a in
@@ -1165,7 +1165,7 @@ let jg_fold = fun fn acc seq ->
 let jg_forall = fun fn seq ->
   match seq, fn with
   | (Tlist l, Tfun fn) -> Tbool (List.for_all (fun x -> unbox_bool @@ fn x) l)
-  | (Tarray l, Tfun fn) -> Tbool (Jg_utils.array_for_all (fun x -> unbox_bool @@ fn x) l)
+  | (Tarray l, Tfun fn) -> Tbool (Array.for_all (fun x -> unbox_bool @@ fn x) l)
   | _ -> failwith_type_error_2 "jg_forall" fn seq
 
 (** [jg_pprint v] Pretty print variable [v]. Useful for debugging. *)
