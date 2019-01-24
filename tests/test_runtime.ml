@@ -734,6 +734,19 @@ let test_printf _ctx =
        [ Tstr "%d %s, %d people, that's %.1f apple per person."
        ; Tint 8 ; Tstr "apples" ; Tint 4 ; Tfloat 0.5 ])
 
+let test_compose _ctx =
+  let fn =
+    jg_compose
+      (Tfun (fun ?kwargs:_ x -> Tstr (string_of_tvalue x)))
+      (jg_apply (func_arg2_no_kw jg_attr) [ Tstr "foo" ] )
+  in
+  assert_equal_tvalue
+    (Tstr "42")
+    (jg_apply fn [ Tobj [("bar", Tnull) ; ("foo", Tint 42)] ]) ;
+  assert_equal_tvalue
+    (Tstr "")
+    (jg_apply fn [ Tobj [] ])
+
 let suite = "runtime test" >::: [
   "test_escape" >:: test_escape;
   "test_string_of_tvalue" >:: test_string_of_tvalue;
@@ -816,4 +829,5 @@ let suite = "runtime test" >::: [
   "test_type_lazy" >:: test_type_lazy;
   "test_func_arg1" >:: test_func_arg1;
   "test_printf" >:: test_printf;
+  "test_compose" >:: test_compose;
 ]

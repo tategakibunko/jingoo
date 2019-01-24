@@ -55,14 +55,14 @@
 {%- endmacro -%}
 
 {% set filter_names_list =
-[ 'abs', 'attr', 'batch', 'capitalize', 'default', 'eq', 'escape',
-'eval', 'exists', 'float', 'fold', 'forall', 'ge', 'groupby', 'gt',
-'int', 'join', 'last', 'length', 'list', 'lower', 'le', 'lt', 'map',
-'max', 'md5', 'min', 'ne', 'nth', 'printf', 'random', 'range',
-'reject', 'replace', 'reverse', 'round', 'select', 'slice', 'sort',
-'split', 'striptag', 'strlen', 'sublist', 'substring', 'sum', 'title',
-'truncate', 'trim', 'upper', 'urlize', 'wordcount', 'wordwrap',
-'xmlattr' ] %}
+[ 'abs', 'attr', 'batch', 'capitalize', 'compose', 'default', 'eq',
+'escape', 'eval', 'exists', 'float', 'fold', 'forall', 'ge',
+'groupby', 'gt', 'int', 'join', 'last', 'length', 'list', 'lower',
+'le', 'lt', 'map', 'max', 'md5', 'min', 'ne', 'nth', 'printf',
+'random', 'range', 'reject', 'replace', 'reverse', 'round', 'select',
+'slice', 'sort', 'split', 'striptag', 'strlen', 'sublist',
+'substring', 'sum', 'title', 'truncate', 'trim', 'upper', 'urlize',
+'wordcount', 'wordwrap', 'xmlattr' ] %}
 
 {% macro toc_filter_link (id) -%}
   <a href="#filter_{{ id }}" class="toc-link">{{ id }}</a>
@@ -248,6 +248,13 @@
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'capitalize' ], 'filter_capitalize', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'compose' ], '', false) %}
+      <p class="p">{{ code ('compose (f, g)') }}</p>
+      <p class="p">
+        The composition function. {{ code ('compose (f, g)) (x)') }}
+        is {{ code ('f (g (x))') }}.
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'default' ], '', false) %}

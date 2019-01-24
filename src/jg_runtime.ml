@@ -1275,6 +1275,11 @@ let jg_printf = function
     Jg_types.func_no_kw f n
   | x -> failwith_type_error_1 "jg_printf" x
 
+(** [jg_compose f g x] is [f (g x)]. *)
+let jg_compose f g = match f, g with
+  | Tfun f, Tfun g -> Tfun (fun ?kwargs x -> f ?kwargs (g ?kwargs x))
+  | _ -> failwith_type_error_2 "jg_compose" f g
+
 (** [jg_test_divisibleby divisor dividend]
     tests if [dividend] is divisible by [divisor]. *)
 let jg_test_divisibleby num target =
@@ -1415,6 +1420,8 @@ let std_filters = [|
   ("le", func_arg2_no_kw jg_lteq);
   ("gt", func_arg2_no_kw jg_gt);
   ("ge", func_arg2_no_kw jg_gteq);
+
+  ("compose", func_arg2_no_kw jg_compose);
 
   ("replace", func_arg3_no_kw jg_replace);
   ("substring", func_arg3_no_kw jg_substring);
