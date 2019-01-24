@@ -55,9 +55,10 @@
 {%- endmacro -%}
 
 {% set filter_names_list =
-[ 'abs', 'attr', 'batch', 'capitalize', 'default', 'escape', 'eval', 'exists',
-'float', 'fold', 'forall', 'groupby', 'int', 'join', 'last', 'length',
-'list', 'lower', 'map', 'max', 'md5', 'min', 'nth', 'printf', 'random', 'range',
+[ 'abs', 'attr', 'batch', 'capitalize', 'default', 'eq', 'escape',
+'eval', 'exists', 'float', 'fold', 'forall', 'ge', 'groupby', 'gt',
+'int', 'join', 'last', 'length', 'list', 'lower', 'le', 'lt', 'map',
+'max', 'md5', 'min', 'ne', 'nth', 'printf', 'random', 'range',
 'reject', 'replace', 'reverse', 'round', 'select', 'slice', 'sort',
 'split', 'striptag', 'strlen', 'sublist', 'substring', 'sum', 'title',
 'truncate', 'trim', 'upper', 'urlize', 'wordcount', 'wordwrap',
@@ -256,6 +257,9 @@
         and {{ code ('default') }} otherwise.
       {% endcall %}
 
+      {% call section ([ 'Built-in filters', 'eq'], '', false) %}
+      {% endcall %}
+
       {% call section ([ 'Built-in filters', 'escape' ], '', false) %}
         <p class="p">
           {{ code ('escape (string)') }}. Replaces {{ code('&') }}, {{ code('"') }},
@@ -276,6 +280,12 @@
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'forall' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'ge'], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'gt'], '', false) %}
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'groupby' ], 'filter_groupby', true) %}
@@ -300,6 +310,9 @@
         </p>
       {% endcall %}
 
+      {% call section ([ 'Built-in filters', 'le'], '', false) %}
+      {% endcall %}
+
       {% call section ([ 'Built-in filters', 'length' ], '', false) %}
         <p class="p">
           {{ code ('length (seq)') }}.
@@ -308,6 +321,9 @@
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'list' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'lt'], '', false) %}
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'lower' ], '', false) %}
@@ -323,6 +339,9 @@
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'min' ], 'filter_min', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'ne'], '', false) %}
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'nth' ], '', false) %}

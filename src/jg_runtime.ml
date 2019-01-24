@@ -532,21 +532,27 @@ and jg_obj_eq_eq obj1 obj2 =
     Not_found -> false
 (**/**)
 
+(** [jg_eq_eq a b] Test for structural equality of [a] and [b]. *)
 let jg_eq_eq left right =
   Tbool (jg_eq_eq_aux left right)
 
+(** [jg_not_eq a b] Negation of [jg_eq_eq a b]. *)
 let jg_not_eq left right =
   Tbool (not @@ jg_eq_eq_aux left right)
 
+(** [jg_lt a b] See {!val:jg_compare}. *)
 let jg_lt left right =
   Tbool (jg_compare_aux left right < 0)
 
+(** [jg_gt a b] See {!val:jg_compare}. *)
 let jg_gt left right =
   Tbool (jg_compare_aux left right > 0)
 
+(** [jg_lteq a b] See {!val:jg_compare}. *)
 let jg_lteq left right =
   Tbool (jg_compare_aux left right <= 0)
 
+(** [jg_gteq a b] See {!val:jg_compare}. *)
 let jg_gteq left right =
   Tbool (jg_compare_aux left right >= 0)
 
@@ -1402,6 +1408,13 @@ let std_filters = [|
   ("nth", func_arg2_no_kw jg_nth);
   ("forall", func_arg2_no_kw jg_forall);
   ("exists", func_arg2_no_kw jg_exists);
+
+  ("eq", func_arg2_no_kw jg_eq_eq);
+  ("ne", func_arg2_no_kw jg_not_eq);
+  ("lt", func_arg2_no_kw jg_lt);
+  ("le", func_arg2_no_kw jg_lteq);
+  ("gt", func_arg2_no_kw jg_gt);
+  ("ge", func_arg2_no_kw jg_gteq);
 
   ("replace", func_arg3_no_kw jg_replace);
   ("substring", func_arg3_no_kw jg_substring);
