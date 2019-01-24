@@ -1168,6 +1168,15 @@ let jg_forall = fun fn seq ->
   | (Tarray l, Tfun fn) -> Tbool (Array.for_all (fun x -> unbox_bool @@ fn x) l)
   | _ -> failwith_type_error_2 "jg_forall" fn seq
 
+(** [jg_exists fn seq]
+    checks if (at least) one element of the sequence [seq] satisfy the predicate [fn].
+*)
+let jg_exists = fun fn seq ->
+  match seq, fn with
+  | (Tlist l, Tfun fn) -> Tbool (List.exists (fun x -> unbox_bool @@ fn x) l)
+  | (Tarray l, Tfun fn) -> Tbool (Array.exists (fun x -> unbox_bool @@ fn x) l)
+  | _ -> failwith_type_error_2 "jg_exists" fn seq
+
 (** [jg_pprint v] Pretty print variable [v]. Useful for debugging. *)
 let jg_pprint v =
   Tstr (show_tvalue v)
@@ -1392,6 +1401,7 @@ let std_filters = [|
   ("select", func_arg2_no_kw jg_select);
   ("nth", func_arg2_no_kw jg_nth);
   ("forall", func_arg2_no_kw jg_forall);
+  ("exists", func_arg2_no_kw jg_exists);
 
   ("replace", func_arg3_no_kw jg_replace);
   ("substring", func_arg3_no_kw jg_substring);
