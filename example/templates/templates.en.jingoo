@@ -55,13 +55,14 @@
 {%- endmacro -%}
 
 {% set filter_names_list =
-[ 'abs', 'attr', 'batch', 'capitalize', 'default', 'escape', 'eval',
-'float', 'fold', 'forall', 'groupby', 'int', 'join', 'last', 'length',
-'list', 'lower', 'map', 'max', 'md5', 'min', 'nth', 'printf', 'random', 'range',
-'reject', 'replace', 'reverse', 'round', 'select', 'slice', 'sort',
-'split', 'striptag', 'strlen', 'sublist', 'substring', 'sum', 'title',
-'truncate', 'trim', 'upper', 'urlize', 'wordcount', 'wordwrap',
-'xmlattr' ] %}
+[ 'abs', 'attr', 'batch', 'capitalize', 'compose', 'default', 'eq',
+'escape', 'eval', 'exists', 'float', 'fold', 'forall', 'ge',
+'groupby', 'gt', 'int', 'join', 'last', 'length', 'list', 'lower',
+'le', 'lt', 'map', 'max', 'md5', 'min', 'ne', 'nth', 'printf',
+'random', 'range', 'reject', 'replace', 'reverse', 'round', 'select',
+'slice', 'sort', 'split', 'striptag', 'strlen', 'sublist',
+'substring', 'sum', 'title', 'truncate', 'trim', 'upper', 'urlize',
+'wordcount', 'wordwrap', 'xmlattr' ] %}
 
 {% macro toc_filter_link (id) -%}
   <a href="#filter_{{ id }}" class="toc-link">{{ id }}</a>
@@ -249,11 +250,21 @@
       {% call section ([ 'Built-in filters', 'capitalize' ], 'filter_capitalize', false) %}
       {% endcall %}
 
+      {% call section ([ 'Built-in filters', 'compose' ], '', false) %}
+      <p class="p">{{ code ('compose (f, g)') }}</p>
+      <p class="p">
+        The composition function. {{ code ('compose (f, g)) (x)') }}
+        is {{ code ('f (g (x))') }}.
+      {% endcall %}
+
       {% call section ([ 'Built-in filters', 'default' ], '', false) %}
       <p class="p">{{ code ('default (default_value, value)') }}</p>
       <p class="p">
         Return {{ code ('value') }} if it is defined from {{ code ('null') }},
         and {{ code ('default') }} otherwise.
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'eq'], '', false) %}
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'escape' ], '', false) %}
@@ -266,6 +277,9 @@
       {% call section ([ 'Built-in filters', 'eval' ], 'filter_eval', false) %}
       {% endcall %}
 
+      {% call section ([ 'Built-in filters', 'exists' ], '', false) %}
+      {% endcall %}
+
       {% call section ([ 'Built-in filters', 'float' ], '', false) %}
       {% endcall %}
 
@@ -273,6 +287,12 @@
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'forall' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'ge'], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'gt'], '', false) %}
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'groupby' ], 'filter_groupby', true) %}
@@ -297,6 +317,9 @@
         </p>
       {% endcall %}
 
+      {% call section ([ 'Built-in filters', 'le'], '', false) %}
+      {% endcall %}
+
       {% call section ([ 'Built-in filters', 'length' ], '', false) %}
         <p class="p">
           {{ code ('length (seq)') }}.
@@ -305,6 +328,9 @@
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'list' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'lt'], '', false) %}
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'lower' ], '', false) %}
@@ -320,6 +346,9 @@
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'min' ], 'filter_min', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'ne'], '', false) %}
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'nth' ], '', false) %}

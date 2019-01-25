@@ -170,6 +170,6 @@ let highlight = function
   | x -> Jg_types.failwith_type_error_1 "highlight" x
 
 let () =
-  Jg_stub.add_func ~namespace:"jg_highlight" ~func_name:"highlight" (func_arg1 highlight)
+  Jg_stub.add_func ~namespace:"jg_highlight" ~func_name:"highlight" (func_arg1_no_kw highlight)
 
 }

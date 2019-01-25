@@ -34,7 +34,7 @@ let () =
   ] ignore usage ;
 
   begin
-    try if !dynlink <> "" then List.iter Dynlink.loadfile (Jg_utils.string_split_on_char ',' !dynlink) ;
+    try if !dynlink <> "" then List.iter Dynlink.loadfile (String.split_on_char ',' !dynlink) ;
     with Dynlink.Error e ->
       failwith @@ Printf.sprintf "Dynlink error: %s\n%!" (Dynlink.error_message e)
   end ;
@@ -44,7 +44,7 @@ let () =
   in
 
   let env =
-    { Jg_types.std_env with template_dirs = (Jg_utils.string_split_on_char ',' !dirs) }
+    { Jg_types.std_env with template_dirs = (String.split_on_char ',' !dirs) }
   in
 
   try

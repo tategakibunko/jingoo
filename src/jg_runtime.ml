@@ -506,7 +506,7 @@ let rec jg_eq_eq_aux left right =
 
 and jg_array_eq_eq a1 a2 =
   try
-    array_iter2
+    Array.iter2
       (fun a b ->
          if not @@ jg_eq_eq_aux a b
          then raise @@ Invalid_argument "jg_array_eq_eq")
@@ -532,21 +532,27 @@ and jg_obj_eq_eq obj1 obj2 =
     Not_found -> false
 (**/**)
 
+(** [jg_eq_eq a b] Test for structural equality of [a] and [b]. *)
 let jg_eq_eq left right =
   Tbool (jg_eq_eq_aux left right)
 
+(** [jg_not_eq a b] Negation of [jg_eq_eq a b]. *)
 let jg_not_eq left right =
   Tbool (not @@ jg_eq_eq_aux left right)
 
+(** [jg_lt a b] See {!val:jg_compare}. *)
 let jg_lt left right =
   Tbool (jg_compare_aux left right < 0)
 
+(** [jg_gt a b] See {!val:jg_compare}. *)
 let jg_gt left right =
   Tbool (jg_compare_aux left right > 0)
 
+(** [jg_lteq a b] See {!val:jg_compare}. *)
 let jg_lteq left right =
   Tbool (jg_compare_aux left right <= 0)
 
+(** [jg_gteq a b] See {!val:jg_compare}. *)
 let jg_gteq left right =
   Tbool (jg_compare_aux left right >= 0)
 
@@ -554,7 +560,7 @@ let jg_gteq left right =
 let jg_inop left right =
   match left, right with
     | value, Tlist lst -> Tbool (List.exists (jg_eq_eq_aux value) lst)
-    | value, Tarray a -> Tbool (array_exists (jg_eq_eq_aux value) a)
+    | value, Tarray a -> Tbool (Array.exists (jg_eq_eq_aux value) a)
     | _ -> Tbool false
 
 (**/**)
@@ -683,7 +689,7 @@ let jg_abs value =
 let jg_attr prop obj =
   match prop with
   | Tstr path ->
-    jg_obj_lookup_path obj (string_split_on_char '.' path)
+    jg_obj_lookup_path obj (String.split_on_char '.' path)
   | _ -> failwith_type_error_2 "jg_attr" prop obj
 
 (** TODO *)
@@ -980,7 +986,7 @@ let jg_sort ?(kwargs=[]) lst =
   let compare = match !attribute with
     | "" -> !jg_compare
     | att ->
-      let path = string_split_on_char '.' att in
+      let path = String.split_on_char '.' att in
       fun a b -> !jg_compare (jg_obj_lookup_path a path) (jg_obj_lookup_path b path) in
   let compare = if !reverse then fun a b -> compare b a else compare in
   match lst with
@@ -1033,7 +1039,7 @@ let fun_or_attribute ~kwargs ~arg =
   | Tfun fn -> fun x -> fn ~kwargs x
   | _ -> match kwargs with
     | [ ("attribute", Tstr path) ] ->
-      fun x -> jg_obj_lookup_path x (string_split_on_char '.' path)
+      fun x -> jg_obj_lookup_path x (String.split_on_char '.' path)
     | _ -> raise Not_found
 
 let jg_groupby_aux fn length iter collection =
@@ -1091,7 +1097,7 @@ let jg_max_min_aux is_max fst iter value kwargs =
   let compare =
     match kwargs with
     | [("attribute", Tstr att)] ->
-      let path = string_split_on_char '.' att in
+      let path = String.split_on_char '.' att in
       fun a b -> jg_compare_aux (jg_obj_lookup_path a path) (jg_obj_lookup_path b path)
     | _ -> jg_compare_aux in
   let compare = if is_max then compare else fun a b -> compare b a in
@@ -1165,8 +1171,17 @@ let jg_fold = fun fn acc seq ->
 let jg_forall = fun fn seq ->
   match seq, fn with
   | (Tlist l, Tfun fn) -> Tbool (List.for_all (fun x -> unbox_bool @@ fn x) l)
-  | (Tarray l, Tfun fn) -> Tbool (Jg_utils.array_for_all (fun x -> unbox_bool @@ fn x) l)
+  | (Tarray l, Tfun fn) -> Tbool (Array.for_all (fun x -> unbox_bool @@ fn x) l)
   | _ -> failwith_type_error_2 "jg_forall" fn seq
+
+(** [jg_exists fn seq]
+    checks if (at least) one element of the sequence [seq] satisfy the predicate [fn].
+*)
+let jg_exists = fun fn seq ->
+  match seq, fn with
+  | (Tlist l, Tfun fn) -> Tbool (List.exists (fun x -> unbox_bool @@ fn x) l)
+  | (Tarray l, Tfun fn) -> Tbool (Array.exists (fun x -> unbox_bool @@ fn x) l)
+  | _ -> failwith_type_error_2 "jg_exists" fn seq
 
 (** [jg_pprint v] Pretty print variable [v]. Useful for debugging. *)
 let jg_pprint v =
@@ -1260,6 +1275,11 @@ let jg_printf = function
     Jg_types.func_no_kw f n
   | x -> failwith_type_error_1 "jg_printf" x
 
+(** [jg_compose f g x] is [f (g x)]. *)
+let jg_compose f g = match f, g with
+  | Tfun f, Tfun g -> Tfun (fun ?kwargs x -> f ?kwargs (g ?kwargs x))
+  | _ -> failwith_type_error_2 "jg_compose" f g
+
 (** [jg_test_divisibleby divisor dividend]
     tests if [dividend] is divisible by [divisor]. *)
 let jg_test_divisibleby num target =
@@ -1346,7 +1366,7 @@ let func_arg2 = Jg_types.func_arg2
 *)
 let func_arg3 = Jg_types.func_arg3
 
-let std_filters = [
+let std_filters = [|
   (* built-in filters *)
   ("abs", func_arg1_no_kw jg_abs);
   ("capitalize", func_arg1_no_kw jg_capitalize);
@@ -1392,6 +1412,16 @@ let std_filters = [
   ("select", func_arg2_no_kw jg_select);
   ("nth", func_arg2_no_kw jg_nth);
   ("forall", func_arg2_no_kw jg_forall);
+  ("exists", func_arg2_no_kw jg_exists);
+
+  ("eq", func_arg2_no_kw jg_eq_eq);
+  ("ne", func_arg2_no_kw jg_not_eq);
+  ("lt", func_arg2_no_kw jg_lt);
+  ("le", func_arg2_no_kw jg_lteq);
+  ("gt", func_arg2_no_kw jg_gt);
+  ("ge", func_arg2_no_kw jg_gteq);
+
+  ("compose", func_arg2_no_kw jg_compose);
 
   ("replace", func_arg3_no_kw jg_replace);
   ("substring", func_arg3_no_kw jg_substring);
@@ -1412,7 +1442,7 @@ let std_filters = [
 
   ("printf", Tfun (fun ?kwargs:_ -> jg_printf) )
 
-]
+|]
 
 let jg_load_extensions extensions =
   List.iter (fun ext ->
@@ -1429,7 +1459,7 @@ let jg_load_extensions extensions =
 *)
 let jg_init_context ?(models=[]) output env =
   let model_frame = Hashtbl.create (List.length models) in
-  let top_frame = Hashtbl.create (List.length std_filters + List.length env.filters + 2) in
+  let top_frame = Hashtbl.create (Array.length std_filters + List.length env.filters + 2) in
   let ctx = {
     frame_stack = [ model_frame ; top_frame ];
     macro_table = Hashtbl.create 10;
@@ -1438,10 +1468,8 @@ let jg_init_context ?(models=[]) output env =
     serialize = false;
     output
   } in
-  let set_values hash alist = List.iter (fun (n, v) -> Hashtbl.add hash n v) alist in
-  set_values model_frame models;
-  set_values top_frame std_filters;
-  set_values top_frame env.filters;
-
+  List.iter (fun (n, v) -> Hashtbl.add model_frame n v) models;
+  Array.iter (fun (n, v) -> Hashtbl.add top_frame n v) std_filters;
+  List.iter (fun (n, v) -> Hashtbl.add top_frame n v) env.filters;
   Hashtbl.add top_frame "jg_is_autoescape" (Tbool env.autoescape);
   ctx

@@ -668,6 +668,16 @@ let test_forall _ctx =
   test true (Tlist [Tint 0;Tint 1;Tint 2;Tint 3;Tint 4;Tint 5;Tint 6;Tint 7;Tint 8;Tint 9]) ;
   test false (Tarray [|Tint 0;Tint 10;Tint 2|])
 
+let test_exists _ctx =
+  let test res seq =
+    assert_equal_tvalue
+      (Tbool res)
+      (jg_exists (func_arg1_no_kw @@ fun x -> Tbool (unbox_int x < 10)) seq)
+  in
+  test true (Tlist [Tint 0;Tint 1;Tint 2;Tint 3;Tint 4;Tint 5;Tint 6;Tint 7;Tint 8;Tint 9]) ;
+  test true (Tarray [|Tint 0;Tint 10;Tint 2|]);
+  test false (Tarray [|Tint 100;Tint 10;Tint 12|])
+
 let test_type_volatile _ctx =
   let x =
     Tvolatile (let i = ref 0 in fun () -> incr i ; Tint !i)
@@ -723,6 +733,19 @@ let test_printf _ctx =
     (jg_apply (Tfun (fun ?kwargs:_ -> jg_printf))
        [ Tstr "%d %s, %d people, that's %.1f apple per person."
        ; Tint 8 ; Tstr "apples" ; Tint 4 ; Tfloat 0.5 ])
+
+let test_compose _ctx =
+  let fn =
+    jg_compose
+      (Tfun (fun ?kwargs:_ x -> Tstr (string_of_tvalue x)))
+      (jg_apply (func_arg2_no_kw jg_attr) [ Tstr "foo" ] )
+  in
+  assert_equal_tvalue
+    (Tstr "42")
+    (jg_apply fn [ Tobj [("bar", Tnull) ; ("foo", Tint 42)] ]) ;
+  assert_equal_tvalue
+    (Tstr "")
+    (jg_apply fn [ Tobj [] ])
 
 let suite = "runtime test" >::: [
   "test_escape" >:: test_escape;
@@ -801,8 +824,10 @@ let suite = "runtime test" >::: [
   "test_fold_str" >:: test_fold_str;
   "test_fold_mbstr" >:: test_fold_mbstr;
   "test_forall" >:: test_forall;
+  "test_exists" >:: test_exists;
   "test_type_volatile" >:: test_type_volatile;
   "test_type_lazy" >:: test_type_lazy;
   "test_func_arg1" >:: test_func_arg1;
   "test_printf" >:: test_printf;
+  "test_compose" >:: test_compose;
 ]
