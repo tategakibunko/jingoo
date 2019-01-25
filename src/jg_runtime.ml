@@ -1183,6 +1183,18 @@ let jg_exists = fun fn seq ->
   | (Tarray l, Tfun fn) -> Tbool (Array.exists (fun x -> unbox_bool @@ fn x) l)
   | _ -> failwith_type_error_2 "jg_exists" fn seq
 
+(** [find p l]
+    Return the first element of [l] that satisfies [p].
+    Rerurn [null] if there is no value that satisfies [p].
+*)
+let jg_find = fun fn seq ->
+  match seq, fn with
+  | (Tlist seq, Tfun fn) ->
+    (try List.find (fun x -> unbox_bool (fn x)) seq with Not_found -> Tnull)
+  | (Tarray seq, Tfun fn) ->
+    (try Jg_utils.array_find (fun x -> unbox_bool (fn x)) seq with Not_found -> Tnull)
+  | _ -> failwith_type_error_2 "jg_find" fn seq
+
 (** [jg_pprint v] Pretty print variable [v]. Useful for debugging. *)
 let jg_pprint v =
   Tstr (show_tvalue v)
@@ -1413,6 +1425,7 @@ let std_filters = [|
   ("nth", func_arg2_no_kw jg_nth);
   ("forall", func_arg2_no_kw jg_forall);
   ("exists", func_arg2_no_kw jg_exists);
+  ("find", func_arg2_no_kw jg_find);
 
   ("eq", func_arg2_no_kw jg_eq_eq);
   ("ne", func_arg2_no_kw jg_not_eq);

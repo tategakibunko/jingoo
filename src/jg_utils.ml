@@ -238,3 +238,13 @@ module Maybe = struct
 	Some x -> f x
       | None -> None
 end
+
+let array_find p a =
+  let len = Array.length a in
+  let rec loop i =
+    if i = len then raise Not_found
+    else
+      let x = Array.unsafe_get a i in
+      if p x then x else loop (i + 1)
+  in
+  loop 0

@@ -747,6 +747,13 @@ let test_compose _ctx =
     (Tstr "")
     (jg_apply fn [ Tobj [] ])
 
+let test_find _ctx =
+  let l = Tarray [| Tint 0 ; Tint 2 ; Tint 4 ; Tint 5 |] in
+  assert_equal_tvalue (Tint 5)
+    (jg_find (func_arg1_no_kw (fun x -> box_bool ((unbox_int x) mod 2 = 1))) l) ;
+  assert_equal_tvalue (Tint 0)
+    (jg_find (func_arg1_no_kw (fun _ -> Tbool true)) l)
+
 let suite = "runtime test" >::: [
   "test_escape" >:: test_escape;
   "test_string_of_tvalue" >:: test_string_of_tvalue;
