@@ -9,7 +9,7 @@ let assert_eq expected source =
   let ast =
     try
       Jg_parser.input Jg_lexer.main lexbuf
-      |> Jg_interp.dead_code_elimination
+      |> Jg_ast_optimize.dead_code_elimination
     with e -> failwith (Jg_utils.get_parser_error e lexbuf)
   in
   assert_equal ~printer:Jg_types.show_ast expected ast
