@@ -977,11 +977,13 @@ let jg_striptags text =
  *)
 let jg_sort ?(kwargs=[]) lst =
   let reverse = ref false in
+  let fast = ref false in
   let attribute = ref "" in
   let jg_compare = ref jg_compare_aux in
   List.iter (function ("reverse", Tbool true) -> reverse := true
                     | ("attribute", Tstr name) -> attribute := name
                     | ("compare", fn) -> jg_compare := fun a b -> unbox_int (jg_apply fn [ a ; b ])
+                    | ("fast", Tbool true) -> fast := true
                     | (kw, _) -> failwith kw) kwargs;
   let compare = match !attribute with
     | "" -> !jg_compare
@@ -990,8 +992,10 @@ let jg_sort ?(kwargs=[]) lst =
       fun a b -> !jg_compare (jg_obj_lookup_path a path) (jg_obj_lookup_path b path) in
   let compare = if !reverse then fun a b -> compare b a else compare in
   match lst with
-    | Tlist l -> Tlist (List.sort compare l)
-    | Tarray a -> Tarray (let a = Array.copy a in Array.sort compare a ; a)
+    | Tlist l -> Tlist (List.(if !fast then fast_sort else stable_sort) compare l)
+    | Tarray a -> Tarray (let a = Array.copy a in
+                          Array.(if !fast then fast_sort else stable_sort) compare a ;
+                          a)
     | _ -> failwith_type_error_1 "jg_sort" lst
 
 (** [jg_xmlattr o] Format a string containing keys/values representation
