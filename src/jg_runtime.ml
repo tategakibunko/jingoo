@@ -980,10 +980,10 @@ let jg_sort ?(kwargs=[]) lst =
   let fast = ref false in
   let attribute = ref "" in
   let jg_compare = ref jg_compare_aux in
-  List.iter (function ("reverse", Tbool true) -> reverse := true
+  List.iter (function ("reverse", Tbool b) -> reverse := b
                     | ("attribute", Tstr name) -> attribute := name
                     | ("compare", fn) -> jg_compare := fun a b -> unbox_int (jg_apply fn [ a ; b ])
-                    | ("fast", Tbool true) -> fast := true
+                    | ("fast", Tbool b) -> fast := b
                     | (kw, _) -> failwith kw) kwargs;
   let compare = match !attribute with
     | "" -> !jg_compare

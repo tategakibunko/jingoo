@@ -379,9 +379,14 @@ let test_sort_string_list _ctx =
     (jg_sort @@ Tlist [Tstr "baba"; Tstr "aa"; Tstr "caca"] )
 
 let test_sort_rev _ctx =
+  let init = Tlist [Tint 3; Tint 1; Tint 2] in
+  let exp = [ Tint 1 ; Tint 2 ; Tint 3 ] in
   assert_equal_tvalue
-    (Tlist [Tint 3; Tint 2; Tint 1])
-    (jg_sort (Tlist [Tint 3; Tint 1; Tint 2]) ~kwargs:[("reverse", Tbool true)])
+    (Tlist (List.rev exp))
+    (jg_sort init ~kwargs:[("reverse", Tbool true)]) ;
+  assert_equal_tvalue
+    (Tlist exp)
+    (jg_sort init ~kwargs:[("reverse", Tbool false)])
 
 let test_sort_attr _ctx =
   let persons = Tlist [
