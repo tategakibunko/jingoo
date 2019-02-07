@@ -89,3 +89,18 @@ let dead_code_elimination stmts =
     | s -> default_mapper.statement self s in
   let mapper = { default_mapper with statement } in
   mapper.ast mapper stmts
+
+(** [inline_include env ast]
+    Inline the templates included in [ast] so it won't be necessary to
+    open and parse theses parts when execution [ast].
+*)
+let inline_include env stmts =
+  let open Jg_ast_mapper in
+  let statement self = function
+    | IncludeStatement (LiteralExpr (Tstr file), true) ->
+      Statements (self.ast self @@ Jg_interp.ast_from_file ~env file)
+    | RawIncludeStatement (LiteralExpr (Tstr file)) ->
+      Statements (self.ast self @@ Jg_interp.ast_from_file ~env file)
+    | e -> default_mapper.statement self e in
+  let mapper = { default_mapper with statement } in
+  mapper.ast mapper stmts

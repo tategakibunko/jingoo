@@ -305,17 +305,6 @@ and replace_blocks stmts =
     let mapper = { default_mapper with statement } in
     mapper.ast mapper stmts
 
-and inline_include env stmts =
-  let open Jg_ast_mapper in
-  let statement self = function
-    | IncludeStatement (LiteralExpr (Tstr file), true) ->
-      Statements (self.ast self @@ ast_from_file ~env file)
-    | RawIncludeStatement (LiteralExpr (Tstr file)) ->
-      Statements (self.ast self @@ ast_from_file ~env file)
-    | e -> default_mapper.statement self e in
-  let mapper = { default_mapper with statement } in
-  mapper.ast mapper stmts
-
 (* Import macros into ctx and remove it from ast *)
 and import_macros env ctx stmts =
   let open Jg_ast_mapper in
