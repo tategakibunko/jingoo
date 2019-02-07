@@ -56,7 +56,7 @@
 
 {% set filter_names_list =
 [ 'abs', 'attr', 'batch', 'capitalize', 'compose', 'default', 'eq',
-'escape', 'eval', 'exists', 'float', 'fold', 'forall', 'ge',
+'escape', 'eval', 'exists', 'find', 'float', 'fold', 'forall', 'ge',
 'groupby', 'gt', 'int', 'join', 'last', 'length', 'list', 'lower',
 'le', 'lt', 'map', 'max', 'md5', 'min', 'ne', 'nth', 'printf',
 'random', 'range', 'reject', 'replace', 'reverse', 'round', 'select',
@@ -278,6 +278,9 @@
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'exists' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Built-in filters', 'find' ], '', false) %}
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'float' ], '', false) %}

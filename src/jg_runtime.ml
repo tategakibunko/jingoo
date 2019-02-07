@@ -977,11 +977,13 @@ let jg_striptags text =
  *)
 let jg_sort ?(kwargs=[]) lst =
   let reverse = ref false in
+  let fast = ref false in
   let attribute = ref "" in
   let jg_compare = ref jg_compare_aux in
-  List.iter (function ("reverse", Tbool true) -> reverse := true
+  List.iter (function ("reverse", Tbool b) -> reverse := b
                     | ("attribute", Tstr name) -> attribute := name
                     | ("compare", fn) -> jg_compare := fun a b -> unbox_int (jg_apply fn [ a ; b ])
+                    | ("fast", Tbool b) -> fast := b
                     | (kw, _) -> failwith kw) kwargs;
   let compare = match !attribute with
     | "" -> !jg_compare
@@ -990,8 +992,10 @@ let jg_sort ?(kwargs=[]) lst =
       fun a b -> !jg_compare (jg_obj_lookup_path a path) (jg_obj_lookup_path b path) in
   let compare = if !reverse then fun a b -> compare b a else compare in
   match lst with
-    | Tlist l -> Tlist (List.sort compare l)
-    | Tarray a -> Tarray (let a = Array.copy a in Array.sort compare a ; a)
+    | Tlist l -> Tlist (List.(if !fast then fast_sort else stable_sort) compare l)
+    | Tarray a -> Tarray (let a = Array.copy a in
+                          Array.(if !fast then fast_sort else stable_sort) compare a ;
+                          a)
     | _ -> failwith_type_error_1 "jg_sort" lst
 
 (** [jg_xmlattr o] Format a string containing keys/values representation
@@ -1182,6 +1186,18 @@ let jg_exists = fun fn seq ->
   | (Tlist l, Tfun fn) -> Tbool (List.exists (fun x -> unbox_bool @@ fn x) l)
   | (Tarray l, Tfun fn) -> Tbool (Array.exists (fun x -> unbox_bool @@ fn x) l)
   | _ -> failwith_type_error_2 "jg_exists" fn seq
+
+(** [find p l]
+    Return the first element of [l] that satisfies [p].
+    Rerurn [null] if there is no value that satisfies [p].
+*)
+let jg_find = fun fn seq ->
+  match seq, fn with
+  | (Tlist seq, Tfun fn) ->
+    (try List.find (fun x -> unbox_bool (fn x)) seq with Not_found -> Tnull)
+  | (Tarray seq, Tfun fn) ->
+    (try Jg_utils.array_find (fun x -> unbox_bool (fn x)) seq with Not_found -> Tnull)
+  | _ -> failwith_type_error_2 "jg_find" fn seq
 
 (** [jg_pprint v] Pretty print variable [v]. Useful for debugging. *)
 let jg_pprint v =
@@ -1413,6 +1429,7 @@ let std_filters = [|
   ("nth", func_arg2_no_kw jg_nth);
   ("forall", func_arg2_no_kw jg_forall);
   ("exists", func_arg2_no_kw jg_exists);
+  ("find", func_arg2_no_kw jg_find);
 
   ("eq", func_arg2_no_kw jg_eq_eq);
   ("ne", func_arg2_no_kw jg_not_eq);

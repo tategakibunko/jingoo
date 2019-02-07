@@ -184,11 +184,11 @@ let after n lst =
   else
     let rec iter count rest =
       if count >= n then
-	rest
+        rest
       else
-	(match rest with
-	  | _ :: tl -> iter (count + 1) tl
-	  | [] -> []) in
+        (match rest with
+          | _ :: tl -> iter (count + 1) tl
+          | [] -> []) in
     iter 0 lst
 
 let get_parser_error exn lexbuf =
@@ -219,22 +219,32 @@ let rec get_file_path ?(template_dirs=[]) file_name =
   else
     match template_dirs with
       | [] ->
-	let file_path = Filename.concat (Sys.getcwd ()) file_name in
-	if Sys.file_exists file_path then
-	  file_path
-	else
-	  failwith @@ spf "file %s not found" file_path
+        let file_path = Filename.concat (Sys.getcwd ()) file_name in
+        if Sys.file_exists file_path then
+          file_path
+        else
+          failwith @@ spf "file %s not found" file_path
       | dir :: rest ->
-	let file_path = Filename.concat dir file_name in
-	if Sys.file_exists file_path then
-	  file_path
-	else
-	  get_file_path file_name ~template_dirs:rest
+        let file_path = Filename.concat dir file_name in
+        if Sys.file_exists file_path then
+          file_path
+        else
+          get_file_path file_name ~template_dirs:rest
 
 module Maybe = struct
   let return x = Some x
   let bind x f =
     match x with
-	Some x -> f x
+        Some x -> f x
       | None -> None
 end
+
+let array_find p a =
+  let len = Array.length a in
+  let rec loop i =
+    if i = len then raise Not_found
+    else
+      let x = Array.unsafe_get a i in
+      if p x then x else loop (i + 1)
+  in
+  loop 0

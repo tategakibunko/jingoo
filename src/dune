@@ -15,6 +15,7 @@
     jg_parser
     jg_lexer
     jg_ast_mapper
+    jg_ast_optimize
     jg_runtime
     jg_interp
     jg_template
