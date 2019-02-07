@@ -17,6 +17,7 @@ o [PR#66] Some internal enhancements.
 o [PR#67] Started writing documentation for template designers.
 * [PR#68] Fixed jg_fold for multi byte string.
 o [PR#69] Reworked Tfun to provide partial application for all functions.
+o [PR#71] Dead code elimination. New module jg_ast_optimize is added.
 o [PR#72] Function definition helpers: made function using kwargs the default, added _no_kw variants.
 o [PR#73] Rewrite Jg_utils.escape in a more efficient way.
 * [PR#73] Added escape for single quote(U+0027).
