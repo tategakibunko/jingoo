@@ -6,7 +6,8 @@ Dependencies
 3. re
 4. uutf (>= 0.9.4)
 5. uucp
-6. ounit (>= 2.0.0, for test)
+6. ppx_deriving
+7. ounit (>= 2.0.0, for test)
 
 Installing
 ==========
