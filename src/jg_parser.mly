@@ -138,13 +138,13 @@ stmt:
 | RAWINCLUDE error { raise @@ SyntaxError "rawinclude" }
 | IMPORT STRING as_part { pel "import sts"; ImportStatement($2, $3) }
 | IMPORT error{ raise @@ SyntaxError "import error" }
-| FROM STRING IMPORT expr_list { pel "from import sts"; FromImportStatement($2, $4) }
+| FROM STRING IMPORT separated_list(COMMA, expr) { pel "from import sts"; FromImportStatement($2, $4) }
 | FROM error{ raise @@ SyntaxError "from import error" }
-| MACRO ident LPAREN expr_list RPAREN stmts ENDMACRO { pel "macro sts"; MacroStatement($2, $4, $6) }
+| MACRO ident LPAREN separated_list(COMMA, expr) RPAREN stmts ENDMACRO { pel "macro sts"; MacroStatement($2, $4, $6) }
 | MACRO error { raise @@ SyntaxError "macro" }
-| FUNCTION ident LPAREN expr_list RPAREN stmts ENDFUNCTION { pel "function sts"; FunctionStatement($2, $4, $6) }
+| FUNCTION ident LPAREN separated_list(COMMA, expr) RPAREN stmts ENDFUNCTION { pel "function sts"; FunctionStatement($2, $4, $6) }
 | FUNCTION error { raise @@ SyntaxError "function" }
-| CALL opt_args ident LPAREN expr_list RPAREN stmts ENDCALL { pel "call sts"; CallStatement($3, $2, $5, $7) }
+| CALL opt_args ident LPAREN separated_list(COMMA, expr) RPAREN stmts ENDCALL { pel "call sts"; CallStatement($3, $2, $5, $7) }
 | CALL error { raise @@ SyntaxError "call error" }
 | IF
   i = pair(expr, stmt*)
@@ -160,7 +160,7 @@ stmt:
 | FOR ident_list IN expr stmts ENDFOR { pel "for sts"; ForStatement(SetExpr($2), $4, $5) }
 | FOR expr IN expr stmts ENDFOR { pel "for sts"; ForStatement($2, $4, $5) }
 | FOR error { raise @@ SyntaxError "for" }
-| WITH expr_list stmts ENDWITH { pel "with sts1"; WithStatement($2, $3) }
+| WITH separated_list(COMMA, expr) stmts ENDWITH { pel "with sts1"; WithStatement($2, $3) }
 | WITH error { raise @@ SyntaxError "with" }
 | AUTOESCAPE expr stmts ENDAUTOESCAPE { pel "autoescape"; AutoEscapeStatement($2, $3) }
 | AUTOESCAPE error { raise @@ SyntaxError "autoescape" }
@@ -191,19 +191,12 @@ ident_list:
 | ident COMMA error { raise @@ SyntaxError "ident_list" }
 ;
 
-expr_list:
-/* empty */ { pel "empty expr list"; [] }
-| expr { pel "expr list"; [$1] }
-| expr COMMA expr_list { pel "expr list comma"; $1 :: $3 }
-| expr COMMA error { raise @@ SyntaxError "expr_list" }
-;
-
 expr:
   ident { pel "ident"; $1 }
 | ident EQ expr { pel "keyword"; KeywordExpr($1, $3) }
 | ident AS ident { pel "alias"; AliasExpr($1, $3) }
-| ident LPAREN expr_list RPAREN { pel "apply(expr_list)"; ApplyExpr($1, $3) }
-| expr LPAREN expr_list RPAREN { pel "apply(expr_list)"; ApplyExpr($1, $3) }
+| ident LPAREN separated_list(COMMA, expr) RPAREN { pel "apply(expr_list)"; ApplyExpr($1, $3) }
+| expr LPAREN separated_list(COMMA, expr) RPAREN { pel "apply(expr_list)"; ApplyExpr($1, $3) }
 | INT { pel "int"; LiteralExpr (Tint $1) }
 | FLOAT { pel "float"; LiteralExpr (Tfloat $1) }
 | TRUE { pel "true"; LiteralExpr (Tbool true) }
@@ -214,7 +207,7 @@ expr:
 | expr LBRACKET expr RBRACKET { pel "bracket_lookup"; BracketExpr($1, $3) }
 | NOT expr { pel "not expr"; NotOpExpr($2) }
 | MINUS expr %prec UMINUS { pel "negative"; NegativeOpExpr($2) }
-| LBRACKET expr_list RBRACKET { pel "list expr"; ListExpr($2) }
+| LBRACKET separated_list(COMMA, expr) RBRACKET { pel "list expr"; ListExpr($2) }
 | LBRACE separated_list(COMMA, separated_pair(expr, COLON, expr)) RBRACE { pel "obj expr"; ObjExpr($2) }
 | expr PLUS expr { pel "plus"; PlusOpExpr($1, $3) }
 | expr MINUS expr { pel "minus"; MinusOpExpr($1, $3) }
@@ -240,11 +233,11 @@ expr:
 }
 | expr IS expr { pel "test"; TestOpExpr($1,$3) }
 | LPAREN expr RPAREN { pel "(expr)"; $2 }
-| LPAREN expr_list RPAREN { pel "set expr"; SetExpr($2) }
+| LPAREN separated_list(COMMA, expr) RPAREN { pel "set expr"; SetExpr($2) }
 | LPAREN error { raise @@ SyntaxError "expr" }
 ;
 
 opt_args:
 /* empty */ { pel "opt_args empty"; [] }
-| LPAREN expr_list RPAREN { $2 }
+| LPAREN separated_list(COMMA, expr) RPAREN { $2 }
 ;
