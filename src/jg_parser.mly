@@ -146,8 +146,17 @@ stmt:
 | FUNCTION error { raise @@ SyntaxError "function" }
 | CALL opt_args ident LPAREN expr_list RPAREN stmts ENDCALL { pel "call sts"; CallStatement($3, $2, $5, $7) }
 | CALL error { raise @@ SyntaxError "call error" }
-| IF if_chain { pel "if sts"; IfStatement($2) }
-| IF error { raise @@ SyntaxError "if" }
+| IF
+  i = pair(expr, stmt*)
+  ei = preceded(ELSEIF, pair(expr, stmt*))*
+  e = preceded(ELSE, stmt*)?
+  ENDIF
+  {
+  pel "if sts";
+  IfStatement (List.fold_right
+                 (fun (a, b) acc -> (Some a, b) :: acc) (i :: ei)
+                 (match e with None -> [] | Some stmts -> [ (None, stmts) ]))
+  }
 | FOR ident_list IN expr stmts ENDFOR { pel "for sts"; ForStatement(SetExpr($2), $4, $5) }
 | FOR expr IN expr stmts ENDFOR { pel "for sts"; ForStatement($2, $4, $5) }
 | FOR error { raise @@ SyntaxError "for" }
@@ -157,17 +166,6 @@ stmt:
 | AUTOESCAPE error { raise @@ SyntaxError "autoescape" }
 | TEXT { pel "text sts"; TextStatement($1) }
 | TEXT error { raise @@ SyntaxError "text" }
-;
-
-if_chain:
-| expr stmts ENDIF { pel "if_chain" ; [ (Some $1, $2) ] }
-| expr ENDIF { pel "empty if_chain" ; [ Some $1, [] ] }
-| expr stmts ELSEIF if_chain { pel "if_chain +" ; (Some $1, $2) :: $4 }
-| expr ELSEIF if_chain { pel "empty if_chain +" ; (Some $1, []) :: $3 }
-| expr stmts ELSE ENDIF { pel "if_chain + empty else" ; [ Some $1, $2 ] }
-| expr ELSE ENDIF { pel "empty if_chain + empty else" ; [ Some $1, [] ] }
-| expr ELSE stmts ENDIF { pel "empty if_chain + else" ; [ (Some $1, []) ; (None, $3) ] }
-| expr stmts ELSE stmts ENDIF { pel "if_chain + else" ; [ (Some $1, $2) ; (None, $4) ] }
 ;
 
 as_part:
