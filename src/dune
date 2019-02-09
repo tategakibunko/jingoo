@@ -1,4 +1,4 @@
-(ocamlyacc (modules jg_parser) )
+(menhir (modules jg_parser) )
 
 (ocamllex (modules jg_lexer) )
 
