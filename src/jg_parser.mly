@@ -159,7 +159,6 @@ expr:
   ident { pel "ident"; $1 }
 | ident EQ expr { pel "keyword"; KeywordExpr($1, $3) }
 | ident AS ident { pel "alias"; AliasExpr($1, $3) }
-| ident LPAREN separated_list(COMMA, expr) RPAREN { pel "apply(expr_list)"; ApplyExpr($1, $3) }
 | expr LPAREN separated_list(COMMA, expr) RPAREN { pel "apply(expr_list)"; ApplyExpr($1, $3) }
 | INT { pel "int"; LiteralExpr (Tint $1) }
 | FLOAT { pel "float"; LiteralExpr (Tfloat $1) }
