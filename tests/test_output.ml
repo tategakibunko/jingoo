@@ -140,6 +140,14 @@ let test_with test_ctxt =
     "tmptmp2hoge"
 ;;
 
+let test_with_2 _test_ctxt =
+  assert_interp_raises
+    "{% with hoge, 'foo', bar %}\
+     {{ hoge }}{{ hige }}\
+     {% endwith %}"
+    Jg_parser.Error
+;;
+
 let test_defined test_ctxt =
   assert_interp ~test_ctxt
     "{% set obj = {age:10, name:'taro'} %}\
@@ -251,6 +259,7 @@ let suite = "runtime test" >::: [
   "test_defined" >:: test_defined;
   "test_is" >:: test_is;
   "test_with" >:: test_with;
+  "test_with_2" >:: test_with_2;
   "test_white_space_control" >:: test_white_space_control;
   "test_invalid_iterable" >:: test_invalid_iterable;
   "test_pprint" >:: test_pprint;

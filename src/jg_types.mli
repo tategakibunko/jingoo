@@ -92,7 +92,7 @@ and statement =
   | MacroStatement of expression * arguments * ast
   | FilterStatement of expression * ast
   | CallStatement of expression * arguments * arguments * ast
-  | WithStatement of expression list * ast
+  | WithStatement of (string * expression) list * ast
   | AutoEscapeStatement of expression * ast
   | NamespaceStatement of string * (string * expression) list
   | Statements of ast

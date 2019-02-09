@@ -226,8 +226,8 @@ and eval_statement env ctx = function
     end
 
   | WithStatement(binds, ast) ->
-    let kwargs = kwargs_of env ctx binds in
-    let names, values = List.split kwargs in
+    let names, values = List.split binds in
+    let values = List.map (value_of_expr env ctx) values in
     let ctx' = jg_push_frame ctx in
     let () = jg_set_values ctx' names values in
     ignore @@ List.fold_left (eval_statement env) ctx' ast ;

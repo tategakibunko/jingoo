@@ -89,7 +89,7 @@ and statement self stmt : statement = match stmt with
                   , self.ast self ast)
 
   | WithStatement (el, ast) ->
-    WithStatement ( List.map (self.expression self) el
+    WithStatement ( List.map (fun (n, e) -> (n, self.expression self e)) el
                   , self.ast self ast)
 
   | AutoEscapeStatement (e, ast) ->

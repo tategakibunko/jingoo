@@ -142,7 +142,8 @@ stmt:
 | FOR ident preceded(COMMA, ident)+ IN expr stmt* ENDFOR
   { pel "for sts"; ForStatement(SetExpr($2 :: $3), $5, $6) }
 | FOR expr IN expr stmt* ENDFOR { pel "for sts"; ForStatement($2, $4, $5) }
-| WITH separated_list(COMMA, expr) stmt* ENDWITH { pel "with sts1"; WithStatement($2, $3) }
+| WITH separated_list(COMMA, separated_pair(IDENT, EQ, expr)) stmt* ENDWITH
+  { pel "with sts1"; WithStatement($2, $3) }
 | AUTOESCAPE expr stmt* ENDAUTOESCAPE { pel "autoescape"; AutoEscapeStatement($2, $3) }
 | TEXT { pel "text sts"; TextStatement($1) }
 ;
