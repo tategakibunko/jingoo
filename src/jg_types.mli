@@ -86,12 +86,12 @@ and statement =
   | RawIncludeStatement of expression
   | ExtendsStatement of string
   | ImportStatement of string * string option
-  | FromImportStatement of string * expression list
+  | FromImportStatement of string * (string * string option) list
   | SetStatement of expression * expression
   | BlockStatement of expression * ast
   | MacroStatement of expression * arguments * ast
   | FilterStatement of expression * ast
-  | CallStatement of expression * arguments * arguments * ast
+  | CallStatement of expression * arguments * (string option * expression) list * ast
   | WithStatement of (string * expression) list * ast
   | AutoEscapeStatement of expression * ast
   | NamespaceStatement of string * (string * expression) list
@@ -119,18 +119,16 @@ and expression =
   | GtEqOpExpr of expression * expression
   | DotExpr of expression * string
   | BracketExpr of expression * expression
-  | ApplyExpr of expression * arguments
+  | ApplyExpr of expression * (string option * expression) list
   | ListExpr of expression list
   | SetExpr of expression list
   | ObjExpr of (expression * expression) list
   | TestOpExpr of expression * expression
-  | KeywordExpr of expression * expression
-  | AliasExpr of expression * expression
   | InOpExpr of expression * expression
 
 and with_context = bool
 and branch = expression option * ast
-and arguments = expression list
+and arguments = (string * expression option) list
 (**/**)
 
 (** {[

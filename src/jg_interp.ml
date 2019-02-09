@@ -72,7 +72,8 @@ let rec value_of_expr env ctx = function
       | _, _ -> failwith "invalid object syntax"
     ) expr_list)
 
-  | ApplyExpr(IdentExpr("eval"), [expr]) ->
+  | ApplyExpr(IdentExpr("eval"), [name, expr]) ->
+    assert (name = None) ;
     let value = ref Tnull in
     let ctx = {ctx with serialize = true ; output = fun x -> value := x } in
     let str = string_of_tvalue @@ value_of_expr env ctx expr in
@@ -80,13 +81,14 @@ let rec value_of_expr env ctx = function
     let _ = List.fold_left (eval_statement env) ctx ast in
     !value
 
-  | ApplyExpr(IdentExpr("safe"), [expr]) ->
+  | ApplyExpr(IdentExpr("safe"), [name, expr]) ->
+     assert (name = None) ;
      value_of_expr env ctx expr
 
   | ApplyExpr(expr, args) ->
     let name = apply_name_of expr in
     let nargs = if args = [] then [ Tnull ] else nargs_of env ctx args in
-    let kwargs = kwargs_of env ctx args in
+    let kwargs = kwargs_of_app env ctx args in
     let callable = value_of_expr env ctx expr in
     (match callable with
     | Tfun _ -> jg_apply callable nargs ~kwargs ~name
@@ -95,34 +97,41 @@ let rec value_of_expr env ctx = function
        | Some macro -> ignore @@ eval_macro env ctx name nargs kwargs macro; Tnull
        | None -> Tnull))
 
-  | expr -> failwith @@ spf "syntax error: value_of_expr:%s" (show_expression expr)
-
 and apply_name_of = function
   | IdentExpr(name) -> name
   | DotExpr(IdentExpr(name), prop) -> spf "%s.%s" name prop
   | ApplyExpr(expr, _) -> apply_name_of expr
   | _ -> "<lambda>"
 
-and ident_names_of lst =
-  filter_map (function
+and ident_names_of =
+  filter_map @@ function
   | IdentExpr name -> Some name
-  | _ -> None) lst
+  | _ -> None
 
-and alias_names_of lst =
-  List.map (function
-  | IdentExpr(name) -> (name, name)
-  | AliasExpr(IdentExpr(name), IdentExpr(name')) -> (name, name')
-  | _ -> failwith "invalid argument:alias_names_of") lst
+and ident_names_of_def =
+  filter_map @@ function
+  | name, None -> Some name
+  | _ -> None
 
-and nargs_of env ctx args =
-  filter_map (function
-  | KeywordExpr _ -> None
-  | x -> Some (value_of_expr env ctx x)) args
+and alias_names_of =
+  List.map @@ function
+  | (name, None) -> (name, name)
+  | (name, Some name') -> (name, name')
 
-and kwargs_of env ctx args =
-  filter_map (function
-  | KeywordExpr(IdentExpr(name), expr) -> Some (name, value_of_expr env ctx expr)
-  | _ -> None) args
+and nargs_of env ctx =
+  filter_map @@ function
+  | Some _, _ -> None
+  | None, x -> Some (value_of_expr env ctx x)
+
+and kwargs_of_app env ctx =
+  filter_map @@ function
+  | Some name, expr -> Some (name, value_of_expr env ctx expr)
+  | _ -> None
+
+and kwargs_of_def env ctx =
+  filter_map @@ function
+  | name, Some expr -> Some (name, value_of_expr env ctx expr)
+  | _ -> None
 
 and eval_macro env ctx name args kwargs macro =
   let caller = match jg_get_macro ctx "caller" with None -> false | _ -> true in
@@ -192,8 +201,8 @@ and eval_statement env ctx = function
   | CallStatement(IdentExpr(name), call_args_def, macro_args, call_ast) ->
     (match jg_get_macro ctx name with
      | Some (Macro _) ->
-       let call_arg_names = ident_names_of call_args_def in
-       let call_defaults = kwargs_of env ctx call_args_def in
+       let call_arg_names = ident_names_of_def call_args_def in
+       let call_defaults = kwargs_of_def env ctx call_args_def in
        jg_set_macro ctx "caller" @@ Macro(call_arg_names, call_defaults, call_ast) ;
        let text = string_of_tvalue @@ value_of_expr env ctx @@ ApplyExpr(IdentExpr(name), macro_args) in
        jg_remove_macro ctx "caller" ;
@@ -253,8 +262,8 @@ and eval_statement env ctx = function
     ctx
 
   | FunctionStatement(IdentExpr(name), def_args, ast) ->
-    let arg_names = ident_names_of def_args in
-    let kwargs = kwargs_of env ctx def_args in
+    let arg_names = ident_names_of_def def_args in
+    let kwargs = kwargs_of_def env ctx def_args in
     let macro = Macro (arg_names, kwargs, ast) in
     let apply ~kwargs args =
       let value = ref Tnull in
@@ -316,8 +325,8 @@ and import_macros env ctx stmts =
   let statement self = function
 
     | MacroStatement(IdentExpr(name), def_args, ast) when can_import name ->
-      let arg_names = ident_names_of def_args in
-      let kwargs = kwargs_of env ctx def_args in
+      let arg_names = ident_names_of_def def_args in
+      let kwargs = kwargs_of_def env ctx def_args in
       jg_set_macro ctx (macro_name @@ alias_name name) @@ Macro(arg_names, kwargs, ast);
       Statements []
 
@@ -373,9 +382,13 @@ and ast_from_chan filename ch =
     let ast = ast_from_lexbuf filename lexbuf in
     close_in ch;
     ast
-  with SyntaxError e ->
+  with
+  | SyntaxError e ->
     close_in ch ;
     error e lexbuf
+  | Jg_parser.Error ->
+    close_in ch ;
+    error "" lexbuf
 
 and ast_from_file ~env filename =
   let filename = get_file_path env filename in

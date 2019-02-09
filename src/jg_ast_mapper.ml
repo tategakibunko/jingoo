@@ -30,6 +30,14 @@ type jg_ast_mapper =
     ]}
  *)
 
+let arguments_definition self =
+  List.map (function
+      | (k, Some v) -> (k, Some (self.expression self v))
+      | (k, None) -> (k, None))
+
+let arguments_application self =
+  List.map (fun (k, v) -> (k, self.expression self v))
+
 (**/**)
 let ast self = List.map (self.statement self)
 
@@ -61,7 +69,7 @@ and statement self stmt : statement = match stmt with
     stmt
 
   | FromImportStatement (str, el) ->
-    FromImportStatement (str, List.map (self.expression self) el)
+    FromImportStatement (str, el)
 
   | SetStatement (e1, e2) ->
     SetStatement (self.expression self e1, self.expression self e2)
@@ -71,12 +79,12 @@ and statement self stmt : statement = match stmt with
 
   | MacroStatement (e, args, ast) ->
     MacroStatement ( self.expression self e
-                   , List.map (self.expression self) args
+                   , arguments_definition self args
                    , self.ast self ast)
 
   | FunctionStatement (e, args, ast) ->
     FunctionStatement ( self.expression self e
-                      , List.map (self.expression self) args
+                      , arguments_definition self args
                       , self.ast self ast)
 
   | FilterStatement (e, ast) ->
@@ -84,8 +92,8 @@ and statement self stmt : statement = match stmt with
 
   | CallStatement (e, a1, a2, ast) ->
     CallStatement ( self.expression self e
-                  , List.map (self.expression self) a1
-                  , List.map (self.expression self) a2
+                  , arguments_definition self a1
+                  , arguments_application self a2
                   , self.ast self ast)
 
   | WithStatement (el, ast) ->
@@ -167,7 +175,7 @@ and expression self expr = match expr with
 
   | ApplyExpr (e, args) ->
     ApplyExpr ( self.expression self e
-              , List.map (self.expression self) args)
+              , arguments_application self args)
 
   | ListExpr el ->
     ListExpr (List.map (self.expression self) el)
@@ -180,12 +188,6 @@ and expression self expr = match expr with
 
   | TestOpExpr (e1, e2) ->
     TestOpExpr (self.expression self e1, self.expression self e2)
-
-  | KeywordExpr (e1, e2) ->
-    KeywordExpr (self.expression self e1, self.expression self e2)
-
-  | AliasExpr (e1, e2) ->
-    AliasExpr (self.expression self e1, self.expression self e2)
 
   | InOpExpr (e1, e2) ->
     InOpExpr (self.expression self e1, self.expression self e2)

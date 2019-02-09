@@ -13,6 +13,7 @@
   let pel x = if debug then print_endline x else ()
 %}
 
+%token OPEN_EXPRESSION CLOSE_EXPRESSION
 %token IF
 %token ELSE
 %token ELSEIF
@@ -81,9 +82,9 @@
 %token DOT
 %token VLINE
 
-%left EQ
 %left OR
 %left AND
+%nonassoc IS IN
 %left EQ_EQ NEQ
 %left LT GT LT_EQ GT_EQ
 %left PLUS MINUS
@@ -98,19 +99,23 @@
 
 %%
 
-input:
-  stmt* EOF { $1 }
-;
+input: stmt* EOF { $1 }
+
+%inline argument_definition: IDENT preceded(EQ, expr)? { ($1, $2) }
+
+%inline argument_application: ioption(terminated(IDENT, EQ)) expr { ($1, $2) }
+
+%inline alias: IDENT preceded(AS, IDENT)? { ($1, $2) }
 
 stmt:
-  expr { pel "expand expr"; ExpandStatement($1) }
+| OPEN_EXPRESSION expr CLOSE_EXPRESSION { pel "expand expr"; ExpandStatement($2) }
 | SET ident DOT IDENT EQ expr { pel "set"; SetStatement (DotExpr ($2, $4), $6) }
 | SET ident preceded (COMMA, ident)* EQ expr {
       pel "set";
       match $2 :: $3, $5 with
       | [ IdentExpr n ], ApplyExpr (IdentExpr "namespace", init) ->
          let extract_assign = function
-           | KeywordExpr (IdentExpr n, v) -> (n, v)
+           | (Some n, v) -> (n, v)
            | _ -> assert false in
          NamespaceStatement (n, List.map extract_assign init)
       | idents, exprs -> pel "set sts"; SetStatement (SetExpr idents, exprs)
@@ -121,12 +126,12 @@ stmt:
 | INCLUDE expr context? { pel "include sts"; IncludeStatement($2, $3 <> Some false) }
 | RAWINCLUDE expr { pel "raw include sts"; RawIncludeStatement($2) }
 | IMPORT STRING preceded(AS, IDENT)? { pel "import sts"; ImportStatement($2, $3) }
-| FROM STRING IMPORT separated_list(COMMA, expr) { pel "from import sts"; FromImportStatement($2, $4) }
-| MACRO ident LPAREN separated_list(COMMA, expr) RPAREN stmt* ENDMACRO
+| FROM STRING IMPORT separated_list(COMMA, alias) { pel "from import sts"; FromImportStatement($2, $4) }
+| MACRO ident LPAREN separated_list(COMMA, argument_definition) RPAREN stmt* ENDMACRO
   { pel "macro sts"; MacroStatement($2, $4, $6) }
-| FUNCTION ident LPAREN separated_list(COMMA, expr) RPAREN stmt* ENDFUNCTION
+| FUNCTION ident LPAREN separated_list(COMMA, argument_definition) RPAREN stmt* ENDFUNCTION
   { pel "function sts"; FunctionStatement($2, $4, $6) }
-| CALL opt_args ident LPAREN separated_list(COMMA, expr) RPAREN stmt* ENDCALL
+| CALL opt_args ident LPAREN separated_list(COMMA, argument_application) RPAREN stmt* ENDCALL
   { pel "call sts"; CallStatement($3, $2, $5, $7) }
 | IF
   i = pair(expr, stmt*)
@@ -139,9 +144,9 @@ stmt:
                  (fun (a, b) acc -> (Some a, b) :: acc) (i :: ei)
                  (match e with None -> [] | Some stmts -> [ (None, stmts) ]))
   }
-| FOR ident preceded(COMMA, ident)+ IN expr stmt* ENDFOR
-  { pel "for sts"; ForStatement(SetExpr($2 :: $3), $5, $6) }
-| FOR expr IN expr stmt* ENDFOR { pel "for sts"; ForStatement($2, $4, $5) }
+| FOR LPAREN? separated_nonempty_list(COMMA, ident) RPAREN? IN expr stmt* ENDFOR
+  { pel "for sts"; ForStatement(SetExpr($3), $6, $7) }
+(* | FOR expr IN expr stmt* ENDFOR { pel "for sts"; ForStatement($2, $4, $5) } *)
 | WITH separated_list(COMMA, separated_pair(IDENT, EQ, expr)) stmt* ENDWITH
   { pel "with sts1"; WithStatement($2, $3) }
 | AUTOESCAPE expr stmt* ENDAUTOESCAPE { pel "autoescape"; AutoEscapeStatement($2, $3) }
@@ -157,9 +162,6 @@ stmt:
 
 expr:
   ident { pel "ident"; $1 }
-| ident EQ expr { pel "keyword"; KeywordExpr($1, $3) }
-| ident AS ident { pel "alias"; AliasExpr($1, $3) }
-| expr LPAREN separated_list(COMMA, expr) RPAREN { pel "apply(expr_list)"; ApplyExpr($1, $3) }
 | INT { pel "int"; LiteralExpr (Tint $1) }
 | FLOAT { pel "float"; LiteralExpr (Tfloat $1) }
 | TRUE { pel "true"; LiteralExpr (Tbool true) }
@@ -187,20 +189,20 @@ expr:
 | expr LT_EQ expr { pel "lteq"; LtEqOpExpr($1, $3) }
 | expr GT_EQ expr { pel "gteq"; GtEqOpExpr($1, $3) }
 | expr IN expr { pel "inop"; InOpExpr($1, $3) }
-| expr VLINE expr { pel "expr|expr -> ApplyExpr"; ApplyExpr($3, [$1]) }
-| expr IS expr expr{
+| expr VLINE expr { pel "expr|expr -> ApplyExpr"; ApplyExpr($3, [None, $1]) }
+| expr IS ident expr {
   (* when expr1 is fun and expr2 is args without LPAREN and RPAREN. *)
   (* for example, 'a is divisableby 2' *)
   pel "test(apply)";
-  TestOpExpr($1, ApplyExpr($3, [$4]))
+  TestOpExpr($1, ApplyExpr($3, [None, $4]))
 }
-| expr IS expr { pel "test"; TestOpExpr($1,$3) }
-| LPAREN expr RPAREN { pel "(expr)"; $2 }
-| LPAREN separated_list(COMMA, expr) RPAREN { pel "set expr"; SetExpr($2) }
-| LPAREN error { raise @@ SyntaxError "expr" }
+| expr IS ident { pel "test"; TestOpExpr($1,$3) }
+| expr LPAREN separated_list(COMMA, argument_application) RPAREN { pel "apply(expr_list)"; ApplyExpr($1, $3) }
+| LPAREN separated_list(COMMA, expr) RPAREN
+  { pel "set expr"; match $2 with [ e ] -> e | _ -> SetExpr $2 }
 ;
 
 opt_args:
 /* empty */ { pel "opt_args empty"; [] }
-| LPAREN separated_list(COMMA, expr) RPAREN { $2 }
+| LPAREN separated_list(COMMA, argument_definition) RPAREN { $2 }
 ;

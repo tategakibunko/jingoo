@@ -43,7 +43,7 @@ let test_2 _ =
 let test_3 _ =
   assert_eq
     [ Statements []
-    ; ForStatement ( IdentExpr "foo"
+    ; ForStatement ( [ "foo" ]
                    , IdentExpr "bar"
                    , [ ExpandStatement (ApplyExpr (IdentExpr "foo", []) ) ])
     ]
