@@ -1,4 +1,4 @@
-(menhir (modules jg_parser) )
+(menhir (flags (--explain)) (modules jg_parser) )
 
 (ocamllex (modules jg_lexer) )
 

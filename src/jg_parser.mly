@@ -112,7 +112,6 @@ stmts:
 
 stmt:
   expr { pel "expand expr"; ExpandStatement($1) }
-| error { raise @@ SyntaxError "expand stmt error" }
 | SET ident DOT ident EQ expr { pel "set"; SetStatement (DotExpr ($2, ident_name $4), $6) }
 | SET ident_list EQ expr {
       pel "set";
@@ -124,28 +123,17 @@ stmt:
          NamespaceStatement (ident_name n, List.map extract_assign init)
       | _ -> pel "set sts"; SetStatement(SetExpr($2), $4)
     }
-| SET error { raise @@ SyntaxError "set" }
 | EXTENDS STRING { pel "extends sts"; ExtendsStatement($2) }
-| EXTENDS error { raise @@ SyntaxError "extends" }
 | BLOCK ident ENDBLOCK { pel "block sts"; BlockStatement($2, []) }
 | BLOCK ident stmts ENDBLOCK { pel "block sts2"; BlockStatement($2, $3) }
-| BLOCK error { raise @@ SyntaxError "block" }
 | FILTER ident stmts ENDFILTER { pel "filter sts"; FilterStatement($2, $3) }
-| FILTER error { raise @@ SyntaxError "filter" }
 | INCLUDE expr context_part{ pel "include sts"; IncludeStatement($2, $3) }
-| INCLUDE error { raise @@ SyntaxError "include" }
 | RAWINCLUDE expr { pel "raw include sts"; RawIncludeStatement($2) }
-| RAWINCLUDE error { raise @@ SyntaxError "rawinclude" }
 | IMPORT STRING as_part { pel "import sts"; ImportStatement($2, $3) }
-| IMPORT error{ raise @@ SyntaxError "import error" }
 | FROM STRING IMPORT separated_list(COMMA, expr) { pel "from import sts"; FromImportStatement($2, $4) }
-| FROM error{ raise @@ SyntaxError "from import error" }
 | MACRO ident LPAREN separated_list(COMMA, expr) RPAREN stmts ENDMACRO { pel "macro sts"; MacroStatement($2, $4, $6) }
-| MACRO error { raise @@ SyntaxError "macro" }
 | FUNCTION ident LPAREN separated_list(COMMA, expr) RPAREN stmts ENDFUNCTION { pel "function sts"; FunctionStatement($2, $4, $6) }
-| FUNCTION error { raise @@ SyntaxError "function" }
 | CALL opt_args ident LPAREN separated_list(COMMA, expr) RPAREN stmts ENDCALL { pel "call sts"; CallStatement($3, $2, $5, $7) }
-| CALL error { raise @@ SyntaxError "call error" }
 | IF
   i = pair(expr, stmt*)
   ei = preceded(ELSEIF, pair(expr, stmt*))*
@@ -159,13 +147,9 @@ stmt:
   }
 | FOR ident_list IN expr stmts ENDFOR { pel "for sts"; ForStatement(SetExpr($2), $4, $5) }
 | FOR expr IN expr stmts ENDFOR { pel "for sts"; ForStatement($2, $4, $5) }
-| FOR error { raise @@ SyntaxError "for" }
 | WITH separated_list(COMMA, expr) stmts ENDWITH { pel "with sts1"; WithStatement($2, $3) }
-| WITH error { raise @@ SyntaxError "with" }
 | AUTOESCAPE expr stmts ENDAUTOESCAPE { pel "autoescape"; AutoEscapeStatement($2, $3) }
-| AUTOESCAPE error { raise @@ SyntaxError "autoescape" }
 | TEXT { pel "text sts"; TextStatement($1) }
-| TEXT error { raise @@ SyntaxError "text" }
 ;
 
 as_part:
