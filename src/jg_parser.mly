@@ -99,13 +99,7 @@
 %%
 
 input:
-  EOF { [] }
-| stmts EOF { $1 }
-;
-
-stmts:
-  stmt { [$1] }
-| stmt stmts { $1 :: $2 }
+  stmt* EOF { $1 }
 ;
 
 stmt:
@@ -123,16 +117,16 @@ stmt:
     }
 | EXTENDS STRING { pel "extends sts"; ExtendsStatement($2) }
 | BLOCK ident stmt* ENDBLOCK { pel "block sts2"; BlockStatement($2, $3) }
-| FILTER ident stmts ENDFILTER { pel "filter sts"; FilterStatement($2, $3) }
+| FILTER ident stmt* ENDFILTER { pel "filter sts"; FilterStatement($2, $3) }
 | INCLUDE expr context_part{ pel "include sts"; IncludeStatement($2, $3) }
 | RAWINCLUDE expr { pel "raw include sts"; RawIncludeStatement($2) }
 | IMPORT STRING preceded(AS, IDENT)? { pel "import sts"; ImportStatement($2, $3) }
 | FROM STRING IMPORT separated_list(COMMA, expr) { pel "from import sts"; FromImportStatement($2, $4) }
-| MACRO ident LPAREN separated_list(COMMA, expr) RPAREN stmts ENDMACRO
+| MACRO ident LPAREN separated_list(COMMA, expr) RPAREN stmt* ENDMACRO
   { pel "macro sts"; MacroStatement($2, $4, $6) }
-| FUNCTION ident LPAREN separated_list(COMMA, expr) RPAREN stmts ENDFUNCTION
+| FUNCTION ident LPAREN separated_list(COMMA, expr) RPAREN stmt* ENDFUNCTION
   { pel "function sts"; FunctionStatement($2, $4, $6) }
-| CALL opt_args ident LPAREN separated_list(COMMA, expr) RPAREN stmts ENDCALL
+| CALL opt_args ident LPAREN separated_list(COMMA, expr) RPAREN stmt* ENDCALL
   { pel "call sts"; CallStatement($3, $2, $5, $7) }
 | IF
   i = pair(expr, stmt*)
@@ -145,11 +139,11 @@ stmt:
                  (fun (a, b) acc -> (Some a, b) :: acc) (i :: ei)
                  (match e with None -> [] | Some stmts -> [ (None, stmts) ]))
   }
-| FOR ident preceded(COMMA, ident)+ IN expr stmts ENDFOR
+| FOR ident preceded(COMMA, ident)+ IN expr stmt* ENDFOR
   { pel "for sts"; ForStatement(SetExpr($2 :: $3), $5, $6) }
-| FOR expr IN expr stmts ENDFOR { pel "for sts"; ForStatement($2, $4, $5) }
-| WITH separated_list(COMMA, expr) stmts ENDWITH { pel "with sts1"; WithStatement($2, $3) }
-| AUTOESCAPE expr stmts ENDAUTOESCAPE { pel "autoescape"; AutoEscapeStatement($2, $3) }
+| FOR expr IN expr stmt* ENDFOR { pel "for sts"; ForStatement($2, $4, $5) }
+| WITH separated_list(COMMA, expr) stmt* ENDWITH { pel "with sts1"; WithStatement($2, $3) }
+| AUTOESCAPE expr stmt* ENDAUTOESCAPE { pel "autoescape"; AutoEscapeStatement($2, $3) }
 | TEXT { pel "text sts"; TextStatement($1) }
 ;
 
