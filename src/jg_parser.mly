@@ -11,8 +11,6 @@
   let debug = false
 
   let pel x = if debug then print_endline x else ()
-  let pelspf fmt x = if debug then print_endline (Printf.sprintf fmt x) else ()
-  let ident_name = function IdentExpr(name) -> name | _ -> raise @@ SyntaxError "type error:ident_name"
 %}
 
 %token IF
@@ -112,28 +110,30 @@ stmts:
 
 stmt:
   expr { pel "expand expr"; ExpandStatement($1) }
-| SET ident DOT ident EQ expr { pel "set"; SetStatement (DotExpr ($2, ident_name $4), $6) }
-| SET ident_list EQ expr {
+| SET ident DOT IDENT EQ expr { pel "set"; SetStatement (DotExpr ($2, $4), $6) }
+| SET ident preceded (COMMA, ident)* EQ expr {
       pel "set";
-      match $2, $4 with
-      | [ n ], ApplyExpr (IdentExpr "namespace", init) ->
+      match $2 :: $3, $5 with
+      | [ IdentExpr n ], ApplyExpr (IdentExpr "namespace", init) ->
          let extract_assign = function
-           | KeywordExpr (n, v) -> (ident_name n, v)
+           | KeywordExpr (IdentExpr n, v) -> (n, v)
            | _ -> assert false in
-         NamespaceStatement (ident_name n, List.map extract_assign init)
-      | _ -> pel "set sts"; SetStatement(SetExpr($2), $4)
+         NamespaceStatement (n, List.map extract_assign init)
+      | idents, exprs -> pel "set sts"; SetStatement (SetExpr idents, exprs)
     }
 | EXTENDS STRING { pel "extends sts"; ExtendsStatement($2) }
-| BLOCK ident ENDBLOCK { pel "block sts"; BlockStatement($2, []) }
-| BLOCK ident stmts ENDBLOCK { pel "block sts2"; BlockStatement($2, $3) }
+| BLOCK ident stmt* ENDBLOCK { pel "block sts2"; BlockStatement($2, $3) }
 | FILTER ident stmts ENDFILTER { pel "filter sts"; FilterStatement($2, $3) }
 | INCLUDE expr context_part{ pel "include sts"; IncludeStatement($2, $3) }
 | RAWINCLUDE expr { pel "raw include sts"; RawIncludeStatement($2) }
-| IMPORT STRING as_part { pel "import sts"; ImportStatement($2, $3) }
+| IMPORT STRING preceded(AS, IDENT)? { pel "import sts"; ImportStatement($2, $3) }
 | FROM STRING IMPORT separated_list(COMMA, expr) { pel "from import sts"; FromImportStatement($2, $4) }
-| MACRO ident LPAREN separated_list(COMMA, expr) RPAREN stmts ENDMACRO { pel "macro sts"; MacroStatement($2, $4, $6) }
-| FUNCTION ident LPAREN separated_list(COMMA, expr) RPAREN stmts ENDFUNCTION { pel "function sts"; FunctionStatement($2, $4, $6) }
-| CALL opt_args ident LPAREN separated_list(COMMA, expr) RPAREN stmts ENDCALL { pel "call sts"; CallStatement($3, $2, $5, $7) }
+| MACRO ident LPAREN separated_list(COMMA, expr) RPAREN stmts ENDMACRO
+  { pel "macro sts"; MacroStatement($2, $4, $6) }
+| FUNCTION ident LPAREN separated_list(COMMA, expr) RPAREN stmts ENDFUNCTION
+  { pel "function sts"; FunctionStatement($2, $4, $6) }
+| CALL opt_args ident LPAREN separated_list(COMMA, expr) RPAREN stmts ENDCALL
+  { pel "call sts"; CallStatement($3, $2, $5, $7) }
 | IF
   i = pair(expr, stmt*)
   ei = preceded(ELSEIF, pair(expr, stmt*))*
@@ -145,17 +145,12 @@ stmt:
                  (fun (a, b) acc -> (Some a, b) :: acc) (i :: ei)
                  (match e with None -> [] | Some stmts -> [ (None, stmts) ]))
   }
-| FOR ident_list IN expr stmts ENDFOR { pel "for sts"; ForStatement(SetExpr($2), $4, $5) }
+| FOR ident preceded(COMMA, ident)+ IN expr stmts ENDFOR
+  { pel "for sts"; ForStatement(SetExpr($2 :: $3), $5, $6) }
 | FOR expr IN expr stmts ENDFOR { pel "for sts"; ForStatement($2, $4, $5) }
 | WITH separated_list(COMMA, expr) stmts ENDWITH { pel "with sts1"; WithStatement($2, $3) }
 | AUTOESCAPE expr stmts ENDAUTOESCAPE { pel "autoescape"; AutoEscapeStatement($2, $3) }
 | TEXT { pel "text sts"; TextStatement($1) }
-;
-
-as_part:
-/* empty */ { None }
-| AS ident { Some (ident_name $2) }
-| AS error { raise @@ SyntaxError "as_part" }
 ;
 
 context_part:
@@ -164,16 +159,7 @@ context_part:
 | WITHOUT CONTEXT { false }
 ;
 
-ident:
-  IDENT { pelspf "ident(%s)" $1; IdentExpr($1) }
-| IDENT error { raise @@ SyntaxError "ident" }
-;
-
-ident_list:
-  ident { pel "ident list"; [$1] }
-| ident COMMA ident_list { pel "iden list commna"; $1 :: $3 }
-| ident COMMA error { raise @@ SyntaxError "ident_list" }
-;
+%inline ident: IDENT { IdentExpr $1 }
 
 expr:
   ident { pel "ident"; $1 }
@@ -187,7 +173,7 @@ expr:
 | FALSE { pel "false"; LiteralExpr (Tbool false) }
 | STRING { pel "string"; LiteralExpr (Tstr $1) }
 | NULL { pel "null"; LiteralExpr Tnull }
-| expr DOT ident { pel "dot_lookup"; DotExpr($1, ident_name($3)) }
+| expr DOT IDENT { pel "dot_lookup"; DotExpr($1, $3) }
 | expr LBRACKET expr RBRACKET { pel "bracket_lookup"; BracketExpr($1, $3) }
 | NOT expr { pel "not expr"; NotOpExpr($2) }
 | MINUS expr %prec UMINUS { pel "negative"; NegativeOpExpr($2) }
