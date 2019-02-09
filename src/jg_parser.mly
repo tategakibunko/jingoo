@@ -215,7 +215,7 @@ expr:
 | NOT expr { pel "not expr"; NotOpExpr($2) }
 | MINUS expr %prec UMINUS { pel "negative"; NegativeOpExpr($2) }
 | LBRACKET expr_list RBRACKET { pel "list expr"; ListExpr($2) }
-| LBRACE assoc_list RBRACE { pel "obj expr"; ObjExpr($2) }
+| LBRACE separated_list(COMMA, separated_pair(expr, COLON, expr)) RBRACE { pel "obj expr"; ObjExpr($2) }
 | expr PLUS expr { pel "plus"; PlusOpExpr($1, $3) }
 | expr MINUS expr { pel "minus"; MinusOpExpr($1, $3) }
 | expr DIV expr { pel "div"; DivOpExpr($1, $3) }
@@ -242,17 +242,6 @@ expr:
 | LPAREN expr RPAREN { pel "(expr)"; $2 }
 | LPAREN expr_list RPAREN { pel "set expr"; SetExpr($2) }
 | LPAREN error { raise @@ SyntaxError "expr" }
-;
-
-assoc_list:
-  assoc { pel "assoc list1"; [$1] }
-| assoc COMMA assoc_list { pel "assoc list2"; $1 :: $3 }
-| assoc COMMA error { raise @@ SyntaxError "assoc list error" }
-;
-
-assoc:
-  expr COLON expr { ($1, $3) }
-| expr error { raise @@ SyntaxError "assoc error" }
 ;
 
 opt_args:
