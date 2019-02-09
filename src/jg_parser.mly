@@ -118,7 +118,7 @@ stmt:
 | EXTENDS STRING { pel "extends sts"; ExtendsStatement($2) }
 | BLOCK ident stmt* ENDBLOCK { pel "block sts2"; BlockStatement($2, $3) }
 | FILTER ident stmt* ENDFILTER { pel "filter sts"; FilterStatement($2, $3) }
-| INCLUDE expr context_part{ pel "include sts"; IncludeStatement($2, $3) }
+| INCLUDE expr context? { pel "include sts"; IncludeStatement($2, $3 <> Some false) }
 | RAWINCLUDE expr { pel "raw include sts"; RawIncludeStatement($2) }
 | IMPORT STRING preceded(AS, IDENT)? { pel "import sts"; ImportStatement($2, $3) }
 | FROM STRING IMPORT separated_list(COMMA, expr) { pel "from import sts"; FromImportStatement($2, $4) }
@@ -148,8 +148,7 @@ stmt:
 | TEXT { pel "text sts"; TextStatement($1) }
 ;
 
-context_part:
-/* empty */ { true }
+%inline context:
 | WITH CONTEXT { true }
 | WITHOUT CONTEXT { false }
 ;
