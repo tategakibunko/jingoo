@@ -46,6 +46,10 @@
 %token ENDAUTOESCAPE
 %token RAWINCLUDE
 %token EOF
+%token SWITCH
+%token CASE
+%token DEFAULT
+%token ENDSWITCH
 
 %token <int> INT
 %token <float> FLOAT
@@ -145,6 +149,20 @@ stmt:
   IfStatement (List.fold_right
                  (fun (a, b) acc -> (Some a, b) :: acc) (i :: ei)
                  (match e with None -> [] | Some stmts -> [ (None, stmts) ]))
+  }
+| SWITCH
+  e=expr
+  cases=preceded(CASE, pair(expr, stmt*))*
+  default=preceded(DEFAULT, stmt*)?
+  ENDSWITCH
+  {
+    let rec extract = function
+      | OrOpExpr (e1, e2) -> extract e1 @ extract e2
+      | e -> [e] in
+    SwitchStatement ( e
+                    , List.fold_right
+                        (fun (a, b) acc -> (extract a, b) :: acc) (cases)
+                        (match default with None -> [] | Some stmts -> [ ([], stmts) ]))
   }
 | FOR LPAREN? separated_nonempty_list(COMMA, IDENT) RPAREN? IN expr stmt* ENDFOR
   { pel "for sts"; ForStatement($3, $6, $7) }

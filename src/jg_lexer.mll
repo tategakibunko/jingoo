@@ -192,6 +192,10 @@ and main_bis = parse
   | "else" as s { token_or_str (s, ELSE) main lexbuf }
   | ("elseif" | "elif") as s { token_or_str (s, ELSEIF) main lexbuf }
   | "endif" as s { token_or_str (s, ENDIF) main lexbuf }
+  | "switch" as s { token_or_str (s, SWITCH) main lexbuf }
+  | "case" as s { token_or_str (s, CASE) main lexbuf }
+  | "default" as s { token_or_str (s, DEFAULT) main lexbuf }
+  | "endswitch" as s { token_or_str (s, ENDSWITCH) main lexbuf }
   | "for" as s { token_or_str (s, FOR) main lexbuf }
   | "endfor" as s { token_or_str (s, ENDFOR) main lexbuf }
   | "include" as s { token_or_str (s, INCLUDE) main lexbuf }

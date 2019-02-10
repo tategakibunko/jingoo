@@ -174,6 +174,18 @@ and eval_statement env ctx = function
     in
     List.fold_left (eval_statement env) ctx @@ select_case branches
 
+  | SwitchStatement (e, cases) ->
+    let e = value_of_expr env ctx e in
+    let rec select_case = function
+      | ([], ast) :: _ -> ast
+      | (cond, ast) :: tl ->
+        if List.exists (fun x -> jg_eq_eq_aux (value_of_expr env ctx x) e) cond
+        then ast
+        else select_case tl
+      | [] -> []
+    in
+    List.fold_left (eval_statement env) ctx @@ select_case cases
+
   | ForStatement(iterator, iterable_expr, ast) ->
     let iterable = value_of_expr env ctx iterable_expr in
     let is_iterable = Jg_runtime.jg_test_iterable_aux iterable in

@@ -53,6 +53,11 @@ and statement self stmt : statement = match stmt with
     IfStatement (List.map (fun (e, ast) -> ( (match e with Some e -> Some (self.expression self e) | None -> None)
                                            , self.ast self ast) ) branches)
 
+  | SwitchStatement (e, cases) ->
+    SwitchStatement ( self.expression self e
+                    , List.map (fun (e, ast) -> ( List.map (self.expression self) e
+                                                , self.ast self ast) ) cases)
+
   | ForStatement (ids, e2, ast) ->
     ForStatement (ids, self.expression self e2, self.ast self ast)
 

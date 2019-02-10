@@ -51,6 +51,7 @@ let dead_code_elimination stmts =
     | TextStatement (_)
     | ExpandStatement (_)
     | IfStatement (_)
+    | SwitchStatement (_, _)
     | IncludeStatement (_, _)
     | RawIncludeStatement _
     | ExtendsStatement _

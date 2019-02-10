@@ -81,6 +81,7 @@ and statement =
   | NamespaceStatement of string * (string * expression) list
   | Statements of ast
   | FunctionStatement of expression * arguments * ast
+  | SwitchStatement of expression * (expression list * ast) list
 [@@deriving show { with_path = false }]
 
 and expression =
