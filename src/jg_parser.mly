@@ -94,6 +94,8 @@
 %nonassoc NOT UMINUS
 %left DOT
 
+%right LPAREN LBRACKET
+
 %start input
 %type <Jg_types.ast> input
 
