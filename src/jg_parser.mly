@@ -144,9 +144,8 @@ stmt:
                  (fun (a, b) acc -> (Some a, b) :: acc) (i :: ei)
                  (match e with None -> [] | Some stmts -> [ (None, stmts) ]))
   }
-| FOR LPAREN? separated_nonempty_list(COMMA, ident) RPAREN? IN expr stmt* ENDFOR
-  { pel "for sts"; ForStatement(SetExpr($3), $6, $7) }
-(* | FOR expr IN expr stmt* ENDFOR { pel "for sts"; ForStatement($2, $4, $5) } *)
+| FOR LPAREN? separated_nonempty_list(COMMA, IDENT) RPAREN? IN expr stmt* ENDFOR
+  { pel "for sts"; ForStatement($3, $6, $7) }
 | WITH separated_list(COMMA, separated_pair(IDENT, EQ, expr)) stmt* ENDWITH
   { pel "with sts1"; WithStatement($2, $3) }
 | AUTOESCAPE expr stmt* ENDAUTOESCAPE { pel "autoescape"; AutoEscapeStatement($2, $3) }

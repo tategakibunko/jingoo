@@ -53,8 +53,8 @@ and statement self stmt : statement = match stmt with
     IfStatement (List.map (fun (e, ast) -> ( (match e with Some e -> Some (self.expression self e) | None -> None)
                                            , self.ast self ast) ) branches)
 
-  | ForStatement (e1, e2, ast) ->
-    ForStatement ( self.expression self e1, self.expression self e2, self.ast self ast)
+  | ForStatement (ids, e2, ast) ->
+    ForStatement (ids, self.expression self e2, self.ast self ast)
 
   | IncludeStatement (e, b) ->
     IncludeStatement (self.expression self e, b)

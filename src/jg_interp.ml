@@ -179,11 +179,6 @@ and eval_statement env ctx = function
     List.fold_left (eval_statement env) ctx @@ select_case branches
 
   | ForStatement(iterator, iterable_expr, ast) ->
-    let iterator =
-      match iterator with
-      | IdentExpr(name) -> [name]
-      | SetExpr(lst) -> ident_names_of lst
-      | _ -> failwith "invalid iterator" in
     let iterable = value_of_expr env ctx iterable_expr in
     let is_iterable = Jg_runtime.jg_test_iterable_aux iterable in
     (* [ISSUE#23] when strict_mode is enabled, raises error if loop target is not iterable. *)

@@ -81,7 +81,7 @@ and statement =
     TextStatement of string
   | ExpandStatement of expression
   | IfStatement of branch list
-  | ForStatement of expression * expression * ast
+  | ForStatement of string list * expression * ast
   | IncludeStatement of expression * with_context
   | RawIncludeStatement of expression
   | ExtendsStatement of string

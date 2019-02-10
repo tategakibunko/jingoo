@@ -31,7 +31,7 @@ let dead_code_elimination stmts =
       default_mapper.statement self s
     | ForStatement (id, _, _) as s ->
       push_block "" ;
-      maybe_set id ;
+      List.iter set_local id ;
       let s = default_mapper.statement self s in
       pop_block () ;
       s
