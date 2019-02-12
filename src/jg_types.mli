@@ -122,7 +122,7 @@ and expression =
   | ApplyExpr of expression * (string option * expression) list
   | ListExpr of expression list
   | SetExpr of expression list
-  | ObjExpr of (expression * expression) list
+  | ObjExpr of (string * expression) list
   | TestOpExpr of expression * expression
   | InOpExpr of expression * expression
 

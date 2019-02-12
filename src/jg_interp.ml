@@ -65,12 +65,8 @@ let rec value_of_expr env ctx = function
   | TestOpExpr(IdentExpr(name), IdentExpr("lower")) -> jg_test_lower (jg_get_value ctx name)
   | TestOpExpr(target, test) -> jg_apply (value_of_expr env ctx test) [value_of_expr env ctx target]
 
-  | ObjExpr(expr_list) ->
-    Tobj (List.map (function
-      | IdentExpr(name), expr -> (name, value_of_expr env ctx expr)
-      | LiteralExpr(Tstr(name)), expr -> (name, value_of_expr env ctx expr)
-      | _, _ -> failwith "invalid object syntax"
-    ) expr_list)
+  | ObjExpr(key_values) ->
+    Tobj (List.map (fun (k, v) -> (k, value_of_expr env ctx v)) key_values)
 
   | ApplyExpr(IdentExpr("eval"), [name, expr]) ->
     assert (name = None) ;

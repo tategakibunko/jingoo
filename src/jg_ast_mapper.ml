@@ -184,7 +184,7 @@ and expression self expr = match expr with
     SetExpr (List.map (self.expression self) el)
 
   | ObjExpr (eel) ->
-    ObjExpr (List.map (fun (e1, e2) -> self.expression self e1, self.expression self e2) eel)
+    ObjExpr (List.map (fun (k, v) -> k, self.expression self v) eel)
 
   | TestOpExpr (e1, e2) ->
     TestOpExpr (self.expression self e1, self.expression self e2)

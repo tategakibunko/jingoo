@@ -161,6 +161,8 @@ stmt:
 
 %inline ident: IDENT { IdentExpr $1 }
 
+%inline objkey: IDENT {  $1 } | STRING { $1 }
+
 expr:
   ident { pel "ident"; $1 }
 | INT { pel "int"; LiteralExpr (Tint $1) }
@@ -174,7 +176,8 @@ expr:
 | NOT expr { pel "not expr"; NotOpExpr($2) }
 | MINUS expr %prec UMINUS { pel "negative"; NegativeOpExpr($2) }
 | LBRACKET separated_list(COMMA, expr) RBRACKET { pel "list expr"; ListExpr($2) }
-| LBRACE separated_list(COMMA, separated_pair(expr, COLON, expr)) RBRACE { pel "obj expr"; ObjExpr($2) }
+| LBRACE o=separated_list(COMMA, separated_pair(objkey, COLON, expr)) RBRACE
+  { pel "obj expr"; ObjExpr o }
 | expr PLUS expr { pel "plus"; PlusOpExpr($1, $3) }
 | expr MINUS expr { pel "minus"; MinusOpExpr($1, $3) }
 | expr DIV expr { pel "div"; DivOpExpr($1, $3) }
