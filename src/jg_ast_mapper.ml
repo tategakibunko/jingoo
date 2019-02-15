@@ -79,24 +79,24 @@ and statement self stmt : statement = match stmt with
   | SetStatement (e1, e2) ->
     SetStatement (self.expression self e1, self.expression self e2)
 
-  | BlockStatement (e, ast) ->
-    BlockStatement (self.expression self e, self.ast self ast)
+  | BlockStatement (n, ast) ->
+    BlockStatement (n, self.ast self ast)
 
-  | MacroStatement (e, args, ast) ->
-    MacroStatement ( self.expression self e
+  | MacroStatement (n, args, ast) ->
+    MacroStatement ( n
                    , arguments_definition self args
                    , self.ast self ast)
 
-  | FunctionStatement (e, args, ast) ->
-    FunctionStatement ( self.expression self e
+  | FunctionStatement (n, args, ast) ->
+    FunctionStatement ( n
                       , arguments_definition self args
                       , self.ast self ast)
 
-  | FilterStatement (e, ast) ->
-    FilterStatement (self.expression self e, self.ast self ast)
+  | FilterStatement (n, ast) ->
+    FilterStatement (n, self.ast self ast)
 
-  | CallStatement (e, a1, a2, ast) ->
-    CallStatement ( self.expression self e
+  | CallStatement (n, a1, a2, ast) ->
+    CallStatement ( n
                   , arguments_definition self a1
                   , arguments_application self a2
                   , self.ast self ast)

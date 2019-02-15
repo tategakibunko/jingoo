@@ -159,7 +159,7 @@ and eval_statement env ctx = function
       (Hashtbl.find ctx.namespace_table ns) v (value_of_expr env ctx expr) ;
     ctx
 
-  | FilterStatement(IdentExpr(name), ast) ->
+  | FilterStatement(name, ast) ->
     let ctx = jg_set_filter ctx name in
     let ctx = List.fold_left (eval_statement env) ctx ast in
     jg_pop_filter ctx
@@ -201,7 +201,7 @@ and eval_statement env ctx = function
   | BlockStatement(_, ast) ->
     List.fold_left (eval_statement env) ctx ast
 
-  | CallStatement(IdentExpr(name), call_args_def, macro_args, call_ast) ->
+  | CallStatement(name, call_args_def, macro_args, call_ast) ->
     (match jg_get_macro ctx name with
      | Some (Macro _) ->
        let call_arg_names = ident_names_of_def call_args_def in
@@ -264,7 +264,7 @@ and eval_statement env ctx = function
     Hashtbl.add ctx.namespace_table ns h;
     ctx
 
-  | FunctionStatement(IdentExpr(name), def_args, ast) ->
+  | FunctionStatement(name, def_args, ast) ->
     let arg_names = ident_names_of_def def_args in
     let kwargs = kwargs_of_def env ctx def_args in
     let macro = Macro (arg_names, kwargs, ast) in
@@ -296,9 +296,9 @@ and replace_blocks stmts =
   let h = Hashtbl.create 10 in
   let stmts =
     let statement self = function
-      | BlockStatement (IdentExpr name, ast) ->
+      | BlockStatement (name, ast) ->
         Hashtbl.add h name ast ;
-        BlockStatement (IdentExpr name, self.ast self ast)
+        BlockStatement (name, self.ast self ast)
       | e -> default_mapper.statement self e in
     let mapper = { default_mapper with statement } in
     mapper.ast mapper stmts in
@@ -306,7 +306,7 @@ and replace_blocks stmts =
   else
     let h' = Hashtbl.create 10 in
     let statement self = function
-      | BlockStatement (IdentExpr name, _) ->
+      | BlockStatement (name, _) ->
         let stmts =
           if Hashtbl.mem h' name then []
           else
@@ -327,7 +327,7 @@ and import_macros env ctx stmts =
   let can_import name = match !select with None -> true | Some alist -> List.mem_assoc name alist in
   let statement self = function
 
-    | MacroStatement(IdentExpr(name), def_args, ast) when can_import name ->
+    | MacroStatement(name, def_args, ast) when can_import name ->
       let arg_names = ident_names_of_def def_args in
       let kwargs = kwargs_of_def env ctx def_args in
       jg_set_macro ctx (macro_name @@ alias_name name) @@ Macro(arg_names, kwargs, ast);

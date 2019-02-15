@@ -34,19 +34,17 @@ let dead_code_elimination stmts =
       let s = default_mapper.statement self s in
       pop_block () ;
       s
-    | FunctionStatement (IdentExpr id, args, _)
-    | MacroStatement (IdentExpr id, args, _) as s ->
+    | FunctionStatement (id, args, _)
+    | MacroStatement (id, args, _) as s ->
       push_block id ;
       set_local id ;
       List.iter (fun (i, _) -> set_local i) args ;
       let s = default_mapper.statement self s in
       pop_block () ;
       s
-    | CallStatement(macro, _, _, _) as s ->
-      maybe_set macro ;
+    | CallStatement(id, _, _, _) as s ->
+      set_local id ;
       default_mapper.statement self s
-    | FunctionStatement (_, _, _)
-    | MacroStatement (_, _, _)
     | TextStatement (_)
     | ExpandStatement (_)
     | IfStatement (_)
@@ -71,8 +69,8 @@ let dead_code_elimination stmts =
   let mapper = { default_mapper with expression ; statement } in
   let _ = mapper.ast mapper stmts in
   let statement self = function
-    | MacroStatement (IdentExpr id, _, _)
-    | FunctionStatement (IdentExpr id, _, _) as s ->
+    | MacroStatement (id, _, _)
+    | FunctionStatement (id, _, _) as s ->
       (* Find if name is present in instructions called from toplevel *)
       let rec loop n lists =
         if List.mem "" (List.hd lists) then default_mapper.statement self s

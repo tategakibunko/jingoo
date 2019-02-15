@@ -16,7 +16,7 @@ let assert_eq expected source =
 
 let test_0 _ =
   assert_eq
-    [ FunctionStatement ( IdentExpr "foo"
+    [ FunctionStatement ( "foo"
                         , []
                         , [ ExpandStatement (LiteralExpr (Tint 42))
                           ] )

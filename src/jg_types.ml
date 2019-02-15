@@ -72,15 +72,15 @@ and statement =
   | ImportStatement of string * string option
   | FromImportStatement of string * (string * string option) list
   | SetStatement of expression * expression
-  | BlockStatement of expression * ast
-  | MacroStatement of expression * arguments * ast
-  | FilterStatement of expression * ast
-  | CallStatement of expression * arguments * (string option * expression) list * ast
+  | BlockStatement of string * ast
+  | MacroStatement of string * arguments * ast
+  | FilterStatement of string * ast
+  | CallStatement of string * arguments * (string option * expression) list * ast
   | WithStatement of (string * expression) list * ast
   | AutoEscapeStatement of expression * ast
   | NamespaceStatement of string * (string * expression) list
   | Statements of ast
-  | FunctionStatement of expression * arguments * ast
+  | FunctionStatement of string * arguments * ast
   | SwitchStatement of expression * (expression list * ast) list
 [@@deriving show { with_path = false }]
 

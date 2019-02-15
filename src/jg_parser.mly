@@ -127,17 +127,17 @@ stmt:
       | idents, exprs -> pel "set sts"; SetStatement (SetExpr idents, exprs)
     }
 | EXTENDS STRING { pel "extends sts"; ExtendsStatement($2) }
-| BLOCK ident stmt* ENDBLOCK { pel "block sts2"; BlockStatement($2, $3) }
-| FILTER ident stmt* ENDFILTER { pel "filter sts"; FilterStatement($2, $3) }
+| BLOCK IDENT stmt* ENDBLOCK { pel "block sts2"; BlockStatement($2, $3) }
+| FILTER IDENT stmt* ENDFILTER { pel "filter sts"; FilterStatement($2, $3) }
 | INCLUDE expr context? { pel "include sts"; IncludeStatement($2, $3 <> Some false) }
 | RAWINCLUDE expr { pel "raw include sts"; RawIncludeStatement($2) }
 | IMPORT STRING preceded(AS, IDENT)? { pel "import sts"; ImportStatement($2, $3) }
 | FROM STRING IMPORT separated_list(COMMA, alias) { pel "from import sts"; FromImportStatement($2, $4) }
-| MACRO ident LPAREN separated_list(COMMA, argument_definition) RPAREN stmt* ENDMACRO
+| MACRO IDENT LPAREN separated_list(COMMA, argument_definition) RPAREN stmt* ENDMACRO
   { pel "macro sts"; MacroStatement($2, $4, $6) }
-| FUNCTION ident LPAREN separated_list(COMMA, argument_definition) RPAREN stmt* ENDFUNCTION
+| FUNCTION IDENT LPAREN separated_list(COMMA, argument_definition) RPAREN stmt* ENDFUNCTION
   { pel "function sts"; FunctionStatement($2, $4, $6) }
-| CALL opt_args ident LPAREN separated_list(COMMA, argument_application) RPAREN stmt* ENDCALL
+| CALL opt_args IDENT LPAREN separated_list(COMMA, argument_application) RPAREN stmt* ENDCALL
   { pel "call sts"; CallStatement($3, $2, $5, $7) }
 | IF
   i = pair(expr, stmt*)
