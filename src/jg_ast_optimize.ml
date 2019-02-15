@@ -23,15 +23,14 @@ let dead_code_elimination stmts =
   let rec maybe_set = function
     | SetExpr set -> List.iter maybe_set set
     | IdentExpr id -> set_local id
-    (* | KeywordExpr (id, _) -> maybe_set id *)
     | _ -> () in
   let statement self = function
     | SetStatement (id, _) as s ->
       maybe_set id ;
       default_mapper.statement self s
-    | ForStatement (id, _, _) as s ->
+    | ForStatement (ids, _, _) as s ->
       push_block "" ;
-      List.iter set_local id ;
+      List.iter set_local ids ;
       let s = default_mapper.statement self s in
       pop_block () ;
       s
