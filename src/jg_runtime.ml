@@ -151,7 +151,7 @@ let jg_nth_aux value i =
   match value with
   | Tarray a -> a.(i)
   | Tset l | Tlist l -> List.nth l i
-  | Tstr s -> Tstr (String.make 1 @@ String.get s i)
+  | Tstr s -> Tstr (UTF8.sub s i 1)
   | _ -> failwith_type_error_1 "jg_nth_aux" value
 (**/**)
 
