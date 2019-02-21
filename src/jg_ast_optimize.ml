@@ -42,9 +42,13 @@ let dead_code_elimination stmts =
       let s = default_mapper.statement self s in
       pop_block () ;
       s
-    | CallStatement(id, _, _, _) as s ->
-      set_local id ;
-      default_mapper.statement self s
+    | CallStatement(id, args, _, _) as s ->
+      Hashtbl.add used id (scope ()) ;
+      push_block "" ;
+      List.iter (fun (i, _) -> set_local i) args ;
+      let s = default_mapper.statement self s in
+      pop_block () ;
+      s
     | TextStatement (_)
     | ExpandStatement (_)
     | IfStatement (_)
