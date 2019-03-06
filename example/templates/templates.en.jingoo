@@ -357,14 +357,14 @@
       {% call section ([ 'Built-in filters', 'nth' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'printf' ], 'filter_prinf', false) %}
+      {% call section ([ 'Built-in filters', 'printf' ], 'filter_printf', false) %}
         <p class="p">
           {{ code ('printf(fmt, a1, a2, ..., aN)') }}
-          Fill {{ code ('fmt') }} with {{ code ('a1) }} {{ code ('a2) }} ... {{ code ('aN) }}.
-          Support a subset of OCaml {{ code ('format) }} type: {{ code ('%d) }} {{ code ('%s) }} and {{ code ('%f) }}.
+          Fill {{ code ('fmt') }} with {{ code ('a1') }} {{ code ('a2') }} ... {{ code ('aN') }}.
+          Support a subset of OCaml {{ code ('format') }} type: {{ code ('%d') }} {{ code ('%s') }} and {{ code ('%f') }}.
         </p>
         <p class="p">
-          NB: {{ code ('%s] would accept any type as long as it can to represented as a string.
+          NB: {{ code ('%s') }} would accept any type as long as it can to represented as a string.
         </p>
       {% endcall %}
 
@@ -380,7 +380,7 @@
       {% call section ([ 'Built-in filters', 'reject' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'replace' ], '', false) %}
+      {% call section ([ 'Built-in filters', 'replace' ], 'filter_replace', false) %}
         <p class="p">
           {{ code ('replace (src, dst, s)') }}
           The syntax for regular expressions is the same as in Gnu Emacs.
@@ -393,7 +393,7 @@
         </p>
         <p class="p">
           The replacement template {{ code ('dst') }} can contain
-          {{ code ('\\1') }}, {{ code ('\\2) }}, etc;
+          {{ code ('\\1') }}, {{ code ('\\2') }}, etc;
           these sequences will be replaced by the text matched by the corresponding
           group in the regular expression {{ code ('src') }}.
           {{ code ('\\0') }} stands for the text matched by the whole regular expression.
