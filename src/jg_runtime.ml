@@ -750,6 +750,15 @@ let jg_random lst =
     | Tarray a -> Tarray (knuth @@ Array.copy a)
     | _ -> failwith_type_error_1 "jg_random" lst
 
+(** [jg_replace src dst s]
+    Return a string identical to [s],
+    except that all substrings of [s] that match regexp [src] have been
+    replaced by [dst]. The replacement template [dst] can contain
+    \1, \2, etc; these sequences will be replaced by the text
+    matched by the corresponding group in the regular expression [src].
+    \0 stands for the text matched by the whole regular expression.
+    In [dst], \ should be escaped using \.
+*)
 let jg_replace src dst str =
   match src, dst, str with
     | Tstr src, Tstr dst, Tstr str ->
