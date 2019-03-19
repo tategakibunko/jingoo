@@ -500,8 +500,17 @@ let rec jg_eq_eq_aux left right =
     | Tbool x1, Tbool x2 -> x1=x2
     | Tlist x1, Tlist x2
     | Tset x1, Tset x2 -> jg_list_eq_eq x1 x2
-    | Tobj _, Tobj _ -> jg_obj_eq_eq left right
     | Tarray x1, Tarray x2 -> jg_array_eq_eq x1 x2
+    | Tobj _, Tobj _ ->
+      begin
+        try 0 = unbox_int @@ jg_apply (jg_obj_lookup left "__eq__") [ left ; right ]
+        with _ -> jg_obj_eq_eq left right
+      end
+    | ((Thash _ | Tobj _ | Tpat _) as left), ((Thash _ | Tobj _ | Tpat _) as right) ->
+      begin
+        try 0 = unbox_int @@ jg_apply (jg_obj_lookup left "__eq__") [ left ; right ]
+        with _ -> false
+      end
     | _, _ -> false
 
 and jg_array_eq_eq a1 a2 =
