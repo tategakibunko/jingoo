@@ -16,7 +16,7 @@ let assert_eq expected source =
 
 let test_0 _ =
   assert_eq
-    [ FunctionStatement ( IdentExpr "foo"
+    [ FunctionStatement ( "foo"
                         , []
                         , [ ExpandStatement (LiteralExpr (Tint 42))
                           ] )
@@ -43,7 +43,7 @@ let test_2 _ =
 let test_3 _ =
   assert_eq
     [ Statements []
-    ; ForStatement ( SetExpr [ IdentExpr "foo" ]
+    ; ForStatement ( [ "foo" ]
                    , IdentExpr "bar"
                    , [ ExpandStatement (ApplyExpr (IdentExpr "foo", []) ) ])
     ]

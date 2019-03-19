@@ -48,6 +48,8 @@ let ls dir filter =
     in
     loop [] [dir]
 
+let status = ref 0
+
 let test jingoo_f =
   let html_f = filename_remove_extension jingoo_f ^ ".expected" in
   let models_f = filename_remove_extension jingoo_f ^ ".models" in
@@ -72,10 +74,12 @@ let test jingoo_f =
       prerr_endline @@ expected ;
       prerr_endline @@ "--- Got: " ;
       prerr_endline @@ res ;
-  with Failure s ->
+  with e ->
     prerr_endline @@ "--- Failure: " ^ jingoo_f ;
-    prerr_endline @@ s
+    prerr_endline @@ Printexc.to_string e ;
+    status := 1
 
 let () =
   let jingoo = ls (Sys.getenv "DOC_SAMPLE_DIR") (fun f -> filename_extension f = ".jingoo") in
-  List.iter test (List.sort compare jingoo)
+  List.iter test (List.sort compare jingoo) ;
+  exit !status

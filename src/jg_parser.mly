@@ -11,10 +11,9 @@
   let debug = false
 
   let pel x = if debug then print_endline x else ()
-  let pelspf fmt x = if debug then print_endline (Printf.sprintf fmt x) else ()
-  let ident_name = function IdentExpr(name) -> name | _ -> raise @@ SyntaxError "type error:ident_name"
 %}
 
+%token OPEN_EXPRESSION CLOSE_EXPRESSION
 %token IF
 %token ELSE
 %token ELSEIF
@@ -47,6 +46,10 @@
 %token ENDAUTOESCAPE
 %token RAWINCLUDE
 %token EOF
+%token SWITCH
+%token CASE
+%token DEFAULT
+%token ENDSWITCH
 
 %token <int> INT
 %token <float> FLOAT
@@ -83,9 +86,9 @@
 %token DOT
 %token VLINE
 
-%left EQ
 %left OR
 %left AND
+%nonassoc IS IN
 %left EQ_EQ NEQ
 %left LT GT LT_EQ GT_EQ
 %left PLUS MINUS
@@ -95,129 +98,104 @@
 %nonassoc NOT UMINUS
 %left DOT
 
+%right LPAREN LBRACKET
+
 %start input
 %type <Jg_types.ast> input
 
 %%
 
-input:
-  EOF { [] }
-| stmts EOF { $1 }
-;
+input: stmt* EOF { $1 }
 
-stmts:
-  stmt { [$1] }
-| stmt stmts { $1 :: $2 }
-;
+%inline argument_definition: IDENT preceded(EQ, expr)? { ($1, $2) }
+
+%inline argument_application: ioption(terminated(IDENT, EQ)) expr { ($1, $2) }
+
+%inline alias: IDENT preceded(AS, IDENT)? { ($1, $2) }
 
 stmt:
-  expr { pel "expand expr"; ExpandStatement($1) }
-| error { raise @@ SyntaxError "expand stmt error" }
-| SET ident DOT ident EQ expr { pel "set"; SetStatement (DotExpr ($2, ident_name $4), $6) }
-| SET ident_list EQ expr {
+| OPEN_EXPRESSION expr CLOSE_EXPRESSION { pel "expand expr"; ExpandStatement($2) }
+| SET ident DOT IDENT EQ expr { pel "set"; SetStatement (DotExpr ($2, $4), $6) }
+| SET ident preceded (COMMA, ident)* EQ expr {
       pel "set";
-      match $2, $4 with
-      | [ n ], ApplyExpr (IdentExpr "namespace", init) ->
+      match $2 :: $3, $5 with
+      | [ IdentExpr n ], ApplyExpr (IdentExpr "namespace", init) ->
          let extract_assign = function
-           | KeywordExpr (n, v) -> (ident_name n, v)
+           | (Some n, v) -> (n, v)
            | _ -> assert false in
-         NamespaceStatement (ident_name n, List.map extract_assign init)
-      | _ -> pel "set sts"; SetStatement(SetExpr($2), $4)
+         NamespaceStatement (n, List.map extract_assign init)
+      | idents, exprs -> pel "set sts"; SetStatement (SetExpr idents, exprs)
     }
-| SET error { raise @@ SyntaxError "set" }
 | EXTENDS STRING { pel "extends sts"; ExtendsStatement($2) }
-| EXTENDS error { raise @@ SyntaxError "extends" }
-| BLOCK ident ENDBLOCK { pel "block sts"; BlockStatement($2, []) }
-| BLOCK ident stmts ENDBLOCK { pel "block sts2"; BlockStatement($2, $3) }
-| BLOCK error { raise @@ SyntaxError "block" }
-| FILTER ident stmts ENDFILTER { pel "filter sts"; FilterStatement($2, $3) }
-| FILTER error { raise @@ SyntaxError "filter" }
-| INCLUDE expr context_part{ pel "include sts"; IncludeStatement($2, $3) }
-| INCLUDE error { raise @@ SyntaxError "include" }
+| BLOCK IDENT stmt* ENDBLOCK { pel "block sts2"; BlockStatement($2, $3) }
+| FILTER IDENT stmt* ENDFILTER { pel "filter sts"; FilterStatement($2, $3) }
+| INCLUDE expr context? { pel "include sts"; IncludeStatement($2, $3 <> Some false) }
 | RAWINCLUDE expr { pel "raw include sts"; RawIncludeStatement($2) }
-| RAWINCLUDE error { raise @@ SyntaxError "rawinclude" }
-| IMPORT STRING as_part { pel "import sts"; ImportStatement($2, $3) }
-| IMPORT error{ raise @@ SyntaxError "import error" }
-| FROM STRING IMPORT expr_list { pel "from import sts"; FromImportStatement($2, $4) }
-| FROM error{ raise @@ SyntaxError "from import error" }
-| MACRO ident LPAREN expr_list RPAREN stmts ENDMACRO { pel "macro sts"; MacroStatement($2, $4, $6) }
-| MACRO error { raise @@ SyntaxError "macro" }
-| FUNCTION ident LPAREN expr_list RPAREN stmts ENDFUNCTION { pel "function sts"; FunctionStatement($2, $4, $6) }
-| FUNCTION error { raise @@ SyntaxError "function" }
-| CALL opt_args ident LPAREN expr_list RPAREN stmts ENDCALL { pel "call sts"; CallStatement($3, $2, $5, $7) }
-| CALL error { raise @@ SyntaxError "call error" }
-| IF if_chain { pel "if sts"; IfStatement($2) }
-| IF error { raise @@ SyntaxError "if" }
-| FOR ident_list IN expr stmts ENDFOR { pel "for sts"; ForStatement(SetExpr($2), $4, $5) }
-| FOR expr IN expr stmts ENDFOR { pel "for sts"; ForStatement($2, $4, $5) }
-| FOR error { raise @@ SyntaxError "for" }
-| WITH expr_list stmts ENDWITH { pel "with sts1"; WithStatement($2, $3) }
-| WITH error { raise @@ SyntaxError "with" }
-| AUTOESCAPE expr stmts ENDAUTOESCAPE { pel "autoescape"; AutoEscapeStatement($2, $3) }
-| AUTOESCAPE error { raise @@ SyntaxError "autoescape" }
+| IMPORT STRING preceded(AS, IDENT)? { pel "import sts"; ImportStatement($2, $3) }
+| FROM STRING IMPORT separated_list(COMMA, alias) { pel "from import sts"; FromImportStatement($2, $4) }
+| MACRO IDENT LPAREN separated_list(COMMA, argument_definition) RPAREN stmt* ENDMACRO
+  { pel "macro sts"; MacroStatement($2, $4, $6) }
+| FUNCTION IDENT LPAREN separated_list(COMMA, argument_definition) RPAREN stmt* ENDFUNCTION
+  { pel "function sts"; FunctionStatement($2, $4, $6) }
+| CALL opt_args IDENT LPAREN separated_list(COMMA, argument_application) RPAREN stmt* ENDCALL
+  { pel "call sts"; CallStatement($3, $2, $5, $7) }
+| IF
+  i = pair(expr, stmt*)
+  ei = preceded(ELSEIF, pair(expr, stmt*))*
+  e = preceded(ELSE, stmt*)?
+  ENDIF
+  {
+  pel "if sts";
+  IfStatement (List.fold_right
+                 (fun (a, b) acc -> (Some a, b) :: acc) (i :: ei)
+                 (match e with None -> [] | Some stmts -> [ (None, stmts) ]))
+  }
+| SWITCH
+  e=expr
+  cases=preceded(CASE, pair(expr, stmt*))*
+  default=preceded(DEFAULT, stmt*)?
+  ENDSWITCH
+  {
+    let rec extract = function
+      | OrOpExpr (e1, e2) -> extract e1 @ extract e2
+      | e -> [e] in
+    SwitchStatement ( e
+                    , List.fold_right
+                        (fun (a, b) acc -> (extract a, b) :: acc) (cases)
+                        (match default with None -> [] | Some stmts -> [ ([], stmts) ]))
+  }
+| FOR LPAREN? separated_nonempty_list(COMMA, IDENT) RPAREN? IN expr stmt* ENDFOR
+  { pel "for sts"; ForStatement($3, $6, $7) }
+| WITH separated_list(COMMA, separated_pair(IDENT, EQ, expr)) stmt* ENDWITH
+  { pel "with sts1"; WithStatement($2, $3) }
+| AUTOESCAPE expr stmt* ENDAUTOESCAPE { pel "autoescape"; AutoEscapeStatement($2, $3) }
 | TEXT { pel "text sts"; TextStatement($1) }
-| TEXT error { raise @@ SyntaxError "text" }
 ;
 
-if_chain:
-| expr stmts ENDIF { pel "if_chain" ; [ (Some $1, $2) ] }
-| expr ENDIF { pel "empty if_chain" ; [ Some $1, [] ] }
-| expr stmts ELSEIF if_chain { pel "if_chain +" ; (Some $1, $2) :: $4 }
-| expr ELSEIF if_chain { pel "empty if_chain +" ; (Some $1, []) :: $3 }
-| expr stmts ELSE ENDIF { pel "if_chain + empty else" ; [ Some $1, $2 ] }
-| expr ELSE ENDIF { pel "empty if_chain + empty else" ; [ Some $1, [] ] }
-| expr ELSE stmts ENDIF { pel "empty if_chain + else" ; [ (Some $1, []) ; (None, $3) ] }
-| expr stmts ELSE stmts ENDIF { pel "if_chain + else" ; [ (Some $1, $2) ; (None, $4) ] }
-;
-
-as_part:
-/* empty */ { None }
-| AS ident { Some (ident_name $2) }
-| AS error { raise @@ SyntaxError "as_part" }
-;
-
-context_part:
-/* empty */ { true }
+%inline context:
 | WITH CONTEXT { true }
 | WITHOUT CONTEXT { false }
 ;
 
-ident:
-  IDENT { pelspf "ident(%s)" $1; IdentExpr($1) }
-| IDENT error { raise @@ SyntaxError "ident" }
-;
+%inline ident: IDENT { IdentExpr $1 }
 
-ident_list:
-  ident { pel "ident list"; [$1] }
-| ident COMMA ident_list { pel "iden list commna"; $1 :: $3 }
-| ident COMMA error { raise @@ SyntaxError "ident_list" }
-;
-
-expr_list:
-/* empty */ { pel "empty expr list"; [] }
-| expr { pel "expr list"; [$1] }
-| expr COMMA expr_list { pel "expr list comma"; $1 :: $3 }
-| expr COMMA error { raise @@ SyntaxError "expr_list" }
-;
+%inline objkey: IDENT {  $1 } | STRING { $1 }
 
 expr:
   ident { pel "ident"; $1 }
-| ident EQ expr { pel "keyword"; KeywordExpr($1, $3) }
-| ident AS ident { pel "alias"; AliasExpr($1, $3) }
-| ident LPAREN expr_list RPAREN { pel "apply(expr_list)"; ApplyExpr($1, $3) }
-| expr LPAREN expr_list RPAREN { pel "apply(expr_list)"; ApplyExpr($1, $3) }
 | INT { pel "int"; LiteralExpr (Tint $1) }
 | FLOAT { pel "float"; LiteralExpr (Tfloat $1) }
 | TRUE { pel "true"; LiteralExpr (Tbool true) }
 | FALSE { pel "false"; LiteralExpr (Tbool false) }
 | STRING { pel "string"; LiteralExpr (Tstr $1) }
 | NULL { pel "null"; LiteralExpr Tnull }
-| expr DOT ident { pel "dot_lookup"; DotExpr($1, ident_name($3)) }
+| expr DOT IDENT { pel "dot_lookup"; DotExpr($1, $3) }
 | expr LBRACKET expr RBRACKET { pel "bracket_lookup"; BracketExpr($1, $3) }
 | NOT expr { pel "not expr"; NotOpExpr($2) }
 | MINUS expr %prec UMINUS { pel "negative"; NegativeOpExpr($2) }
-| LBRACKET expr_list RBRACKET { pel "list expr"; ListExpr($2) }
-| LBRACE assoc_list RBRACE { pel "obj expr"; ObjExpr($2) }
+| LBRACKET separated_list(COMMA, expr) RBRACKET { pel "list expr"; ListExpr($2) }
+| LBRACE o=separated_list(COMMA, separated_pair(objkey, COLON, expr)) RBRACE
+  { pel "obj expr"; ObjExpr o }
 | expr PLUS expr { pel "plus"; PlusOpExpr($1, $3) }
 | expr MINUS expr { pel "minus"; MinusOpExpr($1, $3) }
 | expr DIV expr { pel "div"; DivOpExpr($1, $3) }
@@ -233,31 +211,20 @@ expr:
 | expr LT_EQ expr { pel "lteq"; LtEqOpExpr($1, $3) }
 | expr GT_EQ expr { pel "gteq"; GtEqOpExpr($1, $3) }
 | expr IN expr { pel "inop"; InOpExpr($1, $3) }
-| expr VLINE expr { pel "expr|expr -> ApplyExpr"; ApplyExpr($3, [$1]) }
-| expr IS expr expr{
+| expr VLINE expr { pel "expr|expr -> ApplyExpr"; ApplyExpr($3, [None, $1]) }
+| expr IS ident expr {
   (* when expr1 is fun and expr2 is args without LPAREN and RPAREN. *)
   (* for example, 'a is divisableby 2' *)
   pel "test(apply)";
-  TestOpExpr($1, ApplyExpr($3, [$4]))
+  TestOpExpr($1, ApplyExpr($3, [None, $4]))
 }
-| expr IS expr { pel "test"; TestOpExpr($1,$3) }
-| LPAREN expr RPAREN { pel "(expr)"; $2 }
-| LPAREN expr_list RPAREN { pel "set expr"; SetExpr($2) }
-| LPAREN error { raise @@ SyntaxError "expr" }
-;
-
-assoc_list:
-  assoc { pel "assoc list1"; [$1] }
-| assoc COMMA assoc_list { pel "assoc list2"; $1 :: $3 }
-| assoc COMMA error { raise @@ SyntaxError "assoc list error" }
-;
-
-assoc:
-  expr COLON expr { ($1, $3) }
-| expr error { raise @@ SyntaxError "assoc error" }
+| expr IS ident { pel "test"; TestOpExpr($1,$3) }
+| expr LPAREN separated_list(COMMA, argument_application) RPAREN { pel "apply(expr_list)"; ApplyExpr($1, $3) }
+| LPAREN separated_list(COMMA, expr) RPAREN
+  { pel "set expr"; match $2 with [ e ] -> e | _ -> SetExpr $2 }
 ;
 
 opt_args:
 /* empty */ { pel "opt_args empty"; [] }
-| LPAREN expr_list RPAREN { $2 }
+| LPAREN separated_list(COMMA, argument_definition) RPAREN { $2 }
 ;

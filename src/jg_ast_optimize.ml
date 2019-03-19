@@ -23,34 +23,32 @@ let dead_code_elimination stmts =
   let rec maybe_set = function
     | SetExpr set -> List.iter maybe_set set
     | IdentExpr id -> set_local id
-    | KeywordExpr (id, _) -> maybe_set id
     | _ -> () in
   let statement self = function
     | SetStatement (id, _) as s ->
       maybe_set id ;
       default_mapper.statement self s
-    | ForStatement (id, _, _) as s ->
+    | ForStatement (ids, _, _) as s ->
       push_block "" ;
-      maybe_set id ;
+      List.iter set_local ids ;
       let s = default_mapper.statement self s in
       pop_block () ;
       s
-    | FunctionStatement (IdentExpr id, args, _)
-    | MacroStatement (IdentExpr id, args, _) as s ->
+    | FunctionStatement (id, args, _)
+    | MacroStatement (id, args, _) as s ->
       push_block id ;
       set_local id ;
-      List.iter maybe_set args ;
+      List.iter (fun (i, _) -> set_local i) args ;
       let s = default_mapper.statement self s in
       pop_block () ;
       s
-    | CallStatement(macro, _, _, _) as s ->
-      maybe_set macro ;
+    | CallStatement(id, _, _, _) as s ->
+      set_local id ;
       default_mapper.statement self s
-    | FunctionStatement (_, _, _)
-    | MacroStatement (_, _, _)
     | TextStatement (_)
     | ExpandStatement (_)
     | IfStatement (_)
+    | SwitchStatement (_, _)
     | IncludeStatement (_, _)
     | RawIncludeStatement _
     | ExtendsStatement _
@@ -71,8 +69,8 @@ let dead_code_elimination stmts =
   let mapper = { default_mapper with expression ; statement } in
   let _ = mapper.ast mapper stmts in
   let statement self = function
-    | MacroStatement (IdentExpr id, _, _)
-    | FunctionStatement (IdentExpr id, _, _) as s ->
+    | MacroStatement (id, _, _)
+    | FunctionStatement (id, _, _) as s ->
       (* Find if name is present in instructions called from toplevel *)
       let rec loop n lists =
         if List.mem "" (List.hd lists) then default_mapper.statement self s
@@ -87,5 +85,20 @@ let dead_code_elimination stmts =
       in
       loop 0 [ List.sort_uniq compare @@ Hashtbl.find_all used id ]
     | s -> default_mapper.statement self s in
+  let mapper = { default_mapper with statement } in
+  mapper.ast mapper stmts
+
+(** [inline_include env ast]
+    Inline the templates included in [ast] so it won't be necessary to
+    open and parse theses parts when execution [ast].
+*)
+let inline_include env stmts =
+  let open Jg_ast_mapper in
+  let statement self = function
+    | IncludeStatement (LiteralExpr (Tstr file), true) ->
+      Statements (self.ast self @@ Jg_interp.ast_from_file ~env file)
+    | RawIncludeStatement (LiteralExpr (Tstr file)) ->
+      Statements (self.ast self @@ Jg_interp.ast_from_file ~env file)
+    | e -> default_mapper.statement self e in
   let mapper = { default_mapper with statement } in
   mapper.ast mapper stmts

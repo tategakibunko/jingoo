@@ -86,6 +86,9 @@
       | `Html ->
 	add_char chr;
 	lexer lexb
+
+  let queue = ref []
+
 }
 
 let blank = [ ' ' '\t' ]
@@ -96,6 +99,17 @@ let float_literal = ['0'-'9']+('.' ['0'-'9']*)? (['e' 'E'] ['+' '-']? ['0'-'9']+
 let newline = [ '\n' ]
 
 rule main = parse
+| "" { match !queue with [] -> main_bis lexbuf | hd :: tl -> queue := tl ; hd }
+| eof {
+    match get_buf () with
+    | "" -> begin match !queue with
+        | [] -> EOF
+        | hd :: tl -> queue := tl ; hd
+      end
+    | s -> TEXT s
+  }
+
+and main_bis = parse
   | '\\' '{' {
     add_char '{';
     main lexbuf
@@ -122,6 +136,7 @@ rule main = parse
     if ctx.mode = `Logic then fail lexbuf @@ "Unexpected '{{' token" ;
     update_context `Logic (Some "}}");
     (* print_endline @@ spf "text:%s" (Buffer.contents buf); *)
+    queue := !queue @ [ OPEN_EXPRESSION ] ;
     match get_buf () with
       | "" -> main lexbuf
       | content -> TEXT content
@@ -140,7 +155,7 @@ rule main = parse
 	add_str str; main lexbuf
       | Some "}}" ->
 	update_context `Html None;
-	main lexbuf
+        CLOSE_EXPRESSION
       | _ -> fail lexbuf @@ spf "syntax error '%s'" str
   }
   | ("%}" | "-%}" (blank | newline)*) as str {
@@ -177,6 +192,10 @@ rule main = parse
   | "else" as s { token_or_str (s, ELSE) main lexbuf }
   | ("elseif" | "elif") as s { token_or_str (s, ELSEIF) main lexbuf }
   | "endif" as s { token_or_str (s, ENDIF) main lexbuf }
+  | "switch" as s { token_or_str (s, SWITCH) main lexbuf }
+  | "case" as s { token_or_str (s, CASE) main lexbuf }
+  | "default" as s { token_or_str (s, DEFAULT) main lexbuf }
+  | "endswitch" as s { token_or_str (s, ENDSWITCH) main lexbuf }
   | "for" as s { token_or_str (s, FOR) main lexbuf }
   | "endfor" as s { token_or_str (s, ENDFOR) main lexbuf }
   | "include" as s { token_or_str (s, INCLUDE) main lexbuf }
@@ -256,9 +275,6 @@ rule main = parse
     match ctx.mode with
       | `Html -> add_char c; main lexbuf
       | _ -> fail lexbuf @@ spf "unexpected token:%c" c
-  }
-  | eof {
-      match get_buf () with "" -> EOF | s -> TEXT s
   }
 
 and comment = parse

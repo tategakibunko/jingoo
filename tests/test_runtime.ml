@@ -611,12 +611,19 @@ let test_min_max _ctx =
 let test_nth _ctx =
   let list = Tlist [Tint 3; Tint 0; Tint 2] in
   let ary = Tarray [| Tint 1; Tint 10; Tint 12 |] in
+  let str1 = Tstr "日本語" in
+  let str2 = Tstr "hoge" in
   assert_equal_tvalue (Tint 3) (jg_nth (Tint 0) list);
   assert_equal_tvalue (Tint 0) (jg_nth (Tint 1) list);
   assert_equal_tvalue (Tint 2) (jg_nth (Tint 2) list);
   assert_equal_tvalue (Tint 1) (jg_nth (Tint 0) ary);
   assert_equal_tvalue (Tint 10) (jg_nth (Tint 1) ary);
-  assert_equal_tvalue (Tint 12) (jg_nth (Tint 2) ary)
+  assert_equal_tvalue (Tint 12) (jg_nth (Tint 2) ary) ;
+  assert_equal_tvalue (Tstr "日") (jg_nth (Tint 0) str1);
+  assert_equal_tvalue (Tstr "本") (jg_nth (Tint 1) str1);
+  assert_equal_tvalue (Tstr "語") (jg_nth (Tint 2) str1);
+  assert_equal_tvalue (Tstr "h") (jg_nth (Tint 0) str2);
+  assert_equal_tvalue (Tstr "e") (jg_nth (Tint 3) str2)
 
 let test_map _ctx =
   let names = unbox_list @@ jg_map Tnull test_persons ~kwargs:[("attribute", Tstr "name")] in

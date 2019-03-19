@@ -30,6 +30,14 @@ type jg_ast_mapper =
     ]}
  *)
 
+let arguments_definition self =
+  List.map (function
+      | (k, Some v) -> (k, Some (self.expression self v))
+      | (k, None) -> (k, None))
+
+let arguments_application self =
+  List.map (fun (k, v) -> (k, self.expression self v))
+
 (**/**)
 let ast self = List.map (self.statement self)
 
@@ -45,8 +53,13 @@ and statement self stmt : statement = match stmt with
     IfStatement (List.map (fun (e, ast) -> ( (match e with Some e -> Some (self.expression self e) | None -> None)
                                            , self.ast self ast) ) branches)
 
-  | ForStatement (e1, e2, ast) ->
-    ForStatement ( self.expression self e1, self.expression self e2, self.ast self ast)
+  | SwitchStatement (e, cases) ->
+    SwitchStatement ( self.expression self e
+                    , List.map (fun (e, ast) -> ( List.map (self.expression self) e
+                                                , self.ast self ast) ) cases)
+
+  | ForStatement (ids, e2, ast) ->
+    ForStatement (ids, self.expression self e2, self.ast self ast)
 
   | IncludeStatement (e, b) ->
     IncludeStatement (self.expression self e, b)
@@ -61,35 +74,35 @@ and statement self stmt : statement = match stmt with
     stmt
 
   | FromImportStatement (str, el) ->
-    FromImportStatement (str, List.map (self.expression self) el)
+    FromImportStatement (str, el)
 
   | SetStatement (e1, e2) ->
     SetStatement (self.expression self e1, self.expression self e2)
 
-  | BlockStatement (e, ast) ->
-    BlockStatement (self.expression self e, self.ast self ast)
+  | BlockStatement (n, ast) ->
+    BlockStatement (n, self.ast self ast)
 
-  | MacroStatement (e, args, ast) ->
-    MacroStatement ( self.expression self e
-                   , List.map (self.expression self) args
+  | MacroStatement (n, args, ast) ->
+    MacroStatement ( n
+                   , arguments_definition self args
                    , self.ast self ast)
 
-  | FunctionStatement (e, args, ast) ->
-    FunctionStatement ( self.expression self e
-                      , List.map (self.expression self) args
+  | FunctionStatement (n, args, ast) ->
+    FunctionStatement ( n
+                      , arguments_definition self args
                       , self.ast self ast)
 
-  | FilterStatement (e, ast) ->
-    FilterStatement (self.expression self e, self.ast self ast)
+  | FilterStatement (n, ast) ->
+    FilterStatement (n, self.ast self ast)
 
-  | CallStatement (e, a1, a2, ast) ->
-    CallStatement ( self.expression self e
-                  , List.map (self.expression self) a1
-                  , List.map (self.expression self) a2
+  | CallStatement (n, a1, a2, ast) ->
+    CallStatement ( n
+                  , arguments_definition self a1
+                  , arguments_application self a2
                   , self.ast self ast)
 
   | WithStatement (el, ast) ->
-    WithStatement ( List.map (self.expression self) el
+    WithStatement ( List.map (fun (n, e) -> (n, self.expression self e)) el
                   , self.ast self ast)
 
   | AutoEscapeStatement (e, ast) ->
@@ -167,7 +180,7 @@ and expression self expr = match expr with
 
   | ApplyExpr (e, args) ->
     ApplyExpr ( self.expression self e
-              , List.map (self.expression self) args)
+              , arguments_application self args)
 
   | ListExpr el ->
     ListExpr (List.map (self.expression self) el)
@@ -176,16 +189,10 @@ and expression self expr = match expr with
     SetExpr (List.map (self.expression self) el)
 
   | ObjExpr (eel) ->
-    ObjExpr (List.map (fun (e1, e2) -> self.expression self e1, self.expression self e2) eel)
+    ObjExpr (List.map (fun (k, v) -> k, self.expression self v) eel)
 
   | TestOpExpr (e1, e2) ->
     TestOpExpr (self.expression self e1, self.expression self e2)
-
-  | KeywordExpr (e1, e2) ->
-    KeywordExpr (self.expression self e1, self.expression self e2)
-
-  | AliasExpr (e1, e2) ->
-    AliasExpr (self.expression self e1, self.expression self e2)
 
   | InOpExpr (e1, e2) ->
     InOpExpr (self.expression self e1, self.expression self e2)

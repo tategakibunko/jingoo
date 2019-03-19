@@ -65,22 +65,23 @@ and statement =
     TextStatement of string
   | ExpandStatement of expression
   | IfStatement of branch list
-  | ForStatement of expression * expression * ast
+  | ForStatement of string list * expression * ast
   | IncludeStatement of expression * with_context
   | RawIncludeStatement of expression
   | ExtendsStatement of string
   | ImportStatement of string * string option
-  | FromImportStatement of string * expression list
+  | FromImportStatement of string * (string * string option) list
   | SetStatement of expression * expression
-  | BlockStatement of expression * ast
-  | MacroStatement of expression * arguments * ast
-  | FilterStatement of expression * ast
-  | CallStatement of expression * arguments * arguments * ast
-  | WithStatement of expression list * ast
+  | BlockStatement of string * ast
+  | MacroStatement of string * arguments * ast
+  | FilterStatement of string * ast
+  | CallStatement of string * arguments * (string option * expression) list * ast
+  | WithStatement of (string * expression) list * ast
   | AutoEscapeStatement of expression * ast
   | NamespaceStatement of string * (string * expression) list
   | Statements of ast
-  | FunctionStatement of expression * arguments * ast
+  | FunctionStatement of string * arguments * ast
+  | SwitchStatement of expression * (expression list * ast) list
 [@@deriving show { with_path = false }]
 
 and expression =
@@ -104,18 +105,16 @@ and expression =
   | GtEqOpExpr of expression * expression
   | DotExpr of expression * string
   | BracketExpr of expression * expression
-  | ApplyExpr of expression * arguments
+  | ApplyExpr of expression * (string option * expression) list
   | ListExpr of expression list
   | SetExpr of expression list
-  | ObjExpr of (expression * expression) list
+  | ObjExpr of (string * expression) list
   | TestOpExpr of expression * expression
-  | KeywordExpr of expression * expression
-  | AliasExpr of expression * expression
   | InOpExpr of expression * expression
 
 and with_context = bool
 and branch = expression option * ast
-and arguments = expression list
+and arguments = (string * expression option) list
 
 (* If you modify this value, documentation in jg_types.mli *)
 let std_env = {
