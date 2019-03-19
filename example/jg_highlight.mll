@@ -34,6 +34,7 @@ rule main = parse
     | "autoescape"
     | "block"
     | "call"
+    | "case"
     | "context"
     | "elif"
     | "else"
@@ -47,6 +48,7 @@ rule main = parse
     | "endif"
     | "endmacro"
     | "endraw"
+    | "endswitch"
     | "endwith"
     | "extends"
     | "filter"
@@ -65,6 +67,7 @@ rule main = parse
     | "raw"
     | "rawinclude"
     | "set"
+    | "switch"
     | "with"
     | "without"
     | "||"
@@ -108,7 +111,7 @@ rule main = parse
       main lexbuf
     }
   | "{#" { comment (Buffer.create 42) lexbuf }
-  | ("\"" | "'" | "&#34;") as s {
+  | ("\"" | "'" | "&#39;" | "&#34;") as s {
       if !logic then string (Buffer.create 42) s lexbuf
       else begin
         !print_string s ;
@@ -135,11 +138,11 @@ and comment buffer = parse
 
 and string buffer term = parse
 
-  | '\\' _ as s {
+  | ('\\' _) as s {
     Buffer.add_string buffer s ;
     string buffer term lexbuf
   }
-  | ("&#34;"|_) as s {
+  | ("&#34;"|"&#39;"|_) as s {
       if s = term
       then begin
         print_class !string_class (Printf.sprintf "%s%s%s" s (Buffer.contents buffer) s) ;

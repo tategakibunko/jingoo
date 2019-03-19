@@ -500,8 +500,17 @@ let rec jg_eq_eq_aux left right =
     | Tbool x1, Tbool x2 -> x1=x2
     | Tlist x1, Tlist x2
     | Tset x1, Tset x2 -> jg_list_eq_eq x1 x2
-    | Tobj _, Tobj _ -> jg_obj_eq_eq left right
     | Tarray x1, Tarray x2 -> jg_array_eq_eq x1 x2
+    | Tobj _, Tobj _ ->
+      begin
+        try 0 = unbox_int @@ jg_apply (jg_obj_lookup left "__eq__") [ left ; right ]
+        with _ -> jg_obj_eq_eq left right
+      end
+    | ((Thash _ | Tobj _ | Tpat _) as left), ((Thash _ | Tobj _ | Tpat _) as right) ->
+      begin
+        try 0 = unbox_int @@ jg_apply (jg_obj_lookup left "__eq__") [ left ; right ]
+        with _ -> false
+      end
     | _, _ -> false
 
 and jg_array_eq_eq a1 a2 =
@@ -750,6 +759,15 @@ let jg_random lst =
     | Tarray a -> Tarray (knuth @@ Array.copy a)
     | _ -> failwith_type_error_1 "jg_random" lst
 
+(** [jg_replace src dst s]
+    Return a string identical to [s],
+    except that all substrings of [s] that match regexp [src] have been
+    replaced by [dst]. The replacement template [dst] can contain
+    \1, \2, etc; these sequences will be replaced by the text
+    matched by the corresponding group in the regular expression [src].
+    \0 stands for the text matched by the whole regular expression.
+    In [dst], \ should be escaped using \.
+*)
 let jg_replace src dst str =
   match src, dst, str with
     | Tstr src, Tstr dst, Tstr str ->
