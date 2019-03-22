@@ -8,6 +8,7 @@ version: 1.3.1
 ===========================
 * [PR#81] Parser enhancement(using menhir), tvalue unwrapping.
 * [PR#87] __eq__ field should return a boolean, not an int.
+* [PR#88] Fixed missing recursive call for ApplyExpr case.
 
 version: 1.3.0, 2019-02-08
 ===========================
