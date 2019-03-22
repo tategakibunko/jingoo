@@ -173,7 +173,7 @@ and expression self expr = match expr with
     GtEqOpExpr (self.expression self e1, self.expression self e2)
 
   | DotExpr (e, str) ->
-    DotExpr (e, str)
+    DotExpr (self.expression self e, str)
 
   | BracketExpr (e1, e2) ->
     BracketExpr (self.expression self e1, self.expression self e2)
