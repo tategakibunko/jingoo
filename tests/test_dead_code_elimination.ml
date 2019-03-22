@@ -62,10 +62,27 @@ let test_4 _ =
      {{ foo }}\
     "
 
+let test_5 _ =
+  assert_eq
+    [ FunctionStatement ( "foo"
+                        , []
+                        , [ ExpandStatement (ObjExpr [ "val", LiteralExpr (Tint 42) ])
+                          ] )
+    ; IfStatement
+        [ Some ( LiteralExpr (Tbool true) )
+        , [ ForStatement ( [ "x" ], ListExpr []
+                         , [ ExpandStatement (DotExpr (ApplyExpr (IdentExpr "foo", []), "val") ) ]) ] ]
+    ]
+    "{% function foo () %}{{ { val: 42 } }}{% endfunction %}\
+     {% if true %}\
+     {% for x in [] %}{{ foo().val }}{% endfor %}\
+     {% endif %}"
+
 let suite = "runtime test" >::: [
   "test_1" >:: test_1;
   "test_0" >:: test_0;
   "test_2" >:: test_2;
   "test_3" >:: test_3;
   "test_4" >:: test_4;
+  "test_5" >:: test_5;
 ]
