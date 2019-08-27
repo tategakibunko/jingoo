@@ -1,0 +1,2 @@
+{% if exists (eq(0), [0,1,2,3,4]) %}YES{% endif %}
+{% if not (exists (eq(5), [0,1,2,3,4])) %}NO{% endif %}

@@ -277,7 +277,10 @@
       {% call section ([ 'Built-in filters', 'eval' ], 'filter_eval', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'exists' ], '', false) %}
+      {% call section ([ 'Built-in filters', 'exists' ], 'filter_exists', false) %}
+        <p class="p">
+          {{ code ('exists (fn, seq)') }}
+        </p>
       {% endcall %}
 
       {% call section ([ 'Built-in filters', 'find' ], '', false) %}
