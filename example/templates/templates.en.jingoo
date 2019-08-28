@@ -210,7 +210,7 @@
 
       <p class="title">Operators</p>
 
-      {% call section ([ 'Statements', 'Boolean operators' ], 'and-or', true) %}
+      {% call section ([ 'Operators', 'Boolean operators' ], 'and-or', true) %}
         {% block and_or %}
           <p class="p">
             Evaluation of boolean operators is sequential, left-to-right.
@@ -229,10 +229,10 @@
         {% endblock %}
       {% endcall %}
 
-      {% call section ([ 'Statements', 'Basic operators' ], 'operators', false) %}
+      {% call section ([ 'Operators', 'Basic operators' ], 'operators', false) %}
       {% endcall %}
 
-      {% call section ([ 'Expressions', 'Fat arrow operator' ], 'fat-arrow', false) %}
+      {% call section ([ 'Operators', 'Fat arrow operator' ], 'fat-arrow', false) %}
         {% block fat_arrow %}
           <p class="p">The fat arrow operator {{ code ('=>') }} is used to define anonymous functions.</p>
           <p class="p">It is right associative and have the lowest precedence of all the operators.</p>
