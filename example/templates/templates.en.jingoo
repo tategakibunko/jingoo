@@ -198,11 +198,6 @@
       {% call section ([ 'Statements', 'With' ], 'with', false) %}
       {% endcall %}
 
-      <p class="title">Expressions</p>
-
-      {% call section ([ 'Expressions', 'Anonymous function' ], 'function_anonymous', false) %}
-      {% endcall %}
-
       <p class="title">Tests</p>
       <p class="subtitle">Tests are just functions that return a boolean.</p>
 
@@ -235,6 +230,13 @@
       {% endcall %}
 
       {% call section ([ 'Statements', 'Basic operators' ], 'operators', false) %}
+      {% endcall %}
+
+      {% call section ([ 'Expressions', 'Fat arrow operator' ], 'fat-arrow', false) %}
+        {% block fat_arrow %}
+          <p class="p">The fat arrow operator {{ code ('=>') }} is used to define anonymous functions.</p>
+          <p class="p">It is right associative and have the lowest precedence of all the operators.</p>
+        {% endblock %}
       {% endcall %}
 
       <p class="title">Built-in filters</p>
