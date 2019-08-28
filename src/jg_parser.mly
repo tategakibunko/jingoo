@@ -115,17 +115,31 @@ input: stmt* EOF { $1 }
 
 stmt:
 | OPEN_EXPRESSION expr CLOSE_EXPRESSION { pel "expand expr"; ExpandStatement($2) }
-| SET ident DOT IDENT EQ expr { pel "set"; SetStatement (DotExpr ($2, $4), $6) }
-| SET ident preceded (COMMA, ident)* EQ expr {
-      pel "set";
-      match $2 :: $3, $5 with
-      | [ IdentExpr n ], ApplyExpr (IdentExpr "namespace", init) ->
-         let extract_assign = function
-           | (Some n, v) -> (n, v)
-           | _ -> assert false in
-         NamespaceStatement (n, List.map extract_assign init)
-      | idents, exprs -> pel "set sts"; SetStatement (SetExpr idents, exprs)
-    }
+| SET ident DOT IDENT PLUS? EQ expr
+  { pel "set";
+    let k = DotExpr ($2, $4) in
+    if $5 = None then SetStatement (k, $7)
+    else SetStatement (k, PlusOpExpr(k, $7))
+  }
+| SET ident preceded (COMMA, ident)* PLUS? EQ expr
+  {
+    pel "set";
+    match $2 :: $3, $6 with
+    | [ IdentExpr n ], ApplyExpr (IdentExpr "namespace", init) ->
+       assert ($4 = None) ;
+       let extract_assign = function
+         | (Some n, v) -> (n, v)
+         | _ -> assert false in
+       NamespaceStatement (n, List.map extract_assign init)
+    | [ id ], expr ->
+       let k = SetExpr [ id ] in
+       if $4 = None then SetStatement (k, expr)
+       else SetStatement (k, PlusOpExpr (id, expr))
+    | idents, exprs ->
+       assert ($4 = None) ;
+       pel "set sts";
+       SetStatement (SetExpr idents, exprs)
+  }
 | EXTENDS STRING { pel "extends sts"; ExtendsStatement($2) }
 | BLOCK IDENT stmt* ENDBLOCK { pel "block sts2"; BlockStatement($2, $3) }
 | FILTER IDENT stmt* ENDFILTER { pel "filter sts"; FilterStatement($2, $3) }

@@ -2,4 +2,7 @@ hoge: ok
 foo: foo
 bar: bar
 
+baz: 1
+baz: 2
+
 Did not iterate!
