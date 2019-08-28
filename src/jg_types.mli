@@ -126,6 +126,7 @@ and expression =
   | ObjExpr of (string * expression) list
   | TestOpExpr of expression * expression
   | InOpExpr of expression * expression
+  | FunctionExpression of string list * expression
 
 and with_context = bool
 and branch = expression option * ast

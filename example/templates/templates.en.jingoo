@@ -198,6 +198,11 @@
       {% call section ([ 'Statements', 'With' ], 'with', false) %}
       {% endcall %}
 
+      <p class="title">Expressions</p>
+
+      {% call section ([ 'Expressions', 'Anonymous function' ], 'function_anonymous', false) %}
+      {% endcall %}
+
       <p class="title">Tests</p>
       <p class="subtitle">Tests are just functions that return a boolean.</p>
 
