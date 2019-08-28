@@ -39,7 +39,7 @@ type environment = {
       which are dynamically loaded.
    *)
 }
-(** See {! val-std_env} *)
+(** See {! val:std_env} *)
 
 and context = {
   frame_stack : frame list;
