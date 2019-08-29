@@ -2,6 +2,8 @@
 hoge == "foo"
 {%- elseif hoge == "bar" -%}
 hoge == "bar"
+{%- else if hoge == "hoge" -%}
+hoge == "hoge"
 {%- elif hoge == "baz" -%}
 hoge == "baz"
 {%- else -%}

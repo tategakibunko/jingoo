@@ -190,7 +190,7 @@ and main_bis = parse
   }
   | "if" as s { token_or_str (s, IF) main lexbuf }
   | "else" as s { token_or_str (s, ELSE) main lexbuf }
-  | ("elseif" | "elif") as s { token_or_str (s, ELSEIF) main lexbuf }
+  | ("elseif" | "elif" | "else if") as s { token_or_str (s, ELSEIF) main lexbuf }
   | "endif" as s { token_or_str (s, ENDIF) main lexbuf }
   | "switch" as s { token_or_str (s, SWITCH) main lexbuf }
   | "case" as s { token_or_str (s, CASE) main lexbuf }
