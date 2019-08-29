@@ -51,6 +51,7 @@
 %token DEFAULT
 %token ENDSWITCH
 
+%token FATARROW
 %token <int> INT
 %token <float> FLOAT
 %token <string> STRING
@@ -86,6 +87,7 @@
 %token DOT
 %token VLINE
 
+%right FATARROW
 %left OR
 %left AND
 %nonassoc IS IN
@@ -222,6 +224,15 @@ expr:
 | expr LPAREN separated_list(COMMA, argument_application) RPAREN { pel "apply(expr_list)"; ApplyExpr($1, $3) }
 | LPAREN separated_list(COMMA, expr) RPAREN
   { pel "set expr"; match $2 with [ e ] -> e | _ -> SetExpr $2 }
+| expr FATARROW expr
+  { pel "fat arrow";
+    let args = match $1 with
+      | IdentExpr i -> [ i ]
+      | SetExpr set -> List.map (function IdentExpr i -> i | _ -> assert false) set
+      | _ -> assert false
+    in
+    FunctionExpression(args, $3)
+}
 ;
 
 opt_args:
