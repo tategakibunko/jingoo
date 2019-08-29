@@ -39,7 +39,7 @@ type environment = {
       which are dynamically loaded.
    *)
 }
-(** See {! val-std_env} *)
+(** See {! val:std_env} *)
 
 and context = {
   frame_stack : frame list;
@@ -126,6 +126,7 @@ and expression =
   | ObjExpr of (string * expression) list
   | TestOpExpr of expression * expression
   | InOpExpr of expression * expression
+  | FunctionExpression of string list * expression
 
 and with_context = bool
 and branch = expression option * ast

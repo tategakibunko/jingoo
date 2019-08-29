@@ -253,6 +253,7 @@ and main_bis = parse
   | "}" as c { token_or_char (c, RBRACE) main lexbuf }
   | ":" as c { token_or_char (c, COLON) main lexbuf }
   | "|" as c { token_or_char (c, VLINE) main lexbuf }
+  | "=>" as s { token_or_str (s, FATARROW) main lexbuf }
   | ident_first_char ident_char* as str {
     if ctx.token_required then
       fail lexbuf @@ spf "syntax error: expected token, got '%s'" str

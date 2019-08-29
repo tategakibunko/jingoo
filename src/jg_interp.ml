@@ -93,6 +93,13 @@ let rec value_of_expr env ctx = function
        | Some macro -> ignore @@ eval_macro env ctx name nargs kwargs macro; Tnull
        | None -> Tnull))
 
+  | FunctionExpression (arg_names, body) ->
+    func begin fun ?kwargs:_ args ->
+      let ctx = jg_push_frame ctx in
+      List.iter2 (jg_set_value ctx) arg_names args ;
+      value_of_expr env ctx body
+    end (List.length arg_names)
+
 and apply_name_of = function
   | IdentExpr(name) -> name
   | DotExpr(IdentExpr(name), prop) -> spf "%s.%s" name prop
