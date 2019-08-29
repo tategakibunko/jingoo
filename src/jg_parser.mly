@@ -113,15 +113,20 @@ input: stmt* EOF { $1 }
 
 %inline alias: IDENT preceded(AS, IDENT)? { ($1, $2) }
 
+%inline set_operator: PLUS { PLUS } | MINUS { MINUS }
+
 stmt:
 | OPEN_EXPRESSION expr CLOSE_EXPRESSION { pel "expand expr"; ExpandStatement($2) }
-| SET ident DOT IDENT PLUS? EQ expr
+| SET ident DOT IDENT set_operator? EQ expr
   { pel "set";
     let k = DotExpr ($2, $4) in
-    if $5 = None then SetStatement (k, $7)
-    else SetStatement (k, PlusOpExpr(k, $7))
+    match $5 with
+    | None -> SetStatement (k, $7)
+    | Some PLUS -> SetStatement (k, PlusOpExpr(k, $7))
+    | Some MINUS -> SetStatement (k, MinusOpExpr(k, $7))
+    | Some _ -> assert false
   }
-| SET ident preceded (COMMA, ident)* PLUS? EQ expr
+| SET ident preceded (COMMA, ident)* set_operator? EQ expr
   {
     pel "set";
     match $2 :: $3, $6 with
@@ -132,9 +137,14 @@ stmt:
          | _ -> assert false in
        NamespaceStatement (n, List.map extract_assign init)
     | [ id ], expr ->
-       let k = SetExpr [ id ] in
-       if $4 = None then SetStatement (k, expr)
-       else SetStatement (k, PlusOpExpr (id, expr))
+       begin
+         let k = SetExpr [ id ] in
+         match $4 with
+         | None -> SetStatement (k, expr)
+         | Some PLUS -> SetStatement (k, PlusOpExpr(id, expr))
+         | Some MINUS -> SetStatement (k, MinusOpExpr(id, expr))
+         | Some _ -> assert false
+       end
     | idents, exprs ->
        assert ($4 = None) ;
        pel "set sts";
