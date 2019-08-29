@@ -11,6 +11,12 @@ baz: {{ baz }}
 baz: {{ baz }}
 {% set baz -= 1 -%}
 baz: {{ baz }}
+{% set baz *= 6 -%}
+baz: {{ baz }}
+{% set baz /= 2 -%}
+baz: {{ baz }}
+{% set baz %= 2 -%}
+baz: {{ baz }}
 
 {% set iterated = false -%}
 {%- for item in [ 1, 2, 3 ] -%}

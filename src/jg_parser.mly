@@ -115,7 +115,7 @@ input: stmt* EOF { $1 }
 
 %inline alias: IDENT preceded(AS, IDENT)? { ($1, $2) }
 
-%inline set_operator: PLUS { PLUS } | MINUS { MINUS } | DIV { DIV } | TIMES { TIMES }
+%inline set_operator: PLUS { PLUS } | MINUS { MINUS } | DIV { DIV } | TIMES { TIMES } | MOD { MOD }
 
 
 stmt:
@@ -129,6 +129,7 @@ stmt:
     | Some MINUS -> SetStatement (k, MinusOpExpr(k, $7))
     | Some TIMES -> SetStatement (k, TimesOpExpr(k, $7))
     | Some DIV -> SetStatement (k, DivOpExpr(k, $7))
+    | Some MOD -> SetStatement (k, ModOpExpr(k, $7))
     | Some _ -> assert false
   }
 | SET ident preceded (COMMA, ident)* set_operator? EQ expr
@@ -150,6 +151,7 @@ stmt:
          | Some MINUS -> SetStatement (k, MinusOpExpr(id, expr))
          | Some TIMES -> SetStatement (k, TimesOpExpr(id, expr))
          | Some DIV -> SetStatement (k, DivOpExpr(id, expr))
+         | Some MOD -> SetStatement (k, ModOpExpr(id, expr))
          | Some _ -> assert false
        end
     | idents, exprs ->
