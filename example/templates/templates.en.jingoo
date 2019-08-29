@@ -1,5 +1,7 @@
 {% set highlight = jg_highlight.highlight %}
 
+{% set built_in_filters_section_title = 'Built-in filters' %}
+
 {%- macro input (class, id, checked) -%}
   <input type="radio" class="tab-input tab-input-{{ class }}" id="{{ id }}" name="nav-tab" {% if checked %}checked{% endif %}>
 {%- endmacro -%}
@@ -33,8 +35,13 @@
 {%- endmacro -%}
 
 {%- macro section (title, name, models) -%}
-  <div class="section" id="{{ name }}">
-    <p class="section-title">{{ breadcrumb (title) }}</p>
+  <div class="section" {% if title[0] == built_in_filters_section_title %}id="filter_{{ title[1] }}"{% endif %}>
+    {%- if title[0] == built_in_filters_section_title -%}
+      <a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_{{title[1]}}">
+        {%--%}ocamldoc{%--%}
+      </a>
+    {%- endif -%}
+    {{ breadcrumb (title) }}
     <div class="section-content">
       {{ caller () }}
       {{ template (name, models) }}
@@ -241,133 +248,133 @@
 
       <p class="title">Built-in filters</p>
 
-      {% call section ([ 'Built-in filters', 'abs' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'abs' ], '', false) %}
       <p class="p">{{ code ('abs (num)') }} Return the absolute value of {{ code ('num') }}.</p>
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'attr' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'attr' ], '', false) %}
       <p class="p">{{ code ('attr (name, obj)') }}</p>
       <p class="p">{{ code ('{{ foo | attr ("bar") }}') }} is {{ code ('{{ foo.bar }}') }}.</p>
       <p class="p">{{ code ('{{ foo | attr ("bar.baz") }}') }} is {{ code ('{{ foo.bar.baz }}') }}.</p>
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'batch' ], 'filter_batch', true) %}
+      {% call section ([ built_in_filters_section_title, 'batch' ], 'filter_batch', true) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'capitalize' ], 'filter_capitalize', false) %}
+      {% call section ([ built_in_filters_section_title, 'capitalize' ], 'filter_capitalize', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'compose' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'compose' ], '', false) %}
       <p class="p">{{ code ('compose (f, g)') }}</p>
       <p class="p">
         The composition function. {{ code ('compose (f, g)) (x)') }}
         is {{ code ('f (g (x))') }}.
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'default' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'default' ], '', false) %}
       <p class="p">{{ code ('default (default_value, value)') }}</p>
       <p class="p">
         Return {{ code ('value') }} if it is defined from {{ code ('null') }},
         and {{ code ('default') }} otherwise.
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'eq'], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'eq'], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'escape' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'escape' ], '', false) %}
         <p class="p">
           {{ code ('escape (string)') }}. Replaces {{ code('&') }}, {{ code('"') }},
           {{ code('<') }} and {{ code ('>') }} with their corresponding HTML entities.
         </p>
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'eval' ], 'filter_eval', false) %}
+      {% call section ([ built_in_filters_section_title, 'eval' ], 'filter_eval', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'exists' ], 'filter_exists', false) %}
+      {% call section ([ built_in_filters_section_title, 'exists' ], 'filter_exists', false) %}
         <p class="p">
           {{ code ('exists (fn, seq)') }}
         </p>
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'find' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'find' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'float' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'float' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'fold' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'fold' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'forall' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'forall' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'ge'], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'ge'], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'gt'], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'gt'], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'groupby' ], 'filter_groupby', true) %}
+      {% call section ([ built_in_filters_section_title, 'groupby' ], 'filter_groupby', true) %}
         <p class="p">
           {{ code ('groupby (fn, seq)') }}
         </p>
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'int' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'int' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'join' ], 'filter_join', false) %}
+      {% call section ([ built_in_filters_section_title, 'join' ], 'filter_join', false) %}
         <p class="p">
           {{ code ('join (sep, seq)') }}
         </p>
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'last' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'last' ], '', false) %}
         <p class="p">
           {{ code ('last (seq)') }}.
           Return the last element of sequence {{ code ('seq') }}.
         </p>
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'le'], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'le'], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'length' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'length' ], '', false) %}
         <p class="p">
           {{ code ('length (seq)') }}.
           Return the number of elements in sequence {{ code ('seq') }}.
         </p>
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'list' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'list' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'lt'], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'lt'], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'lower' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'lower' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'map' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'map' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'max' ], 'filter_max', false) %}
+      {% call section ([ built_in_filters_section_title, 'max' ], 'filter_max', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'md5' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'md5' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'min' ], 'filter_min', false) %}
+      {% call section ([ built_in_filters_section_title, 'min' ], 'filter_min', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'ne'], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'ne'], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'nth' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'nth' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'printf' ], 'filter_printf', false) %}
+      {% call section ([ built_in_filters_section_title, 'printf' ], 'filter_printf', false) %}
         <p class="p">
           {{ code ('printf(fmt, a1, a2, ..., aN)') }}
           Fill {{ code ('fmt') }} with {{ code ('a1') }} {{ code ('a2') }} ... {{ code ('aN') }}.
@@ -378,19 +385,19 @@
         </p>
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'random' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'random' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'range' ], 'filter_range', false) %}
+      {% call section ([ built_in_filters_section_title, 'range' ], 'filter_range', false) %}
         <p class="p">
           {{ code ('range (start, stop)') }}
         </p>
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'reject' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'reject' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'replace' ], 'filter_replace', false) %}
+      {% call section ([ built_in_filters_section_title, 'replace' ], 'filter_replace', false) %}
         <p class="p">
           {{ code ('replace (src, dst, s)') }}
           The syntax for regular expressions is the same as in Gnu Emacs.
@@ -422,23 +429,23 @@
         </p>
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'reverse' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'reverse' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'round' ], 'filter_round', false) %}
+      {% call section ([ built_in_filters_section_title, 'round' ], 'filter_round', false) %}
         <p class="p">
           {{ code ('round (method, val)') }}. {{ code ('method') }}
           can be {{ code ('"floor"') }} or {{ code ('"ceil"') }}.
         </p>
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'select' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'select' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'slice' ], 'filter_slice', true) %}
+      {% call section ([ built_in_filters_section_title, 'slice' ], 'filter_slice', true) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'sort' ], 'filter_sort', true) %}
+      {% call section ([ built_in_filters_section_title, 'sort' ], 'filter_sort', true) %}
         <p class="p">
           {{ code ('sort (seq)') }}. Support the following optionnal keywords:
           {{ dl ([ [ 'reverse', 'Sort using descending order.' ]
@@ -448,49 +455,49 @@
         </p>
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'split' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'split' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'striptag' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'striptag' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'strlen' ], 'filter_strlen', false) %}
+      {% call section ([ built_in_filters_section_title, 'strlen' ], 'filter_strlen', false) %}
         <p class="p">
           {{ code ('strlen (string)') }}. Number of UTF-8 characters.
         </p>
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'sublist' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'sublist' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'substring' ], 'filter_substring', false) %}
+      {% call section ([ built_in_filters_section_title, 'substring' ], 'filter_substring', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'sum' ], 'filter_sum', false) %}
+      {% call section ([ built_in_filters_section_title, 'sum' ], 'filter_sum', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'title' ], 'filter_title', false) %}
+      {% call section ([ built_in_filters_section_title, 'title' ], 'filter_title', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'truncate' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'truncate' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'trim' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'trim' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'upper' ], 'filter_upper', false) %}
+      {% call section ([ built_in_filters_section_title, 'upper' ], 'filter_upper', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'urlize' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'urlize' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'wordcount' ], 'filter_wordcount', false) %}
+      {% call section ([ built_in_filters_section_title, 'wordcount' ], 'filter_wordcount', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'wordwrap' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'wordwrap' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ 'Built-in filters', 'xmlattr' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'xmlattr' ], '', false) %}
       {% endcall %}
 
     </div>

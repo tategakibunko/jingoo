@@ -40,6 +40,15 @@ body {
     overflow: auto ;
 }
 
+.ocamllink {
+    float: right ;
+    padding: 5px 10px ;
+    text-decoration: none ;
+    color: white ;
+    font-variant: small-caps ;
+    font-weight: bold ;
+}
+
 @media only screen and (max-width:960px) {
 
     .tab-content {
