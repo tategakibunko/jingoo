@@ -162,6 +162,14 @@
         {% endblock %}
       {% endcall %}
 
+      {% call section ([ 'Statements', 'switch' ], 'switch', true) %}
+        {% block section_switch %}
+          <p class="p">
+            The switch statement allows us to use compare a variable with a set of literal values.
+          </p>
+        {% endblock %}
+      {% endcall %}
+
       {% call section ([ 'Statements', 'Keywords', 'in' ], 'in', false) %}
       {% endcall %}
 
