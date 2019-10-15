@@ -166,8 +166,8 @@ stmt:
 | RAWINCLUDE expr { pel "raw include sts"; RawIncludeStatement($2) }
 | IMPORT STRING preceded(AS, IDENT)? { pel "import sts"; ImportStatement($2, $3) }
 | FROM STRING IMPORT separated_list(COMMA, alias) { pel "from import sts"; FromImportStatement($2, $4) }
-| MACRO IDENT LPAREN separated_list(COMMA, argument_definition) RPAREN stmt* ENDMACRO
-  { pel "macro sts"; MacroStatement($2, $4, $6) }
+| MACRO IDENT LPAREN separated_list(COMMA, argument_definition) RPAREN stmt* ENDMACRO IDENT?
+  { pel "macro sts"; (match $8 with Some n -> assert ($2 = n) | _ -> ()) ; MacroStatement($2, $4, $6) }
 | FUNCTION IDENT LPAREN separated_list(COMMA, argument_definition) RPAREN stmt* ENDFUNCTION
   { pel "function sts"; FunctionStatement($2, $4, $6) }
 | CALL opt_args IDENT LPAREN separated_list(COMMA, argument_application) RPAREN stmt* ENDCALL

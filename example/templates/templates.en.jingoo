@@ -130,6 +130,9 @@
             It means that you define two macro with the same name, the second will erase the first,
             <strong>even in the macro invocation occuring before the second definition.</strong>
           </p>
+          <p class="p">
+            Optionally, you can repeat the name of the macro in the {{ code ('endmacro') }} part.
+          </p>
         {% endblock %}
       {% endcall %}
 
