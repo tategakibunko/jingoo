@@ -6,6 +6,7 @@
 
 version: 1.3.1
 ===========================
+o [PR#97] Allow repeating macro name in endmacro part.
 o [PR#95] Support +=, -=, *=, /=, %= operator for 'set' statement.
 o [PR#93] Added anonymous functions.
 o [PR#94] Support 'else if'.
