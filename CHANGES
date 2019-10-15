@@ -4,6 +4,10 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.3.2
+===========================
+* [PR#99] Parser: auto trimming TEXT just after SWITCH token.
+
 version: 1.3.1, 2019-10-16
 ===========================
 o [PR#97] Allow repeating macro name in endmacro part.
