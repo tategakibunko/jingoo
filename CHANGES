@@ -4,7 +4,7 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
-version: 1.3.1
+version: 1.3.1, 2019-10-16
 ===========================
 o [PR#97] Allow repeating macro name in endmacro part.
 o [PR#95] Support +=, -=, *=, /=, %= operator for 'set' statement.
