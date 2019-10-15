@@ -1,6 +1,7 @@
 {% macro li (content) %}<li>{{ content }}</li>{% endmacro -%}
+{% macro oli (content) %}{{ li (content) }}{% endmacro oli -%}
 <ol>
-  {{ li ('Item1') }}
-  {{ li ('Item2') }}
-  {{ li ('Item3') }}
+  {{ oli ('Item1') }}
+  {{ oli ('Item2') }}
+  {{ oli ('Item3') }}
 </ol>
