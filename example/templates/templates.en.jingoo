@@ -250,6 +250,9 @@
       {% call section ([ 'Operators', 'Basic operators' ], 'operators', false) %}
       {% endcall %}
 
+      {% call section ([ 'Operators', 'Ternary operators' ], 'ternary', false) %}
+      {% endcall %}
+
       {% call section ([ 'Operators', 'Fat arrow operator' ], 'fat-arrow', false) %}
         {% block fat_arrow %}
           <p class="p">The fat arrow operator {{ code ('=>') }} is used to define anonymous functions.</p>

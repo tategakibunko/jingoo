@@ -127,6 +127,7 @@ and expression =
   | TestOpExpr of expression * expression
   | InOpExpr of expression * expression
   | FunctionExpression of string list * expression
+  | TernaryOpExpr of expression * expression * expression
 
 and with_context = bool
 and branch = expression option * ast

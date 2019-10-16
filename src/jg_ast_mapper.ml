@@ -200,6 +200,9 @@ and expression self expr = match expr with
   | FunctionExpression (args, body) ->
     FunctionExpression (args, self.expression self body)
 
+  | TernaryOpExpr (c, y, n) ->
+    TernaryOpExpr (self.expression self c, self.expression self y, self.expression self n)
+
 (**/**)
 
 let default_mapper =

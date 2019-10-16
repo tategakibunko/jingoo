@@ -100,6 +100,9 @@ let rec value_of_expr env ctx = function
       value_of_expr env ctx body
     end (List.length arg_names)
 
+  | TernaryOpExpr (c, y, n) ->
+    if jg_is_true (value_of_expr env ctx c) then value_of_expr env ctx y else value_of_expr env ctx n
+
 and apply_name_of = function
   | IdentExpr(name) -> name
   | DotExpr(IdentExpr(name), prop) -> spf "%s.%s" name prop

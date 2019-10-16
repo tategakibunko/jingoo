@@ -67,6 +67,7 @@
 %token RBRACKET
 %token LBRACE
 %token RBRACE
+%token QUESTION
 %token COLON
 %token PLUS
 %token MINUS
@@ -88,6 +89,7 @@
 %token VLINE
 
 %right FATARROW
+%right QUESTION COLON
 %left OR
 %left AND
 %nonassoc IS IN
@@ -266,6 +268,7 @@ expr:
     in
     FunctionExpression(args, $3)
 }
+| expr QUESTION expr COLON expr { TernaryOpExpr ($1, $3, $5) }
 ;
 
 opt_args:
