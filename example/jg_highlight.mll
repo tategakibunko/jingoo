@@ -36,6 +36,7 @@ rule main = parse
     | "call"
     | "case"
     | "context"
+    | "default"
     | "elif"
     | "else"
     | "elseif"
