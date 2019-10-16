@@ -1,0 +1,5 @@
+{% switch foo %}
+  {%- case 'bar' || 'baz' %}1
+  {%- case 'foo' %}2
+  {%- default %}3
+{%- endswitch %}
