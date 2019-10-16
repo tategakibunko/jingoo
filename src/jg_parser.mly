@@ -185,10 +185,12 @@ stmt:
   }
 | SWITCH
   e=expr
+  ws=TEXT?
   cases=preceded(CASE, pair(expr, stmt*))*
   default=preceded(DEFAULT, stmt*)?
   ENDSWITCH
   {
+    (match ws with Some s -> assert (String.trim s = "") | None -> ()) ;
     let rec extract = function
       | OrOpExpr (e1, e2) -> extract e1 @ extract e2
       | e -> [e] in
