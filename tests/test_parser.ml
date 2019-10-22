@@ -44,4 +44,21 @@ let suite =
           "{{ true ? 1 : false ? 2 : 3 }}"
       end
 
+  ; "{% set +=, -=, *=, /=, %= %} 3" >:: begin fun _ctx ->
+      let aux op expr =
+        assert_eq
+          [ SetStatement ( SetExpr [ IdentExpr "x" ]
+                         , expr
+                             (IdentExpr "x")
+                             (PlusOpExpr ( LiteralExpr (Tint 2)
+                                         , LiteralExpr (Tint 2) ) ) ) ]
+          ("{% set x " ^ op ^ " 2 + 2 %}")
+      in
+      aux "+=" (fun a b -> PlusOpExpr (a , b) )
+    ; aux "-=" (fun a b -> MinusOpExpr (a , b) )
+    ; aux "*=" (fun a b -> TimesOpExpr (a , b) )
+    ; aux "/=" (fun a b -> DivOpExpr (a , b) )
+    ; aux "%=" (fun a b -> ModOpExpr (a , b) )
+    end
+
   ]
