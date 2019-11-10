@@ -511,6 +511,7 @@ let rec jg_eq_eq_aux left right =
         try unbox_bool @@ jg_apply (jg_obj_lookup left "__eq__") [ left ; right ]
         with _ -> false
       end
+    | Tnull, Tnull -> true
     | _, _ -> false
 
 and jg_array_eq_eq a1 a2 =

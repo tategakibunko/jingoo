@@ -317,7 +317,8 @@ let test_eq_eq _ctx =
   assert_equal_tvalue (jg_eq_eq (Tstr "hoge") (Tstr "hige")) (Tbool false);
   assert_equal_tvalue (jg_eq_eq (Tstr "日本語") (Tstr "日本語")) (Tbool true);
   assert_equal_tvalue (jg_eq_eq (Tstr "日本語") (Tstr "英語")) (Tbool false);
-  assert_equal_tvalue (jg_eq_eq (Tint 0) (Tstr "hoge")) (Tbool false)
+  assert_equal_tvalue (jg_eq_eq (Tint 0) (Tstr "hoge")) (Tbool false);
+  assert_equal_tvalue (jg_eq_eq Tnull Tnull) (Tbool true)
 
 let test_urlize _ctx =
   assert_equal_tvalue
