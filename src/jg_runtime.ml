@@ -168,13 +168,12 @@ let jg_escape_html str =
     | other -> Tstr(Jg_utils.escape_html @@ string_of_tvalue other)
 
 (**/**)
-let jg_apply ?(name="<lambda>") ?kwargs f args =
+let jg_apply ?kwargs f args =
   if args = [] then
     let fn = unbox_fun f in
     Tfun (fun ?kwargs:kw x -> fn ?kwargs:(merge_kwargs kwargs kw) x)
   else
-    try List.fold_left (fun fn a -> (unbox_fun fn) ?kwargs a) f args
-    with _ -> func_failure ~name ?kwargs args
+    List.fold_left (fun fn a -> (unbox_fun fn) ?kwargs a) f args
 
 let jg_apply_filters ?(autoescape=true) ?(safe=false) ctx text filters =
   let (safe, text) = List.fold_left (fun (safe, text) name ->
@@ -183,7 +182,7 @@ let jg_apply_filters ?(autoescape=true) ?(safe=false) ctx text filters =
     else if name = "escape" && autoescape = true then
       (safe, text)
     else
-      (safe, jg_apply (jg_get_func ctx name) [text] ~name)
+      (safe, jg_apply (jg_get_func ctx name) [text])
   ) (safe, text) filters in
   if safe || not autoescape then text else jg_escape_html text
 
