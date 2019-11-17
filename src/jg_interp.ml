@@ -87,7 +87,7 @@ let rec value_of_expr env ctx = function
     let kwargs = kwargs_of_app env ctx args in
     let callable = value_of_expr env ctx expr in
     (match callable with
-    | Tfun _ -> jg_apply callable nargs ~kwargs ~name
+    | Tfun _ -> jg_apply callable nargs ~kwargs
     | _ ->
       (match jg_get_macro ctx name with
        | Some macro -> ignore @@ eval_macro env ctx name nargs kwargs macro; Tnull

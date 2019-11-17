@@ -275,17 +275,17 @@ let func_no_kw ?name f n =
     let rec aux acc rem =
       Tfun
         (fun ?(kwargs=[]) x ->
-           if kwargs <> [] then func_failure ?name (List.rev @@ x :: acc)
+           if kwargs <> [] then func_failure ?name ~kwargs (List.rev @@ x :: acc)
            else if rem = 1 then f (List.rev @@ x :: acc)
            else aux (x :: acc) (rem - 1))
     in
     aux [] n
 
 let func_arg1_no_kw ?name f =
-  func_no_kw (function [ a ] -> f a | args -> func_failure ?name args) 1
+  func_no_kw ?name (function [ a ] -> f a | args -> func_failure ?name args) 1
 
 let func_arg2_no_kw ?name f =
-  func_no_kw (function [ a ; b ] -> f a b | args -> func_failure ?name args) 2
+  func_no_kw ?name (function [ a ; b ] -> f a b | args -> func_failure ?name args) 2
 
 let func_arg3_no_kw ?name f =
-  func_no_kw (function [ a ; b ; c ] -> f a b c | args -> func_failure ?name args) 3
+  func_no_kw ?name (function [ a ; b ; c ] -> f a b c | args -> func_failure ?name args) 3

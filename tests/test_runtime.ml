@@ -724,19 +724,19 @@ let test_func_arg1 _ctx =
   let jg_to_mail_bad = func_arg1_no_kw ~name:"to_mail_bad" (to_mail ~defaults:[("domain", Tstr "gmail.com")]) in
 
   assert_equal_tvalue
-    (jg_apply ~name:"to_mail"
+    (jg_apply
        ~kwargs:[("domain", Tstr "hotmail.com")]
        jg_to_mail [Tstr "foo"])
     (Tstr "foo@hotmail.com");
 
   assert_equal_tvalue
-    (jg_apply ~name:"to_mail_ex"
+    (jg_apply
        ~kwargs:[]
        jg_to_mail_bad [Tstr "foo"])
     (Tstr "foo@gmail.com");
 
   assert_raises (Failure "type error: to_mail_bad(domain=string,string)")
-    (fun _ -> ignore (jg_apply ~name:"to_mail_bad"
+    (fun _ -> ignore (jg_apply
                         ~kwargs:[("domain", Tstr "hotmail.com")]
                         jg_to_mail_bad [Tstr "foo"]))
 
