@@ -6,6 +6,7 @@
 
 version: 1.3.2
 ===========================
+* [PR#102] Improved error messages.
 * [PR#100] Added the ternary operator.
 * [PR#99] Parser: auto trimming TEXT just after SWITCH token.
 * [Issues#101] Fix null comparison.
