@@ -4,6 +4,10 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.3.3
+===========================
+o [PR#105] jg_list: support for Tobj, Added jg_unique filter.
+
 version: 1.3.2, 2019-12-11
 ===========================
 * [PR#103] Update opam's build instructions.
