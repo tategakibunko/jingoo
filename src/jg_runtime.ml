@@ -813,7 +813,20 @@ let jg_list value =
 	  iter (s1 :: ret) (i+1) in
       Tlist (iter [] 0)
     | Tarray a -> Tlist (Array.to_list a)
+    | Tobj o -> Tlist (List.map (fun (k, v) -> Tset [ Tstr k ; v ]) o)
     | _ -> failwith_type_error_1 "jg_list" value
+
+(** [jg_unique x] removes duplicates from a list [x]. *)
+let jg_unique = function
+  | Tlist l ->
+    let list =
+      let rec loop acc = function
+        | [] -> List.rev acc
+        | hd :: tl -> if List.mem hd acc then loop acc tl else loop (hd :: acc) tl
+      in loop [] l
+    in
+    Tlist list
+  | value -> failwith_type_error_1 "jg_unique" value
 
 (* FIXME: What if we do not want to fill last chunk? remove defaults? *)
 (** [jg_batch count value] split [value] into chunks containing [count] values.
@@ -1424,6 +1437,7 @@ let std_filters = [|
   ("reverse", func_arg1_no_kw jg_reverse);
   ("title", func_arg1_no_kw jg_title);
   ("trim", func_arg1_no_kw jg_trim);
+  ("unique", func_arg1_no_kw jg_unique);
   ("urlize", func_arg1_no_kw jg_urlize);
   ("wordcount", func_arg1_no_kw jg_wordcount);
   ("xmlattr", func_arg1_no_kw jg_xmlattr);
