@@ -767,6 +767,12 @@ let test_find _ctx =
   assert_equal_tvalue (Tint 0)
     (jg_find (func_arg1_no_kw (fun _ -> Tbool true)) l)
 
+let test_unique _ctx =
+  let lst1 = Tlist [Tint 1; Tint 2; Tint 3; Tint 2; Tint 1] in
+  let lst2 = Tlist [Tset [Tstr "taro"; Tint 20]; Tset [Tstr "jiro"; Tint 10]; Tset [Tstr "taro"; Tint 20]] in
+  assert_equal_tvalue (jg_unique lst1) (Tlist [Tint 1; Tint 2; Tint 3]);
+  assert_equal_tvalue (jg_unique lst2) (Tlist [Tset [Tstr "taro"; Tint 20]; Tset [Tstr "jiro"; Tint 10]])
+
 let suite = "runtime test" >::: [
   "test_escape" >:: test_escape;
   "test_string_of_tvalue" >:: test_string_of_tvalue;
@@ -850,4 +856,5 @@ let suite = "runtime test" >::: [
   "test_func_arg1" >:: test_func_arg1;
   "test_printf" >:: test_printf;
   "test_compose" >:: test_compose;
+  "test_unique" >:: test_unique;
 ]
