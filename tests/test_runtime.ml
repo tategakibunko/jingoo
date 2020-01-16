@@ -770,8 +770,14 @@ let test_find _ctx =
 let test_unique _ctx =
   let lst1 = Tlist [Tint 1; Tint 2; Tint 3; Tint 2; Tint 1] in
   let lst2 = Tlist [Tset [Tstr "taro"; Tint 20]; Tset [Tstr "jiro"; Tint 10]; Tset [Tstr "taro"; Tint 20]] in
+  let lst3 = Tlist [Tstr "foo"; Tstr "bar"; Tstr "日本語"; Tstr "漢字"; Tstr "hoge"] in
+  let is_same_str_len = func_arg2_no_kw @@ fun s1 s2 ->
+    let len1 = unbox_int (jg_length s1) in
+    let len2 = unbox_int (jg_length s2) in
+    Tbool (len1 = len2) in
   assert_equal_tvalue (jg_unique lst1) (Tlist [Tint 1; Tint 2; Tint 3]);
-  assert_equal_tvalue (jg_unique lst2) (Tlist [Tset [Tstr "taro"; Tint 20]; Tset [Tstr "jiro"; Tint 10]])
+  assert_equal_tvalue (jg_unique lst2) (Tlist [Tset [Tstr "taro"; Tint 20]; Tset [Tstr "jiro"; Tint 10]]);
+  assert_equal_tvalue (jg_unique lst3 ~kwargs:[("eq", is_same_str_len)]) (Tlist [Tstr "foo"; Tstr "漢字"; Tstr "hoge"])
 
 let suite = "runtime test" >::: [
   "test_escape" >:: test_escape;
