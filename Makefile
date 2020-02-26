@@ -1,10 +1,13 @@
 ROOT_DIR:="$(dir $(realpath $(lastword $(MAKEFILE_LIST))))"
 DUNE=dune
+ifdef PROFILE
+    DUNE_PROFILE=--profile $(PROFILE)
+endif
 
 .PHONY: all test doc install uninstall clean
 
 all:
-	$(DUNE) build
+	$(DUNE) build $(DUNE_PROFILE)
 
 %dune: %dune.in
 	sed -e "s|%%%ROOT_DIR%%%|$(ROOT_DIR)|g" $< > $@
@@ -13,7 +16,7 @@ test: tests/dune example/dune
 test: $(wildcard example/samples/*.expected)
 test: $(wildcard example/samples/*.json)
 test:
-	$(DUNE) build @runtest
+	$(DUNE) build $(DUNE_PROFILE) @runtest
 
 doc: example/dune example/templates/dune
 doc: $(wildcard example/templates/*.jingoo)
@@ -21,7 +24,7 @@ doc: $(wildcard example/samples/*.jingoo)
 doc: $(wildcard example/samples/*.expected)
 doc: $(wildcard example/samples/*.json)
 doc:
-	$(DUNE) build @doc
+	$(DUNE) build $(DUNE_PROFILE) @doc
 
 OCAML_DOC_DIR=_build/default/_doc/_html/
 TEMPLATES_DOC_DIR=_build/default/example/
@@ -50,7 +53,7 @@ gh-pages: doc
 	&& git checkout "$$branch"
 
 jingoo.install:
-	$(DUNE) build @install
+	$(DUNE) build $(DUNE_PROFILE) @install
 
 install: jingoo.install
 	$(DUNE) install jingoo
