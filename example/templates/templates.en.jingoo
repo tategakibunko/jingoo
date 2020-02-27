@@ -63,11 +63,11 @@
 
 {% set filter_names_list =
 [ 'abs', 'attr', 'batch', 'capitalize', 'compose', 'default', 'eq',
-'escape', 'eval', 'exists', 'find', 'float', 'fold', 'forall', 'ge',
-'groupby', 'gt', 'int', 'join', 'last', 'length', 'list', 'lower',
-'le', 'lt', 'map', 'max', 'md5', 'min', 'ne', 'nth', 'printf',
-'random', 'range', 'reject', 'replace', 'reverse', 'round', 'select',
-'slice', 'sort', 'split', 'striptag', 'strlen', 'sublist',
+'escape', 'eval', 'exists', 'find', 'flatten', 'float', 'fold',
+'forall', 'ge', 'groupby', 'gt', 'int', 'join', 'last', 'length',
+'list', 'lower', 'le', 'lt', 'map', 'max', 'md5', 'min', 'ne', 'nth',
+'printf', 'random', 'range', 'reject', 'replace', 'reverse', 'round',
+'select', 'slice', 'sort', 'split', 'striptag', 'strlen', 'sublist',
 'substring', 'sum', 'title', 'truncate', 'trim', 'upper', 'urlize',
 'wordcount', 'wordwrap', 'xmlattr' ] %}
 
@@ -315,6 +315,9 @@
       {% endcall %}
 
       {% call section ([ built_in_filters_section_title, 'float' ], '', false) %}
+      {% endcall %}
+
+      {% call section ([ built_in_filters_section_title, 'flatten' ], 'filter_flatten', false) %}
       {% endcall %}
 
       {% call section ([ built_in_filters_section_title, 'fold' ], '', false) %}
