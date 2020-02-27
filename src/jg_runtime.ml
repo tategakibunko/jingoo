@@ -1333,6 +1333,21 @@ let jg_compose f g = match f, g with
   | Tfun f, Tfun g -> Tfun (fun ?kwargs x -> f ?kwargs (g ?kwargs x))
   | _ -> failwith_type_error_2 "jg_compose" f g
 
+(** [jg_flatten [[1,2],[3,4]]] is [[1,2,3,4]]. *)
+let jg_flatten =
+  let aux fold_left x =
+    List.rev @@
+    fold_left begin fun acc -> function
+      | Tlist list -> List.rev_append list acc
+      | Tarray array -> Array.fold_right List.cons array acc
+      | x -> x :: acc
+    end [] x
+  in
+  function
+  | Tlist x -> Tlist (aux List.fold_left x)
+  | Tarray x -> Tlist (aux Array.fold_left x)
+  | x -> failwith_type_error_1 "jg_flatten" x
+
 (** [jg_test_divisibleby divisor dividend]
     tests if [dividend] is divisible by [divisor]. *)
 let jg_test_divisibleby num target =
@@ -1448,6 +1463,7 @@ let std_filters = [|
   ("wordcount", func_arg1_no_kw jg_wordcount);
   ("xmlattr", func_arg1_no_kw jg_xmlattr);
   ("pprint", func_arg1_no_kw jg_pprint);
+  ("flatten", func_arg1_no_kw jg_flatten);
 
   ("attr", func_arg2_no_kw jg_attr);
   ("batch", func_arg2 (jg_batch ?defaults:None));

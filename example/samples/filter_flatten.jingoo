@@ -1,0 +1,5 @@
+{%- set test = [[1,2],[3],4] | flatten -%}
+test[0]: {{ test[0] }}
+test[1]: {{ test[1] }}
+test[2]: {{ test[2] }}
+test[3]: {{ test[3] }}

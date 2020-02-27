@@ -779,6 +779,15 @@ let test_unique _ctx =
   assert_equal_tvalue (jg_unique lst2) (Tlist [Tset [Tstr "taro"; Tint 20]; Tset [Tstr "jiro"; Tint 10]]);
   assert_equal_tvalue (jg_unique lst3 ~kwargs:[("eq", is_same_str_len)]) (Tlist [Tstr "foo"; Tstr "漢字"; Tstr "hoge"])
 
+let test_flatten _ctx =
+  let test input =
+    assert_equal_tvalue
+      (Tlist [Tint 1; Tint 2; Tint 3])
+      (jg_flatten input)
+  in
+  test (Tlist [Tint 1; Tint 2; Tint 3]);
+  test (Tlist [Tlist [Tint 1]; Tarray [|Tint 2|]; Tint 3])
+
 let suite = "runtime test" >::: [
   "test_escape" >:: test_escape;
   "test_string_of_tvalue" >:: test_string_of_tvalue;
@@ -863,4 +872,5 @@ let suite = "runtime test" >::: [
   "test_printf" >:: test_printf;
   "test_compose" >:: test_compose;
   "test_unique" >:: test_unique;
+  "test_flatten" >:: test_flatten
 ]
