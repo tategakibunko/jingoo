@@ -83,11 +83,12 @@ let rec value_of_expr env ctx = function
 
   | ApplyExpr(expr, args) ->
     let name = apply_name_of expr in
-    let nargs = if args = [] then [ Tnull ] else nargs_of env ctx args in
+    let nargs = nargs_of env ctx args in
+    let nargs_fun = if args = [] then [ Tnull ] else nargs in
     let kwargs = kwargs_of_app env ctx args in
     let callable = value_of_expr env ctx expr in
     (match callable with
-    | Tfun _ -> jg_apply callable nargs ~kwargs
+    | Tfun _ -> jg_apply callable nargs_fun ~kwargs
     | _ ->
       (match jg_get_macro ctx name with
        | Some macro -> ignore @@ eval_macro env ctx name nargs kwargs macro; Tnull
@@ -282,7 +283,7 @@ and eval_statement env ctx = function
       let value = ref Tnull in
       let ctx = { ctx with serialize = true ; output = fun x -> value := x } in
       let ctx = jg_push_frame ctx in
-      ignore (jg_eval_aux ctx args kwargs macro @@ fun ctx ast ->
+      ignore (jg_eval_aux ctx name args kwargs macro @@ fun ctx ast ->
               List.fold_left (eval_statement env) ctx ast) ;
       !value
     in

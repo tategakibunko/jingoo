@@ -273,18 +273,37 @@ let jg_iter ctx iterator f iterable =
   | Tlist l | Tset l -> jg_iter_list ctx iterator f l
   | _ -> ()
 
-let jg_eval_aux ctx args kwargs macro f =
+let jg_eval_aux ctx macro_name args kwargs macro f =
   let Macro (arg_names, defaults, code) = macro in
   let arg_names_len = List.length arg_names in
+  let args_len = List.length args in
+  if args_len > arg_names_len then
+    failwith @@
+    Printf.sprintf
+      "macro or function '%s' received too many arguments \
+       (expected at most %d anonymous and %d named, but got %d anonymous)"
+      macro_name
+      arg_names_len
+      (List.length defaults)
+      args_len;
   let () =
     let values = Jg_utils.take arg_names_len args ~pad:Tnull in
     List.iter2 (jg_set_value ctx) arg_names values in
-  let () =
-    List.iter
-      (fun (name, value) ->
-         let value = try List.assoc name kwargs with Not_found -> value in
-         jg_set_value ctx name value )
-      defaults in
+  List.iter
+    (fun (name, value) ->
+      let value = try List.assoc name kwargs with Not_found -> value in
+      jg_set_value ctx name value )
+    defaults;
+  List.iter
+    (fun (name, _) ->
+       try ignore (List.assoc name defaults : tvalue)
+       with Not_found ->
+         failwith @@
+         Printf.sprintf
+           "macro or function '%s' received unknown named argument '%s'"
+           macro_name
+           name)
+    kwargs;
   f ctx code
 
 let jg_eval_macro ?(caller=false) ctx macro_name args kwargs macro f =
@@ -303,7 +322,7 @@ let jg_eval_macro ?(caller=false) ctx macro_name args kwargs macro f =
       | "caller" -> Tbool caller
       | _ -> raise Not_found
     ) in
-  ignore @@ jg_eval_aux ctx' args kwargs macro f;
+  ignore @@ jg_eval_aux ctx' macro_name args kwargs macro f;
   ctx
 
 let jg_test_defined_aux ctx name fn =
