@@ -6,6 +6,7 @@
 
 version: 1.3.4
 ===========================
+o [PR#110] Raise errors when macro gets called with unknown arguments.
 o [PR#109] Add support for capturing a block's output into a variable.
 o [PR#108] jg_runtime: added 'flatten' filter.
 
