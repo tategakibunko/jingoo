@@ -244,6 +244,10 @@ let merge_kwargs a b = match a, b with
   | None, x | x, None -> x
   | Some a, Some b -> Some ((List.filter (fun (x, _) -> not @@ List.mem_assoc x b) a) @ b)
 
+(*
+  [https://github.com/tategakibunko/jingoo/pull/69]
+  func f 3 = Tfun ?kws1 x -> Tfun ?kws2 y -> Tfun ?kws3 z -> f ?kwargs:(merge (merge (merge kws1 []) kws2) kws3) [x; y; z]
+*)
 let func f n =
   if n = 0 then Tfun (fun ?kwargs _ -> f ?kwargs [])
   else
