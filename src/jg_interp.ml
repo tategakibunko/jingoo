@@ -176,7 +176,7 @@ and eval_statement env ctx = function
       let value = ref [] in
       let ctx = { ctx with output = fun x -> value := x :: !value } in
       let ctx = jg_push_frame ctx in
-      ignore (jg_eval_aux ctx [] [] macro @@ fun ctx ast ->
+      ignore (jg_eval_aux ctx name [] [] macro @@ fun ctx ast ->
               List.fold_left (eval_statement env) ctx ast) ;
       String.concat "" (List.map string_of_tvalue (List.rev !value))
     in
