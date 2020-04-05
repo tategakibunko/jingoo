@@ -54,6 +54,7 @@ and tvalue =
   | Tarray of tvalue array
   | Tlazy of tvalue Lazy.t
   | Tvolatile of (unit -> tvalue)
+  | Tsafe of string
 [@@deriving show { with_path = false }]
 
 and kwargs = (string * tvalue) list
@@ -72,6 +73,7 @@ and statement =
   | ImportStatement of string * string option
   | FromImportStatement of string * (string * string option) list
   | SetStatement of expression * expression
+  | SetBlockStatement of string * ast
   | BlockStatement of string * ast
   | MacroStatement of string * arguments * ast
   | FilterStatement of string * ast
@@ -156,6 +158,7 @@ let type_string_of_tvalue = function
   | Tarray _ -> "array"
   | Tlazy _ -> "lazy"
   | Tvolatile _ -> "volatile"
+  | Tsafe _ -> "safe"
 
 let invalid_argument x name =
   raise @@ Invalid_argument (name ^ ":" ^ type_string_of_tvalue x)

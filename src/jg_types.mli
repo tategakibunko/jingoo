@@ -70,6 +70,7 @@ and tvalue =
   | Tarray of tvalue array
   | Tlazy of tvalue Lazy.t
   | Tvolatile of (unit -> tvalue)
+  | Tsafe of string
 
 and kwargs = (string * tvalue) list
 
@@ -88,6 +89,7 @@ and statement =
   | ImportStatement of string * string option
   | FromImportStatement of string * (string * string option) list
   | SetStatement of expression * expression
+  | SetBlockStatement of string * ast
   | BlockStatement of string * ast
   | MacroStatement of string * arguments * ast
   | FilterStatement of string * ast

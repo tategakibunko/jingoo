@@ -215,6 +215,7 @@ and main_bis = parse
   | "from" as s { token_or_str (s, FROM) main lexbuf }
   | "in" as s { token_or_str (s, IN) main lexbuf }
   | "set" as s { token_or_str (s, SET) main lexbuf }
+  | "endset" as s { token_or_str (s, ENDSET) main lexbuf }
   | "not" as s { token_or_str (s, NOT) main lexbuf }
   | "is" as s { token_or_str (s, IS) main lexbuf }
   | "with" as s { token_or_str (s, WITH) main lexbuf }

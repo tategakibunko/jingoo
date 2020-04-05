@@ -169,6 +169,19 @@ and eval_statement env ctx = function
       (Hashtbl.find ctx.namespace_table ns) v (value_of_expr env ctx expr) ;
     ctx
 
+  | SetBlockStatement(name, ast) ->
+    let macro = Macro ([], [], ast) in
+    let apply macro =
+      let value = ref [] in
+      let ctx = { ctx with output = fun x -> value := x :: !value } in
+      let ctx = jg_push_frame ctx in
+      ignore (jg_eval_aux ctx [] [] macro @@ fun ctx ast ->
+              List.fold_left (eval_statement env) ctx ast) ;
+      String.concat "" (List.map string_of_tvalue (List.rev !value))
+    in
+    jg_set_value ctx name (Tsafe (apply macro));
+    ctx
+
   | FilterStatement(name, ast) ->
     let ctx = jg_set_filter ctx name in
     let ctx = List.fold_left (eval_statement env) ctx ast in

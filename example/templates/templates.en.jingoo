@@ -208,6 +208,9 @@
         {% endblock %}
       {% endcall %}
 
+      {% call section ([ 'Statements', 'Variable assignment', 'Block capture' ], 'set_block', false) %}
+      {% endcall %}
+
       {% call section ([ 'Statements', 'Whitespace control' ], 'whitespace-control', false) %}
         <p class="p">Use {{ code ('{%-') }} to strip whitespaces <strong>before</strong> this token.</p>
         <p class="p">Use {{ code ('-%}') }} to strip whitespaces <strong>after</strong> this token.</p>

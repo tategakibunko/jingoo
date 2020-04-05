@@ -85,6 +85,7 @@ let rec string_of_tvalue ?(default = "") = function
   | Tarray _ -> "<array>"
   | Tlazy _ -> "<lazy>"
   | Tvolatile _ -> "<volatile>"
+  | Tsafe x -> x
 
 and string_of_obj default obj =
   string_of_tvalue ~default @@ jg_obj_lookup obj "__str__"
@@ -164,8 +165,9 @@ let jg_nth i value =
 (** [jg_escape_html x] escape [x] string representation using {!Jg_utils.escape_html} *)
 let jg_escape_html str =
   match str with
-    | Tstr str -> Tstr(Jg_utils.escape_html str)
-    | other -> Tstr(Jg_utils.escape_html @@ string_of_tvalue other)
+  | Tsafe str -> Tstr str
+  | Tstr str -> Tstr(Jg_utils.escape_html str)
+  | other -> Tstr(Jg_utils.escape_html @@ string_of_tvalue other)
 
 (**/**)
 let jg_apply ?kwargs f args =
@@ -354,6 +356,7 @@ let rec jg_is_true = function
   | Tarray a -> Array.length a > 0
   | Tlazy fn -> jg_is_true (Lazy.force fn)
   | Tvolatile fn -> jg_is_true (fn ())
+  | Tsafe x -> x <> ""
 
 let jg_not x =
   Tbool (not (jg_is_true x))

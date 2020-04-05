@@ -28,6 +28,12 @@ let dead_code_elimination stmts =
     | SetStatement (id, _) as s ->
       maybe_set id ;
       default_mapper.statement self s
+    | SetBlockStatement (id, _) as s ->
+      set_local id;
+      push_block id;
+      let s = default_mapper.statement self s in
+      pop_block () ;
+      s
     | ForStatement (ids, _, _) as s ->
       push_block "" ;
       List.iter set_local ids ;

@@ -74,6 +74,7 @@ let test jingoo_f =
       prerr_endline @@ expected ;
       prerr_endline @@ "--- Got: " ;
       prerr_endline @@ res ;
+      status := 1
   with e ->
     prerr_endline @@ "--- Failure: " ^ jingoo_f ;
     prerr_endline @@ Printexc.to_string e ;
