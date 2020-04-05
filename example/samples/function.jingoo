@@ -27,3 +27,7 @@ inv(reverse=true,'a','b').a = {{ (inv(reverse=true,'a','b')).a }}
 {% for x in [-1,0,1,2] | map (add_val, val=-2) -%}
   add_val(val=-2,{{x[0]}}) = {{x[1]}}
 {% endfor -%}
+
+{% function const () -%}{{ 4 }}{% endfunction -%}
+
+const() = {{ const () }}
