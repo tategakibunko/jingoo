@@ -79,6 +79,9 @@ and statement self stmt : statement = match stmt with
   | SetStatement (e1, e2) ->
     SetStatement (self.expression self e1, self.expression self e2)
 
+  | SetBlockStatement (n, ast) ->
+    SetBlockStatement (n, self.ast self ast)
+
   | BlockStatement (n, ast) ->
     BlockStatement (n, self.ast self ast)
 

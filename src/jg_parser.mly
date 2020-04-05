@@ -22,6 +22,7 @@
 %token ENDFOR
 %token IN
 %token SET
+%token ENDSET
 %token EXTENDS
 %token INCLUDE
 %token MACRO
@@ -160,6 +161,10 @@ stmt:
        assert ($4 = None) ;
        pel "set sts";
        SetStatement (SetExpr idents, exprs)
+  }
+| SET IDENT stmt* ENDSET
+  { pel "set_block";
+    SetBlockStatement($2, $3)
   }
 | EXTENDS STRING { pel "extends sts"; ExtendsStatement($2) }
 | BLOCK IDENT stmt* ENDBLOCK { pel "block sts2"; BlockStatement($2, $3) }

@@ -1,0 +1,19 @@
+{%- set list -%}
+{%- macro li (content) %}<li>{{ content }}</li>{% endmacro -%}
+{%- set item4 = '<Escaping works>' -%}
+<ol>
+  {{ li ('Item1') }}
+  {{ li ('Item2') }}
+  {{ li ('Item3') }}
+  {{ li (item4) }}
+</ol>
+{%- endset -%}
+
+Stored output:
+{{ list }}
+
+Variables defined inside block are not exposed:
+{{ item4 }}
+
+Stored output again:
+{{ list }}
