@@ -341,45 +341,6 @@ and replace_blocks stmts =
     let mapper = { default_mapper with statement } in
     mapper.ast mapper stmts
 
-(* Import macros into ctx and remove it from ast *)
-and import_macros env ctx stmts =
-  let open Jg_ast_mapper in
-  let select = ref None in
-  let namespace = ref None in
-  let macro_name name = match !namespace with Some namespace -> spf "%s.%s" namespace name | _ -> name in
-  let alias_name name = match !select with None -> name | Some alist -> List.assoc name alist in
-  let can_import name = match !select with None -> true | Some alist -> List.mem_assoc name alist in
-  let statement self = function
-
-    | MacroStatement(name, def_args, ast) when can_import name ->
-      let arg_names = ident_names_of_def def_args in
-      let kwargs = kwargs_of_def env ctx def_args in
-      jg_set_macro ctx (macro_name @@ alias_name name) @@ Macro(arg_names, kwargs, ast);
-      Statements []
-
-    | IncludeStatement(LiteralExpr(Tstr path), _) as stmt ->
-      ignore @@ self.ast self @@ ast_from_file ~env path;
-      stmt
-
-    | ImportStatement(path, namespace') ->
-      let old_namespace = !namespace in
-      let () = namespace := namespace' in
-      ignore @@ self.ast self @@ ast_from_file ~env path;
-      let () = namespace := old_namespace in
-      Statements []
-
-    | FromImportStatement(path, select_macros) ->
-      let alias_names = alias_names_of select_macros in
-      let old_select = !select in
-      let () = select := Some alias_names in
-      ignore @@ self.ast self @@ ast_from_file ~env path;
-      let () = select := old_select in
-      Statements []
-
-    | s -> default_mapper.statement self s in
-  let mapper = { default_mapper with statement } in
-  mapper.ast mapper stmts
-
 and get_file_path env file_name =
   Jg_utils.get_file_path file_name ~template_dirs:env.template_dirs
 
@@ -427,28 +388,97 @@ and ast_from_string string =
   try ast_from_lexbuf None lexbuf
   with SyntaxError e -> error e lexbuf
 
-and eval_aux ~env ~ctx ast =
-  let ast =
-    unfold_extends env ast
-    |> replace_blocks
-    |> import_macros env ctx in
-  ignore @@ List.fold_left (eval_statement env) ctx ast
+(* Remove macros from ast and return a list of them. *)
+let extract_macros env stmts =
+  let open Jg_ast_mapper in
+  let select = ref None in
+  let namespace = ref None in
+  let macros = ref [] in
+  let macro_name name = match !namespace with Some namespace -> spf "%s.%s" namespace name | _ -> name in
+  let alias_name name = match !select with None -> name | Some alist -> List.assoc name alist in
+  let can_import name = match !select with None -> true | Some alist -> List.mem_assoc name alist in
+  let statement self = function
 
-and from_file
+    | MacroStatement(name, def_args, ast) when can_import name ->
+      macros :=
+        (fun ctx ->
+           let arg_names = ident_names_of_def def_args in
+           let kwargs = kwargs_of_def env ctx def_args in
+           (macro_name @@ alias_name name), Macro(arg_names, kwargs, ast))
+        :: !macros;
+      Statements []
+
+    | IncludeStatement(LiteralExpr(Tstr path), _) as stmt ->
+      ignore @@ self.ast self @@ ast_from_file ~env path;
+      stmt
+
+    | ImportStatement(path, namespace') ->
+      let old_namespace = !namespace in
+      let () = namespace := namespace' in
+      ignore @@ self.ast self @@ ast_from_file ~env path;
+      let () = namespace := old_namespace in
+      Statements []
+
+    | FromImportStatement(path, select_macros) ->
+      let alias_names = alias_names_of select_macros in
+      let old_select = !select in
+      let () = select := Some alias_names in
+      ignore @@ self.ast self @@ ast_from_file ~env path;
+      let () = select := old_select in
+      Statements []
+
+    | s -> default_mapper.statement self s in
+  let mapper = { default_mapper with statement } in
+  let ast = mapper.ast mapper stmts in
+  let macros = List.rev !macros in
+  ast, macros
+
+module Loaded = struct
+  type t = environment * ast * (context -> string * macro) list
+
+  let load_aux ~env ast =
+    let ast, macros =
+      unfold_extends env ast
+      |> replace_blocks
+      |> extract_macros env
+    in
+    env, ast, macros
+
+  let from_file ?(env=std_env) file_name =
+    load_aux ~env @@ ast_from_file ~env file_name
+
+  let from_string ?(env=std_env) ?file_path:_ source =
+    load_aux ~env @@ ast_from_string source
+
+  let from_chan ?(env=std_env) ?file_path chan =
+    load_aux ~env @@ ast_from_chan file_path chan
+
+  let eval_aux (env, ast, macros) ~ctx =
+    List.iter (fun f ->
+      let macro_name, macro = f ctx in
+      jg_set_macro ctx macro_name macro)
+      macros;
+    ignore @@ List.fold_left (eval_statement env) ctx ast
+
+  let eval
+        (env, ast, macros)
+        ?(models=[]) ~output
+        ?(ctx = init_context ~env ~models ~output ()) () =
+    eval_aux (env, ast, macros) ~ctx
+end
+
+let from_file
     ?(env=std_env) ?(models=[]) ~output
     ?(ctx = init_context ~env ~models ~output ())
     file_name =
-  eval_aux ~env ~ctx @@
-    ast_from_file ~env file_name
+  Loaded.eval (Loaded.from_file ~env file_name) ~output ~ctx ()
 
-and from_string ?(env=std_env) ?(models=[]) ?file_path:_ ~output
+let from_string ?(env=std_env) ?(models=[]) ?file_path ~output
     ?(ctx = init_context ~env ~models ~output ())
     source =
-  eval_aux ~env ~ctx @@
-    ast_from_string source
+  Loaded.eval (Loaded.from_string ~env ?file_path source) ~output ~ctx ()
 
-and from_chan ?(env=std_env) ?(models=[]) ?file_path ~output
+let from_chan ?(env=std_env) ?(models=[]) ?file_path ~output
     ?(ctx = init_context ~env ~models ~output ())
     chan =
-  eval_aux ~env ~ctx @@
-    ast_from_chan file_path chan
+  Loaded.eval (Loaded.from_chan ~env ?file_path chan) ~output ~ctx ()
