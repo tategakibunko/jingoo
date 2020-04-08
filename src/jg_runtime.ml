@@ -298,13 +298,13 @@ let jg_eval_aux ctx macro_name args kwargs macro f =
     defaults;
   List.iter
     (fun (name, _) ->
-       try ignore (List.assoc name defaults : tvalue)
-       with Not_found ->
-         failwith @@
-         Printf.sprintf
-           "macro or function '%s' received unknown named argument '%s'"
-           macro_name
-           name)
+      if not @@ List.mem_assoc name defaults
+      then
+        failwith @@
+          Printf.sprintf
+          "macro or function '%s' received unknown named argument '%s'"
+          macro_name
+          name)
     kwargs;
   f ctx code
 
