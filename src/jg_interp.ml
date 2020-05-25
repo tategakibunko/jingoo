@@ -168,10 +168,8 @@ and eval_statement env ctx = function
     )
 
   | SetStatement(DotExpr(IdentExpr ns, v), expr) ->
-    begin match Hashtbl.find ctx.namespace_table ns with
-    | Custom _ -> ()
-    | Internal m -> Hashtbl.add m v (value_of_expr env ctx expr)
-    end;
+    Hashtbl.add
+      (Hashtbl.find ctx.namespace_table ns) v (value_of_expr env ctx expr) ;
     ctx
 
   | SetBlockStatement(name, ast) ->
@@ -294,7 +292,7 @@ and eval_statement env ctx = function
     let size = match List.length assign with 0 -> 10 | x -> x in
     let h = Hashtbl.create size in
     List.iter (fun (k, v) -> Hashtbl.add h k (value_of_expr env ctx v)) assign;
-    Hashtbl.add ctx.namespace_table ns (Internal h);
+    Hashtbl.add ctx.namespace_table ns h;
     ctx
 
   | FunctionStatement(name, def_args, ast) ->

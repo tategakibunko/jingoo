@@ -56,14 +56,17 @@ let jg_arrayp = function
 let jg_frame_table ctx f =
   let table = (Hashtbl.create 10) in
   f table;
-  {ctx with frame_stack = (Internal table)::ctx.frame_stack }
+  {ctx with frame_stack = (Hashtbl.find table)::ctx.frame_stack }
 
-let jg_set_value frame name value =
-  Hashtbl.add frame name value
+let jg_push_frame ctx frame =
+  {ctx with frame_stack = frame :: ctx.frame_stack}
 
-let jg_set_values ctx names values =
+let jg_set_value table name value =
+  Hashtbl.add table name value
+
+let jg_set_values table names values =
   let values = Jg_utils.take (List.length names) values ~pad:Tnull in
-  List.iter2 (jg_set_value ctx) names values
+  List.iter2 (jg_set_value table) names values
 
 let rec jg_force = function
   | Tlazy x -> jg_force (Lazy.force x)
@@ -98,22 +101,14 @@ and jg_bind_names table names values =
       jg_set_values table names (List.map (jg_obj_lookup values) names)
     | _ -> ()
 
-and jg_get_frame_value name = function
-  | Internal t -> Hashtbl.find t name
-  | Custom f -> f name
-
-
 and jg_get_value ctx name =
   let rec get_value name = function
     | frame :: rest ->
-      (try jg_force (jg_get_frame_value name frame)
+      (try jg_force (frame name)
        with Not_found -> get_value name rest)
     | [] ->
-      (try
-          (match Hashtbl.find ctx.namespace_table name with
-            | Internal t -> Thash t
-            | Custom _ -> Tnull)
-       with Not_found -> Tnull) in
+      (try Thash (Hashtbl.find ctx.namespace_table name)
+        with Not_found -> Tnull) in
   get_value name ctx.frame_stack
 
 and jg_obj_lookup obj prop_name =
@@ -1562,7 +1557,7 @@ let jg_load_extensions extensions =
 let jg_init_context ?(models=(fun _ -> Tnull)) output env =
   let top_frame = Hashtbl.create (Array.length std_filters + List.length env.filters + 2) in
   let ctx = {
-    frame_stack = [ Custom models ; Internal top_frame ];
+    frame_stack = [ models ; (Hashtbl.find top_frame) ];
     macro_table = Hashtbl.create 10;
     namespace_table = Hashtbl.create 10;
     active_filters = [];
