@@ -25,7 +25,9 @@ and context = {
   output : tvalue -> unit
 }
 
-and frame = (string, tvalue) Hashtbl.t [@printer fun fmt _ -> fprintf fmt "frame"]
+and frame =
+    | Custom of (string -> tvalue)
+    | Internal of (string, tvalue) Hashtbl.t [@printer fun fmt _ -> fprintf fmt "frame"]
 and macro = Macro of macro_arg_names * macro_defaults * macro_code
 and macro_arg_names = string list
 and macro_defaults = kwargs

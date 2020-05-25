@@ -96,8 +96,9 @@ let rec value_of_expr env ctx = function
 
   | FunctionExpression (arg_names, body) ->
     func begin fun ?kwargs:_ args ->
-      let ctx = jg_push_frame ctx in
-      List.iter2 (jg_set_value ctx) arg_names args ;
+      let ctx = jg_frame_table ctx (fun table ->
+        List.iter2 (jg_set_value table) arg_names args
+      ) in
       value_of_expr env ctx body
     end (List.length arg_names)
 
@@ -162,12 +163,15 @@ and eval_statement env ctx = function
     jg_output ctx (value_of_expr env ctx expr) ~autoescape:env.autoescape ~safe:(is_safe_expr expr)
 
   | SetStatement(SetExpr(ident_list), expr) ->
-    jg_bind_names ctx (ident_names_of ident_list) (value_of_expr env ctx expr) ;
-    ctx
+    jg_frame_table ctx (fun table ->
+      jg_bind_names table (ident_names_of ident_list) (value_of_expr env ctx expr)
+    )
 
   | SetStatement(DotExpr(IdentExpr ns, v), expr) ->
-    Hashtbl.add
-      (Hashtbl.find ctx.namespace_table ns) v (value_of_expr env ctx expr) ;
+    begin match Hashtbl.find ctx.namespace_table ns with
+    | Custom _ -> ()
+    | Internal m -> Hashtbl.add m v (value_of_expr env ctx expr)
+    end;
     ctx
 
   | SetBlockStatement(name, ast) ->
@@ -175,13 +179,17 @@ and eval_statement env ctx = function
     let apply macro =
       let value = ref [] in
       let ctx = { ctx with output = fun x -> value := x :: !value } in
-      let ctx = jg_push_frame ctx in
-      ignore (jg_eval_aux ctx name [] [] macro @@ fun ctx ast ->
-              List.fold_left (eval_statement env) ctx ast) ;
+      let ctx = jg_frame_table ctx (fun table ->
+        jg_eval_aux table name [] [] macro
+      ) in
+      let Macro (_, _, code) = macro in
+      ignore @@ List.fold_left (eval_statement env) ctx code;
       String.concat "" (List.map string_of_tvalue (List.rev !value))
     in
-    jg_set_value ctx name (Tsafe (apply macro));
-    ctx
+
+    jg_frame_table ctx (fun table ->
+      jg_set_value table name (Tsafe (apply macro))
+    )
 
   | FilterStatement(name, ast) ->
     let ctx = jg_set_filter ctx name in
@@ -264,8 +272,9 @@ and eval_statement env ctx = function
   | WithStatement(binds, ast) ->
     let names, values = List.split binds in
     let values = List.map (value_of_expr env ctx) values in
-    let ctx' = jg_push_frame ctx in
-    let () = jg_set_values ctx' names values in
+    let ctx' = jg_frame_table ctx (fun table ->
+      jg_set_values table names values
+    ) in
     ignore @@ List.fold_left (eval_statement env) ctx' ast ;
     ctx
 
@@ -285,7 +294,7 @@ and eval_statement env ctx = function
     let size = match List.length assign with 0 -> 10 | x -> x in
     let h = Hashtbl.create size in
     List.iter (fun (k, v) -> Hashtbl.add h k (value_of_expr env ctx v)) assign;
-    Hashtbl.add ctx.namespace_table ns h;
+    Hashtbl.add ctx.namespace_table ns (Internal h);
     ctx
 
   | FunctionStatement(name, def_args, ast) ->
@@ -295,14 +304,17 @@ and eval_statement env ctx = function
     let apply ~kwargs args =
       let value = ref Tnull in
       let ctx = { ctx with serialize = true ; output = fun x -> value := x } in
-      let ctx = jg_push_frame ctx in
-      ignore (jg_eval_aux ctx name args kwargs macro @@ fun ctx ast ->
-              List.fold_left (eval_statement env) ctx ast) ;
+      let ctx = jg_frame_table ctx (fun table ->
+        jg_eval_aux table name args kwargs macro
+      ) in
+      let Macro (_, _, code) = macro in
+      ignore @@ List.fold_left (eval_statement env) ctx code;
       !value
     in
     let fn = func (fun ?(kwargs=kwargs) args -> apply ~kwargs args) (List.length arg_names) in
-    jg_set_value ctx name fn ;
-    ctx
+    jg_frame_table ctx (fun table ->
+      jg_set_value table name fn
+    )
 
   | _ -> ctx
 
@@ -344,7 +356,7 @@ and replace_blocks stmts =
 and get_file_path env file_name =
   Jg_utils.get_file_path file_name ~template_dirs:env.template_dirs
 
-and init_context ?(env=std_env) ?(models=[]) ~output () =
+and init_context ?(env=std_env) ?(models=(fun _ -> Tnull)) ~output () =
   let extensions = env.extensions in
   jg_load_extensions extensions;
   jg_init_context ~models output env
@@ -462,23 +474,47 @@ module Loaded = struct
 
   let eval
         (env, ast, macros)
-        ?(models=[]) ~output
+        ?(models=(fun _ -> Tnull)) ~output
         ?(ctx = init_context ~env ~models ~output ()) () =
     eval_aux (env, ast, macros) ~ctx
 end
 
 let from_file
     ?(env=std_env) ?(models=[]) ~output
-    ?(ctx = init_context ~env ~models ~output ())
+    ?ctx
     file_name =
+
+    let ctx = match ctx with
+    | Some c -> c
+    | None ->
+      let models = fun x -> List.assoc x models in
+      init_context ~env ~models ~output ()
+    in
+
   Loaded.eval (Loaded.from_file ~env file_name) ~output ~ctx ()
 
 let from_string ?(env=std_env) ?(models=[]) ?file_path ~output
-    ?(ctx = init_context ~env ~models ~output ())
+    ?ctx
     source =
+
+    let ctx = match ctx with
+    | Some c -> c
+    | None ->
+      let models = fun x -> List.assoc x models in
+      init_context ~env ~models ~output ()
+    in
+
   Loaded.eval (Loaded.from_string ~env ?file_path source) ~output ~ctx ()
 
 let from_chan ?(env=std_env) ?(models=[]) ?file_path ~output
-    ?(ctx = init_context ~env ~models ~output ())
+    ?ctx
     chan =
+
+    let ctx = match ctx with
+    | Some c -> c
+    | None ->
+      let models = fun x -> List.assoc x models in
+      init_context ~env ~models ~output ()
+    in
+
   Loaded.eval (Loaded.from_chan ~env ?file_path chan) ~output ~ctx ()
