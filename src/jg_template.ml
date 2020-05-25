@@ -40,7 +40,8 @@ module Loaded = struct
   let from_file ?env file_name = Jg_interp.Loaded.from_file ?env file_name
   let from_string ?env source = Jg_interp.Loaded.from_string ?env source
 
-  let eval ?ctx ?(models=[]) t =
+  let eval ?ctx ?(models = []) t =
+    let models = fun x -> List.assoc x models in
     let buffer = Buffer.create 1024 in
     let output x = Buffer.add_string buffer (Jg_runtime.string_of_tvalue x) in
     let () = Jg_interp.Loaded.eval t ~models ~output ?ctx () in

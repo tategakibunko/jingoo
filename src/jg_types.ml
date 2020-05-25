@@ -19,13 +19,13 @@ type environment = {
 and context = {
   frame_stack : frame list;
   macro_table : (string, macro) Hashtbl.t; [@printer fun fmt _ -> fprintf fmt "macro_table"]
-  namespace_table : (string, frame) Hashtbl.t; [@printer fun fmt _ -> fprintf fmt "namespace_table"]
+  namespace_table : (string, (string, tvalue) Hashtbl.t) Hashtbl.t [@printer fun fmt _ -> fprintf fmt "namespace_table"];
   active_filters : string list;
   serialize: bool;
   output : tvalue -> unit
 }
 
-and frame = (string, tvalue) Hashtbl.t [@printer fun fmt _ -> fprintf fmt "frame"]
+and frame = (string -> tvalue)
 and macro = Macro of macro_arg_names * macro_defaults * macro_code
 and macro_arg_names = string list
 and macro_defaults = kwargs

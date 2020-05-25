@@ -53,17 +53,20 @@ let jg_arrayp = function
   | Tarray _ -> Tbool true
   | _ -> Tbool false
 
-let jg_push_frame ctx =
-  {ctx with frame_stack = (Hashtbl.create 10) :: ctx.frame_stack}
+let jg_frame_table ctx f =
+  let table = (Hashtbl.create 10) in
+  f table;
+  {ctx with frame_stack = (Hashtbl.find table)::ctx.frame_stack }
 
-let jg_set_value ctx name value =
-  match ctx.frame_stack with
-    | [] -> raise @@ Invalid_argument "jg_set_value"
-    | frame :: _ -> Hashtbl.add frame name value
+let jg_push_frame ctx frame =
+  {ctx with frame_stack = frame :: ctx.frame_stack}
 
-let jg_set_values ctx names values =
+let jg_set_value table name value =
+  Hashtbl.add table name value
+
+let jg_set_values table names values =
   let values = Jg_utils.take (List.length names) values ~pad:Tnull in
-  List.iter2 (jg_set_value ctx) names values
+  List.iter2 (jg_set_value table) names values
 
 let rec jg_force = function
   | Tlazy x -> jg_force (Lazy.force x)
@@ -90,22 +93,22 @@ let rec string_of_tvalue ?(default = "") = function
 and string_of_obj default obj =
   string_of_tvalue ~default @@ jg_obj_lookup obj "__str__"
 
-and jg_bind_names ctx names values =
+and jg_bind_names table names values =
   match names, values with
-    | [name], value -> jg_set_value ctx name value
-    | _, Tset values -> jg_set_values ctx names values
+    | [name], value -> jg_set_value table name value
+    | _, Tset values -> jg_set_values table names values
     | _, (Tobj _ | Thash _ | Tpat _) ->
-      jg_set_values ctx names (List.map (jg_obj_lookup values) names)
+      jg_set_values table names (List.map (jg_obj_lookup values) names)
     | _ -> ()
 
 and jg_get_value ctx name =
   let rec get_value name = function
     | frame :: rest ->
-      (try jg_force (Hashtbl.find frame name)
+      (try jg_force (frame name)
        with Not_found -> get_value name rest)
     | [] ->
       (try Thash (Hashtbl.find ctx.namespace_table name)
-       with Not_found -> Tnull) in
+        with Not_found -> Tnull) in
   get_value name ctx.frame_stack
 
 and jg_obj_lookup obj prop_name =
@@ -210,9 +213,8 @@ let jg_length_aux x =
 let jg_iter_loop_var len ctx =
   let i = ref 0 in
   let cycle = func_arg1_no_kw (fun set -> jg_nth_aux set (!i mod jg_length_aux set)) in
-  let ctx = jg_push_frame ctx in
-  let () =
-    jg_set_value ctx "loop" @@
+  let ctx = jg_frame_table ctx (fun table ->
+    jg_set_value table "loop" @@
     Tpat (function
         | "index0" -> Tint !i
         | "index" -> Tint (!i + 1)
@@ -223,13 +225,13 @@ let jg_iter_loop_var len ctx =
         | "length" -> Tint len
         | "cycle" -> cycle
         | _ -> raise Not_found
-      ) in
+      )
+  ) in
   (ctx, i)
 
 let jg_iter_mk_ctx ctx iterator itm =
-  let ctx = jg_push_frame ctx in
-  let () = jg_bind_names ctx iterator itm in
-  ctx
+  jg_frame_table ctx (fun table ->
+    jg_bind_names table iterator itm)
 
 let jg_iter_hash ctx iterator f h =
   let (ctx, i) = jg_iter_loop_var (Hashtbl.length h) ctx in
@@ -275,8 +277,8 @@ let jg_iter ctx iterator f iterable =
   | Tlist l | Tset l -> jg_iter_list ctx iterator f l
   | _ -> ()
 
-let jg_eval_aux ctx macro_name args kwargs macro f =
-  let Macro (arg_names, defaults, code) = macro in
+let jg_eval_aux table macro_name args kwargs macro =
+  let Macro (arg_names, defaults, _) = macro in
   let arg_names_len = List.length arg_names in
   let args_len = List.length args in
   if args_len > arg_names_len then
@@ -290,11 +292,11 @@ let jg_eval_aux ctx macro_name args kwargs macro f =
       args_len;
   let () =
     let values = Jg_utils.take arg_names_len args ~pad:Tnull in
-    List.iter2 (jg_set_value ctx) arg_names values in
+    List.iter2 (jg_set_value table) arg_names values in
   List.iter
     (fun (name, value) ->
       let value = try List.assoc name kwargs with Not_found -> value in
-      jg_set_value ctx name value )
+      jg_set_value table name value )
     defaults;
   List.iter
     (fun (name, _) ->
@@ -305,26 +307,28 @@ let jg_eval_aux ctx macro_name args kwargs macro f =
           "macro or function '%s' received unknown named argument '%s'"
           macro_name
           name)
-    kwargs;
-  f ctx code
+    kwargs
 
 let jg_eval_macro ?(caller=false) ctx macro_name args kwargs macro f =
   let Macro (arg_names, defaults, _) = macro in
   let args_len = List.length args in
   let arg_names_len = List.length arg_names in
-  let ctx' = jg_push_frame ctx in
-  let () = jg_set_value ctx' "varargs" @@ Tlist (Jg_utils.after arg_names_len args) in
-  let () = jg_set_value ctx' "kwargs" @@ Tobj kwargs in
-  let () = jg_set_value ctx' macro_name @@ Tpat (function
-      | "name" -> Tstr macro_name
-      | "arguments" -> Tlist (List.map box_string arg_names)
-      | "defaults" -> Tobj defaults
-      | "catch_kwargs" -> Tbool (kwargs <> [])
-      | "catch_vargs" -> Tbool (args_len > arg_names_len)
-      | "caller" -> Tbool caller
-      | _ -> raise Not_found
-    ) in
-  ignore @@ jg_eval_aux ctx' macro_name args kwargs macro f;
+  let ctx' = jg_frame_table ctx (fun table ->
+    let () = jg_set_value table "varargs" @@ Tlist (Jg_utils.after arg_names_len args) in
+    let () = jg_set_value table "kwargs" @@ Tobj kwargs in
+    let () = jg_set_value table macro_name @@ Tpat (function
+        | "name" -> Tstr macro_name
+        | "arguments" -> Tlist (List.map box_string arg_names)
+        | "defaults" -> Tobj defaults
+        | "catch_kwargs" -> Tbool (kwargs <> [])
+        | "catch_vargs" -> Tbool (args_len > arg_names_len)
+        | "caller" -> Tbool caller
+        | _ -> raise Not_found
+      ) in
+    jg_eval_aux table macro_name args kwargs macro
+  ) in
+  let Macro (_, _, code) = macro in
+  ignore @@ f ctx' code;
   ctx
 
 let jg_test_defined_aux ctx name fn =
@@ -1550,18 +1554,16 @@ let jg_load_extensions extensions =
     {!module:Jg_interp}.
     See {!type:Jg_types.context}.
 *)
-let jg_init_context ?(models=[]) output env =
-  let model_frame = Hashtbl.create (List.length models) in
+let jg_init_context ?(models=(fun _ -> Tnull)) output env =
   let top_frame = Hashtbl.create (Array.length std_filters + List.length env.filters + 2) in
   let ctx = {
-    frame_stack = [ model_frame ; top_frame ];
+    frame_stack = [ models ; (Hashtbl.find top_frame) ];
     macro_table = Hashtbl.create 10;
     namespace_table = Hashtbl.create 10;
     active_filters = [];
     serialize = false;
     output
   } in
-  List.iter (fun (n, v) -> Hashtbl.add model_frame n v) models;
   Array.iter (fun (n, v) -> Hashtbl.add top_frame n v) std_filters;
   List.iter (fun (n, v) -> Hashtbl.add top_frame n v) env.filters;
   Hashtbl.add top_frame "jg_is_autoescape" (Tbool env.autoescape);
