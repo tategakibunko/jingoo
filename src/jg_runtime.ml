@@ -53,13 +53,13 @@ let jg_arrayp = function
   | Tarray _ -> Tbool true
   | _ -> Tbool false
 
+let jg_push_frame ctx frame =
+  {ctx with frame_stack = frame :: ctx.frame_stack}
+
 let jg_frame_table ctx f =
   let table = (Hashtbl.create 10) in
   f table;
-  {ctx with frame_stack = (Hashtbl.find table)::ctx.frame_stack }
-
-let jg_push_frame ctx frame =
-  {ctx with frame_stack = frame :: ctx.frame_stack}
+  jg_push_frame ctx (Hashtbl.find table)
 
 let jg_set_value table name value =
   Hashtbl.add table name value
@@ -213,19 +213,20 @@ let jg_length_aux x =
 let jg_iter_loop_var len ctx =
   let i = ref 0 in
   let cycle = func_arg1_no_kw (fun set -> jg_nth_aux set (!i mod jg_length_aux set)) in
-  let ctx = jg_frame_table ctx (fun table ->
-    jg_set_value table "loop" @@
-    Tpat (function
-        | "index0" -> Tint !i
-        | "index" -> Tint (!i + 1)
-        | "revindex0" -> Tint (len - !i - 1)
-        | "revindex" -> Tint (len - !i)
-        | "first" -> Tbool (!i = 0)
-        | "last" -> Tbool (!i = len-1)
-        | "length" -> Tint len
-        | "cycle" -> cycle
-        | _ -> raise Not_found
-      )
+  let ctx = jg_push_frame ctx (function
+    | "loop" ->
+       Tpat (function
+       | "index0" -> Tint !i
+       | "index" -> Tint (!i + 1)
+       | "revindex0" -> Tint (len - !i - 1)
+       | "revindex" -> Tint (len - !i)
+       | "first" -> Tbool (!i = 0)
+       | "last" -> Tbool (!i = len-1)
+       | "length" -> Tint len
+       | "cycle" -> cycle
+       | _ -> raise Not_found
+       )
+    | _ -> raise Not_found
   ) in
   (ctx, i)
 
