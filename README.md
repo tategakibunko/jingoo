@@ -2,7 +2,7 @@
 
 ## About jingoo
 
-Jingoo is OCaml template engine almost compatible with Jinja2(python template engine).
+Jingoo is OCaml template engine almost compatible with [Jinja2](https://github.com/pallets/jinja/)(python template engine).
 
 ## Install
 
