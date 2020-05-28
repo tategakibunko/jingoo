@@ -7,3 +7,6 @@
 
 "a" + "b" = ab
 1234
+({a:"foo"} + {b:"bar"}).a = foo
+({a:"foo"} + {b:"bar"}).b = bar
+({a:"foo"} + {a:"bar"}).a = bar

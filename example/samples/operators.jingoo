@@ -7,3 +7,6 @@
 
 "a" + "b" = {{ "a" + "b" }}
 {% for i in [1,2] + [3,4] %}{{i}}{% endfor %}
+({a:"foo"} + {b:"bar"}).a = {{ ({a:"foo"} + {b:"bar"}).a }}
+({a:"foo"} + {b:"bar"}).b = {{ ({a:"foo"} + {b:"bar"}).b }}
+({a:"foo"} + {a:"bar"}).a = {{ ({a:"foo"} + {a:"bar"}).a }}
