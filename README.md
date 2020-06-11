@@ -52,6 +52,10 @@ let result2 = Jg_template.from_file "hello.jingoo" ~models:[("msg", Jg_types.Tst
   <li><a href="{{ user.url }}">{{ user.name }}(age = {{ user.age }})</a></li>
 {% endfor %}
 </ul>
+
+{% if is_debug %}
+<p>this is debug mode!</p>
+{% endif %}
 ```
 
 ### output template
@@ -61,6 +65,7 @@ open Jingoo
 
 let result = Jg_template.from_file "sample.jingoo" ~models:[
   ("title", Jg_types.Tstr "more detailed example");
+  ("is_debug", Jg_types.Tbool true);
   ("users", Jg_types.Tlist [
     Jg_types.Tobj [
       ("name", Tstr "taro");
