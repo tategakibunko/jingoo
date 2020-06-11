@@ -40,6 +40,42 @@ let result = Jg_template.from_string "{{ msg }}" ~models:[("msg", Jg_types.Tstr 
 let result2 = Jg_template.from_file "hello.jingoo" ~models:[("msg", Jg_types.Tstr "hello, world!")]
 ```
 
+### More detailed example
+
+### template code exmple
+
+```jinja2
+{# sample.jingoo #}
+<h1>{{ title }}</h1>
+<ul>
+{% for user in users %}
+  <li><a href="{{ user.url }}">{{ user.name }}(age = {{ user.age }})</a></li>
+{% endfor %}
+</ul>
+```
+
+### output template
+
+```ocaml
+open Jingoo
+
+let result = Jg_template.from_file "sample.jingoo" ~models:[
+  ("title", Jg_types.Tstr "more detailed example");
+  ("users", Jg_types.Tlist [
+    Jg_types.Tobj [
+      ("name", Tstr "taro");
+      ("url", Tstr "https://example.com");
+      ("age", Tint 20);
+    ];
+    Jg_types.Tobj [
+      ("name", Tstr "jiro");
+      ("url", Tstr "https://example2.com");
+      ("age", Tint 10);
+    ];
+  ])
+]
+```
+
 ### Custom filter example
 
 Set your custom filter to `filters` field of environment.
