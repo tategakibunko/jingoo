@@ -68,14 +68,14 @@ let result = Jg_template.from_file "sample.jingoo" ~models:[
   ("is_debug", Jg_types.Tbool true);
   ("users", Jg_types.Tlist [
     Jg_types.Tobj [
-      ("name", Tstr "taro");
-      ("url", Tstr "https://example.com");
-      ("age", Tint 20);
+      ("name", Jg_types.Tstr "taro");
+      ("url", Jg_types.Tstr "https://example.com");
+      ("age", Jg_types.Tint 20);
     ];
     Jg_types.Tobj [
-      ("name", Tstr "jiro");
-      ("url", Tstr "https://example2.com");
-      ("age", Tint 10);
+      ("name", Jg_types.Tstr "jiro");
+      ("url", Jg_types.Tstr "https://example2.com");
+      ("age", Jg_types.Tint 10);
     ];
   ])
 ]
