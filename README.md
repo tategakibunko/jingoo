@@ -47,6 +47,7 @@ let result2 = Jg_template.from_file "hello.jingoo" ~models:[("msg", Jg_types.Tst
 ```jinja2
 {# sample.jingoo #}
 <h1>{{ title }}</h1>
+
 <ul>
 {% for user in users %}
   <li><a href="{{ user.url }}">{{ user.name }}(age = {{ user.age }})</a></li>
