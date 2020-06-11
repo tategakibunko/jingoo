@@ -42,7 +42,7 @@ let result2 = Jg_template.from_file "hello.jingoo" ~models:[("msg", Jg_types.Tst
 
 ### More detailed example
 
-### template code exmple
+### template code
 
 ```jinja2
 {# sample.jingoo #}
@@ -59,7 +59,7 @@ let result2 = Jg_template.from_file "hello.jingoo" ~models:[("msg", Jg_types.Tst
 {% endif %}
 ```
 
-### output template
+### ocaml code
 
 ```ocaml
 open Jingoo
