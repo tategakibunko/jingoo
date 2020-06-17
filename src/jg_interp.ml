@@ -477,42 +477,49 @@ module Loaded = struct
     eval_aux (env, ast, macros) ~ctx
 end
 
+let create_models = function
+  | `Alist alist -> fun key -> List.assoc key alist (* alist -> closure *)
+  | `Closure fn -> fn
+
+let select_context ?(env=std_env) ~models ~output ctx =
+  match ctx with
+  | Some c -> c
+  | None -> init_context ~env ~models:(create_models models) ~output ()
+
 let from_file
     ?(env=std_env) ?(models=[]) ~output
     ?ctx
     file_name =
+  let ctx = select_context ~env ~models:(`Alist models) ~output ctx in
+  Loaded.eval (Loaded.from_file ~env file_name) ~output ~ctx ()
 
-    let ctx = match ctx with
-    | Some c -> c
-    | None ->
-      let models = fun x -> List.assoc x models in
-      init_context ~env ~models ~output ()
-    in
-
+let from_file_ex
+    ?(env=std_env) ?(models=fun _ -> Tnull) ~output
+    ?ctx
+    file_name =
+  let ctx = select_context ~env ~models:(`Closure models) ~output ctx in
   Loaded.eval (Loaded.from_file ~env file_name) ~output ~ctx ()
 
 let from_string ?(env=std_env) ?(models=[]) ?file_path ~output
     ?ctx
     source =
+  let ctx = select_context ~env ~models:(`Alist models) ~output ctx in
+  Loaded.eval (Loaded.from_string ~env ?file_path source) ~output ~ctx ()
 
-    let ctx = match ctx with
-    | Some c -> c
-    | None ->
-      let models = fun x -> List.assoc x models in
-      init_context ~env ~models ~output ()
-    in
-
+let from_string_ex ?(env=std_env) ?(models=fun _ -> Tnull) ?file_path ~output
+    ?ctx
+    source =
+  let ctx = select_context ~env ~models:(`Closure models) ~output ctx in
   Loaded.eval (Loaded.from_string ~env ?file_path source) ~output ~ctx ()
 
 let from_chan ?(env=std_env) ?(models=[]) ?file_path ~output
     ?ctx
     chan =
+  let ctx = select_context ~env ~models:(`Alist models) ~output ctx in
+  Loaded.eval (Loaded.from_chan ~env ?file_path chan) ~output ~ctx ()
 
-    let ctx = match ctx with
-    | Some c -> c
-    | None ->
-      let models = fun x -> List.assoc x models in
-      init_context ~env ~models ~output ()
-    in
-
+let from_chan_ex ?(env=std_env) ?(models=fun _ -> Tnull) ?file_path ~output
+    ?ctx
+    chan =
+  let ctx = select_context ~env ~models:(`Closure models) ~output ctx in
   Loaded.eval (Loaded.from_chan ~env ?file_path chan) ~output ~ctx ()

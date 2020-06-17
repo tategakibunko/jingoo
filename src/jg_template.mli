@@ -25,6 +25,18 @@ val from_file :
     [("msg", Tstr "hello, world!"); ("count", Tint 100); ]
 *)
 
+val from_file_ex :
+  ?env:environment ->
+  ?ctx:context ->
+  ?models:(string -> tvalue) ->
+  string ->
+  string
+(** [from_file_ex env models template_filename]
+    return result string.
+
+    same as from_file but [models] is closure(model getter).
+*)
+
 val from_chan :
   ?env:environment ->
   ?ctx:context ->
@@ -35,6 +47,18 @@ val from_chan :
     return result string.
 
     same as from_file but read template from {!type:Stdlib.in_channel}.
+*)
+
+val from_chan_ex :
+  ?env:environment ->
+  ?ctx:context ->
+  ?models:(string -> tvalue) ->
+  in_channel ->
+  string
+(** [from_chan_ex env models chan]
+    return result string.
+
+    same as from_chan but [models] is closure(model getter).
 *)
 
 val from_string :
@@ -49,6 +73,18 @@ val from_string :
     same as from_file but read template from source string.
 
     nomally, this context is used internal parsing.
+*)
+
+val from_string_ex :
+  ?env:environment ->
+  ?ctx:context ->
+  ?models:(string -> tvalue) ->
+  string ->
+  string
+(** [from_string_ex env context models source_string]
+    return result string.
+
+    same as from_string but [models] is closure(model getter).
 *)
 
 module Loaded : sig

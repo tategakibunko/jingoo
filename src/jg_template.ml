@@ -14,10 +14,21 @@ type 'a internal_interp = ?env:Jg_types.environment ->
     ?ctx:Jg_types.context ->
     'a -> unit
 
+type 'a internal_interp_ex = ?env:Jg_types.environment ->
+    ?models:(string -> Jg_types.tvalue) ->
+    output:(tvalue -> unit) ->
+    ?ctx:Jg_types.context ->
+    'a -> unit
+
 (** Externally, interpretted result is outputed as string. *)
 type 'a external_interp = ?env:Jg_types.environment ->
     ?ctx:Jg_types.context ->
     ?models:(string * Jg_types.tvalue) list ->
+    'a -> string
+
+type 'a external_interp_ex = ?env:Jg_types.environment ->
+    ?ctx:Jg_types.context ->
+    ?models:(string -> Jg_types.tvalue) ->
     'a -> string
 
 let content (fn : 'a internal_interp) : 'a external_interp =
@@ -27,11 +38,24 @@ let content (fn : 'a internal_interp) : 'a external_interp =
     let () = fn ~env ~models ~output ?ctx arg in
     Buffer.contents buffer
 
+let content_ex (fn : 'a internal_interp_ex) : 'a external_interp_ex =
+  fun ?(env=std_env) ?ctx ?(models=fun _ -> Tnull) (arg:'a) ->
+    let buffer = Buffer.create 1024 in
+    let output x = Buffer.add_string buffer (Jg_runtime.string_of_tvalue x) in
+    let () = fn ~env ~models ~output ?ctx arg in
+    Buffer.contents buffer
+
 let from_chan = content (Jg_interp.from_chan ?file_path:None)
+
+let from_chan_ex = content_ex (Jg_interp.from_chan_ex ?file_path:None)
 
 let from_file = content Jg_interp.from_file
 
+let from_file_ex = content_ex Jg_interp.from_file_ex
+
 let from_string = content (Jg_interp.from_string ?file_path:None)
+
+let from_string_ex = content_ex (Jg_interp.from_string_ex ?file_path:None)
 
 module Loaded = struct
   type t = Jg_interp.Loaded.t
