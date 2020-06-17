@@ -114,18 +114,12 @@ module Loaded : sig
       same as from_file but read template from source string.
   *)
 
-  val eval : ?ctx:context -> ?models:(string * tvalue) list -> t -> string
+  val eval : ?ctx:context -> ?models:(string -> tvalue) -> t -> string
   (** [eval context models t] evaluates the loaded template in the given context
-      with the given models.
+      with the given models(defined by closure).
       return result string.
 
       [models] is variable table for template. for example,
       [("msg", Tstr "hello, world!"); ("count", Tint 100); ]
-  *)
-
-  val eval_ex : ?ctx:context -> ?models:(string -> tvalue) -> t -> string
-  (** [eval_ex context models t] evaluates the loaded template in the given context
-
-      same as eval but [models] is closure(model getter).
   *)
 end
