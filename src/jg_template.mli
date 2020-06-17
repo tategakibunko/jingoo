@@ -122,4 +122,10 @@ module Loaded : sig
       [models] is variable table for template. for example,
       [("msg", Tstr "hello, world!"); ("count", Tint 100); ]
   *)
+
+  val eval_ex : ?ctx:context -> ?models:(string -> tvalue) -> t -> string
+  (** [eval_ex context models t] evaluates the loaded template in the given context
+
+      same as eval but [models] is closure(model getter).
+  *)
 end
