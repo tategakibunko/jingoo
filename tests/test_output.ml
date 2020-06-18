@@ -247,6 +247,14 @@ let test_closure_models test_ctxt =
   assert_interp2 ~test_ctxt ~models "{{ name }}" "taro"
 ;;
 
+let test_function_models test_ctxt =
+  assert_interp2 ~test_ctxt ~models:(function
+  | "name" -> Tstr "taro"
+  | "age" -> Tint 10
+  | _ -> Tnull
+  ) "{{ name }}(age {{ age }})" "taro(age 10)"
+;;
+
 let suite = "runtime test" >::: [
   "test_expand_escape" >:: test_expand_escape;
   "test_expand_safe" >:: test_expand_safe;
@@ -277,6 +285,7 @@ let suite = "runtime test" >::: [
   "test_white_space_control" >:: test_white_space_control;
   "test_invalid_iterable" >:: test_invalid_iterable;
   "test_pprint" >:: test_pprint;
-  "test_closure_model" >:: test_closure_models;
+  "test_closure_models" >:: test_closure_models;
+  "test_function_models" >:: test_function_models;
 ]
 ;;
