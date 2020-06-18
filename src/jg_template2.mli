@@ -19,8 +19,9 @@ val from_file :
 
     default of [ctx] is None.
 
-    [models] is model getter(closure in most cases). For example,
+    [models] is getter function for some data-sources. For example,
     let models = fun key -> List.assoc key [("name", Tstr "taro"); ("age", Tint 20)]
+    let models2 = function "name" -> Tstr "taro" | "age" -> Tint 20 | _ -> Tnull
 *)
 
 val from_chan :
@@ -81,7 +82,8 @@ module Loaded : sig
       with the given models(defined by closure).
       return result string.
 
-      [models] is model getter(closure in most cases). For example,
+      [models] is getter function for some data-sources. For example,
       let models = fun key -> List.assoc key [("name", Tstr "taro"); ("age", Tint 20)]
+      let models2 = function "name" -> Tstr "taro" | "age" -> Tint 20 | _ -> Tnull
   *)
 end

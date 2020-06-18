@@ -45,6 +45,13 @@ let result3 = Jg_template2.from_string "{{ msg }}(random value = {{ randam_int }
  | "randam_int" -> Jg_types.Tint (Random.int 100)
  | _ -> Jg_types.Tnull
 )
+
+(* or you can use closure for models by using Jg_template2 module *)
+let hash = Hashtbl.create 10 in
+let () = Hashtbl.add hash "msg" (Jg_types.Tstr "hello, world!") in
+let result4 = Jg_template2.from_string "{{ msg }}" ~models:(fun key ->
+  try Hashtbl.find hash key with Not_found -> Tnull
+)
 ```
 
 ### More detailed example
