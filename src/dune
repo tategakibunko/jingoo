@@ -19,6 +19,7 @@
     jg_runtime
     jg_interp
     jg_template
+    jg_template2
   )
 )
 

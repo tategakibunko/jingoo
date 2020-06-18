@@ -11,8 +11,8 @@ let assert_interp ~test_ctxt ?(env=std_env) ?(models=[]) source expected =
   assert_eq_string expected output
 ;;
 
-let assert_interp_ex ~test_ctxt ?(env=std_env) ?(models=fun _ -> Tnull) source expected =
-  let output = Jg_template.from_string_ex source ~env ~models in
+let assert_interp2 ~test_ctxt ?(env=std_env) ?(models=fun _ -> Tnull) source expected =
+  let output = Jg_template2.from_string source ~env ~models in
   logf test_ctxt `Info "Source: %S" source;
   logf test_ctxt `Info "Output: %S" output;
   assert_eq_string expected output
@@ -244,7 +244,7 @@ let test_closure_models test_ctxt =
   let hash = Hashtbl.create 1 in
   let () = Hashtbl.add hash "name" (Tstr "taro") in
   let models key = try Hashtbl.find hash key with Not_found -> Tnull in
-  assert_interp_ex ~test_ctxt ~models "{{ name }}" "taro"
+  assert_interp2 ~test_ctxt ~models "{{ name }}" "taro"
 ;;
 
 let suite = "runtime test" >::: [

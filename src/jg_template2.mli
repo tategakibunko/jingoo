@@ -1,16 +1,14 @@
 (*
-  jg_template.mli
+  This is reviced version of Jg_template.
 
-  Copyright (c) 2012 - by Masaki WATANABE
-
-  License: see LICENSE
+  https://github.com/tategakibunko/jingoo/issues/112
 *)
 open Jg_types
 
 val from_file :
   ?env:environment ->
   ?ctx:context ->
-  ?models:(string * tvalue) list ->
+  ?models:(string -> tvalue) ->
   string ->
   string
 (** [from_file env models template_filename]
@@ -21,14 +19,14 @@ val from_file :
 
     default of [ctx] is None.
 
-    [models] is variable table for template. for example,
-    [("msg", Tstr "hello, world!"); ("count", Tint 100); ]
+    [models] is model getter(closure in most cases). For example,
+    let models = fun key -> List.assoc key [("name", Tstr "taro"); ("age", Tint 20)]
 *)
 
 val from_chan :
   ?env:environment ->
   ?ctx:context ->
-  ?models:(string * tvalue) list ->
+  ?models:(string -> tvalue) ->
   in_channel ->
   string
 (** [from_chan env models chan]
@@ -40,7 +38,7 @@ val from_chan :
 val from_string :
   ?env:environment ->
   ?ctx:context ->
-  ?models:(string * tvalue) list ->
+  ?models:(string -> tvalue) ->
   string ->
   string
 (** [from_string env context models source_string]
@@ -78,12 +76,12 @@ module Loaded : sig
       same as from_file but read template from source string.
   *)
 
-  val eval : ?ctx:context -> ?models:(string * tvalue) list -> t -> string
+  val eval : ?ctx:context -> ?models:(string -> tvalue) -> t -> string
   (** [eval context models t] evaluates the loaded template in the given context
-      with the given models.
+      with the given models(defined by closure).
       return result string.
 
-      [models] is variable table for template. for example,
-      [("msg", Tstr "hello, world!"); ("count", Tint 100); ]
+      [models] is model getter(closure in most cases). For example,
+      let models = fun key -> List.assoc key [("name", Tstr "taro"); ("age", Tint 20)]
   *)
 end

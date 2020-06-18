@@ -38,6 +38,9 @@ let result = Jg_template.from_string "{{ msg }}" ~models:[("msg", Jg_types.Tstr 
 
 (* or output from file template *)
 let result2 = Jg_template.from_file "hello.jingoo" ~models:[("msg", Jg_types.Tstr "hello, world!")]
+
+(* or you can use functional model like this by using Jg_template2 module *)
+let result3 = Jg_template2.from_string "{{ msg }}" ~models:(fun key -> List.assoc key [("msg", Jg_types.Tstr "hello, world!")])
 ```
 
 ### More detailed example
