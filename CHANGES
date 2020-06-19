@@ -4,7 +4,7 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
-version: 1.3.5
+version: 1.3.5, 2020-06-19
 ===========================
 o [ISSUE#112] Added new module Jg_template2(reviced version api).
 o [PR#113] Get the custom data from a function instead of an association list.
