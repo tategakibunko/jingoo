@@ -81,21 +81,24 @@ let dead_code_elimination stmts =
   let statement self = function
     | MacroStatement (id, _, _)
     | FunctionStatement (id, _, _) as s ->
-      (* Find if name is present in instructions called from toplevel *)
-      let rec loop lists =
-        if List.length lists = 0 then Statements []
-        else if List.mem "" (List.hd lists) then default_mapper.statement self s
-        else
-          let list' =
-            List.hd lists
-            |> List.map (Hashtbl.find_all used)
-            |> List.flatten
-            |> List.sort_uniq compare in
-          if List.mem list' lists then Statements []
-          else loop (list' :: lists)
-      in
-      loop [ List.sort_uniq compare @@ Hashtbl.find_all used id ]
-    | s -> default_mapper.statement self s in
+       (* Find if name is present in instructions called from toplevel *)
+       let rec loop lists =
+         match lists with
+         | [] -> Statements []
+         | [[]] -> Statements []
+         | list :: _ when List.mem "" list -> default_mapper.statement self s (* id is used in toplevel *)
+         | list :: _ ->
+            let list' =
+              list
+              |> List.map (Hashtbl.find_all used)
+              |> List.flatten
+              |> List.sort_uniq compare in
+            if List.mem list' lists then Statements []
+            else loop (list' :: lists)
+       in
+       loop [ List.sort_uniq compare @@ Hashtbl.find_all used id ]
+    | s -> default_mapper.statement self s
+  in
   let mapper = { default_mapper with statement } in
   mapper.ast mapper stmts
 
