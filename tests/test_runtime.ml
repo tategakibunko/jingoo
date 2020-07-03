@@ -128,11 +128,13 @@ let test_default _ctx =
 let test_length _ctx =
   assert_equal_tvalue (jg_length (Tstr "hoge")) (Tint 4);
   assert_equal_tvalue (jg_length (Tstr "日本語")) (Tint 3);
+  assert_equal_tvalue (jg_length (Tstr "🐟🐠")) (Tint 2);
   assert_equal_tvalue (jg_length (Tlist [Tint 0; Tint 1])) (Tint 2)
 
 let test_strlen _ctx =
   assert_equal_tvalue (jg_strlen (Tstr "hoge")) (Tint 4);
-  assert_equal_tvalue (jg_strlen (Tstr "日本語")) (Tint 3)
+  assert_equal_tvalue (jg_strlen (Tstr "日本語")) (Tint 3);
+  assert_equal_tvalue (jg_strlen (Tstr "🐟🐠")) (Tint 2)
 
 let test_abs _ctx =
   assert_equal_tvalue (jg_abs (Tint (-1))) (Tint 1);
