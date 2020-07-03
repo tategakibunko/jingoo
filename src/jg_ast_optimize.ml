@@ -83,7 +83,8 @@ let dead_code_elimination stmts =
     | FunctionStatement (id, _, _) as s ->
       (* Find if name is present in instructions called from toplevel *)
       let rec loop lists =
-        if List.mem "" (List.hd lists) then default_mapper.statement self s
+        if List.length lists = 0 then Statements []
+        else if List.mem "" (List.hd lists) then default_mapper.statement self s
         else
           let list' =
             List.hd lists
