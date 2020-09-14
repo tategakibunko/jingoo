@@ -1,2 +1,2 @@
-{{ default('foo', null) }}
-{{ defualt('foo', 'bar') }}
+{{ null | default('foo') }}
+{{ 'bar' | default('foo') }}
