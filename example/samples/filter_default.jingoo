@@ -1,0 +1,2 @@
+{{ default('foo', null) }}
+{{ defualt('foo', 'bar') }}
