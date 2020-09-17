@@ -135,7 +135,7 @@ stmt:
     | Some MOD -> SetStatement (k, ModOpExpr(k, $7))
     | Some _ -> assert false
   }
-| SET ident preceded (COMMA, ident)* set_operator? EQ expr
+| SET ident preceded(COMMA, ident)* set_operator? EQ expr
   {
     pel "set";
     match $2 :: $3, $6 with
@@ -261,6 +261,7 @@ expr:
   TestOpExpr($1, ApplyExpr($3, [None, $4]))
 }
 | expr IS ident { pel "test"; TestOpExpr($1,$3) }
+| DEFAULT LPAREN separated_list(COMMA, argument_application) RPAREN { pel "apply(expr_list)"; ApplyExpr(IdentExpr("default"), $3) }
 | expr LPAREN separated_list(COMMA, argument_application) RPAREN { pel "apply(expr_list)"; ApplyExpr($1, $3) }
 | LPAREN separated_list(COMMA, expr) RPAREN
   { pel "set expr"; match $2 with [ e ] -> e | _ -> SetExpr $2 }
