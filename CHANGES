@@ -4,8 +4,9 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
-version: 1.4.1
+version: 1.4.1, 2020-09-17
 ===========================
+* [ISSUE#114] default filter is not usable.
 
 version: 1.4.0, 2020-06-19
 ===========================
