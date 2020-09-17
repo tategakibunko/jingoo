@@ -4,6 +4,10 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.4.1
+===========================
+* [ISSUE#114] default filter is not usable.
+
 version: 1.4.0, 2020-06-19
 ===========================
 o [ISSUE#112] Added new module Jg_template2(reviced version api).
