@@ -111,14 +111,18 @@ and jg_get_value ctx name =
         with Not_found -> Tnull) in
   get_value name ctx.frame_stack
 
-and jg_obj_lookup obj prop_name =
+and jg_obj_lookup_exn obj prop_name =
   jg_force @@
   match obj with
-    | Tobj(alist) -> (try List.assoc prop_name alist with Not_found -> Tnull)
-    | Thash(hash) -> (try Hashtbl.find hash prop_name with Not_found -> Tnull)
-    | Tpat(fn) -> (try fn prop_name with Not_found -> Tnull)
-    | Tlazy _ | Tvolatile _ -> jg_obj_lookup (jg_force obj) prop_name
-    | _ -> failwith_type_error_1 ("jg_obj_lookup(\"" ^ prop_name ^ "\")") obj
+    | Tobj(alist) -> List.assoc prop_name alist
+    | Thash(hash) -> Hashtbl.find hash prop_name
+    | Tpat(fn) -> fn prop_name
+    | Tlazy _ | Tvolatile _ -> jg_obj_lookup_exn (jg_force obj) prop_name
+    | _ -> failwith_type_error_1 ("jg_obj_lookup_exn(\"" ^ prop_name ^ "\")") obj
+
+
+and jg_obj_lookup obj prop_name =
+  jg_force @@ try jg_obj_lookup_exn obj prop_name with Not_found -> Tnull
 
 let jg_obj_lookup_by_name ctx obj_name prop_name =
   match jg_get_value ctx obj_name with
@@ -410,7 +414,14 @@ let jg_plus left right =
     | Tlist l1, Tarray a2 -> Tlist (List.append l1 (Array.to_list a2))
     | Tarray a1, Tarray a2 -> Tarray (Array.append a1 a2)
 
-    | _, _ -> failwith_type_error_2 "jg_plus" left right
+    | (Tpat _ | Tobj _ | Thash _), (Tpat _ | Tobj _ | Thash _) ->
+      Tpat begin fun s ->
+        try jg_obj_lookup_exn right s
+        with Not_found -> jg_obj_lookup left s
+      end
+
+    | _, _ ->
+      failwith_type_error_2 "jg_plus" left right
 
 let jg_minus left right =
   match left, right with
