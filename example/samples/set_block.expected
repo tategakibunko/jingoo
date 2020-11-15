@@ -3,7 +3,7 @@ Stored output:
   <li>Item1</li>
   <li>Item2</li>
   <li>Item3</li>
-  <li>&#60;Escaping works&#62;</li>
+  <li>&lt;Escaping works&gt;</li>
 </ol>
 
 Variables defined inside block are not exposed:
@@ -14,5 +14,5 @@ Stored output again:
   <li>Item1</li>
   <li>Item2</li>
   <li>Item3</li>
-  <li>&#60;Escaping works&#62;</li>
+  <li>&lt;Escaping works&gt;</li>
 </ol>

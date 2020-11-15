@@ -25,11 +25,11 @@ let tval_equal t1 t2 =
     | _ -> failwith "tval_equal:invalid op"
 
 let test_escape _ctx =
-  assert_equal_tvalue (Tstr "&#60;script&#62;") (jg_escape_html (Tstr "<script>"));
-  assert_equal_tvalue (Tstr "&#34;&#34;") (jg_escape_html (Tstr "\"\""));
-  assert_equal_tvalue (Tstr "&#39;&#39;") (jg_escape_html (Tstr "''"));
+  assert_equal_tvalue (Tstr "&lt;script&gt;") (jg_escape_html (Tstr "<script>"));
+  assert_equal_tvalue (Tstr "&quot;&quot;") (jg_escape_html (Tstr "\"\""));
+  assert_equal_tvalue (Tstr "&apos;&apos;") (jg_escape_html (Tstr "''"));
   assert_equal_tvalue
-    (Tstr "Lo&#38;rem&#62;\n I&#60;ps&#34;um")
+    (Tstr "Lo&amp;rem&gt;\n I&lt;ps&quot;um")
     (jg_escape_html (Tstr "Lo&rem>\n I<ps\"um"))
 
 let test_string_of_tvalue _ctx =
