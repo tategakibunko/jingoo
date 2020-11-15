@@ -152,32 +152,33 @@ let escape_html_char = function
   | '<' -> Some "&lt;"
   | _ -> None
 
-let escape_html_len str =
-  let strlen = String.length str in
-  let rec loop acc i =
-    if i >= strlen then acc else
-      match escape_html_char (String.unsafe_get str i) with
-      | Some es_str -> loop (acc + String.length es_str) (i + 1)
-      | None -> loop (acc + 1) (i + 1) in
-  loop 0 0
-
 (** [escape_html str] replaces '&', '"', '\'', '<' and '>'
     with their corresponding character reference *)
 let escape_html str =
-  let buf_len = escape_html_len str in
-  let buf = Bytes.create buf_len in
-  let rec loop istr ibuf =
-    if ibuf >= buf_len then Bytes.unsafe_to_string buf else
-      let chr = String.unsafe_get str istr in
-      match escape_html_char chr with
-      | Some es_str ->
-         let es_len = String.length es_str in
-         Bytes.blit_string es_str 0 buf ibuf es_len;
-         loop (istr + 1) (ibuf + es_len)
-      | None ->
-         Bytes.set buf ibuf chr;
-         loop (istr + 1) (ibuf + 1) in
-  loop 0 0
+  let strlen = String.length str in
+  let es_strlen =
+    let rec loop acc i =
+      if i >= strlen then acc else
+        match escape_html_char (String.unsafe_get str i) with
+        | Some es_str -> loop (acc + String.length es_str) (i + 1)
+        | None -> loop (acc + 1) (i + 1) in
+    loop 0 0 in
+  if strlen = es_strlen then
+    str
+  else
+    let buf = Bytes.create es_strlen in
+    let rec loop istr ibuf =
+      if ibuf >= es_strlen then Bytes.unsafe_to_string buf else
+        let chr = String.unsafe_get str istr in
+        match escape_html_char chr with
+        | Some es_str ->
+          let es_len = String.length es_str in
+          Bytes.blit_string es_str 0 buf ibuf es_len;
+          loop (istr + 1) (ibuf + es_len)
+        | None ->
+          Bytes.set buf ibuf chr;
+          loop (istr + 1) (ibuf + 1) in
+    loop 0 0
 
 let chomp str =
   Re.replace_string (Re.compile @@ Re.seq [ Re.rep1 (Re.compl [ Re.notnl ]) ; Re.eos ] ) ~by:"" str
