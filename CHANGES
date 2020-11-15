@@ -6,6 +6,7 @@
 
 version: 1.4.2
 ===========================
+o [ISSUE#116] Use character reference instead of character number in html escaping.
 o [PR#115] object(Tpat, Tobj, Thash) is merged as Tpat by jg_plus.
 
 version: 1.4.1, 2020-09-17
