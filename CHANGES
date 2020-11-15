@@ -4,7 +4,7 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
-version: 1.4.2
+version: 1.4.2, 2020-11-15
 ===========================
 o [ISSUE#116] Use character reference instead of character number in html escaping.
 o [PR#115] object(Tpat, Tobj, Thash) is merged as Tpat by jg_plus.
