@@ -117,9 +117,11 @@ let test_batch_array2 _ctx =
   assert_equal_tvalue expect_ary batched_ary
 
 let test_capitalize _ctx =
-  let orig = Tstr "car" in
-  let caps = Tstr "Car" in
-  assert_equal_tvalue (jg_capitalize orig) caps
+  assert_equal_tvalue (jg_capitalize (Tstr "peter")) (Tstr "Peter");
+  assert_equal_tvalue (jg_capitalize (Tstr "Paul")) (Tstr "Paul");
+  assert_equal_tvalue (jg_capitalize (Tstr "MARY")) (Tstr "Mary");
+  assert_equal_tvalue (jg_capitalize (Tstr "gUIDO")) (Tstr "Guido");
+  assert_equal_tvalue (jg_capitalize (Tstr "my First cAR")) (Tstr "My first car")
 
 let test_default _ctx =
   assert_equal_tvalue (jg_default (Tstr "hello") Tnull) (Tstr "hello");
@@ -347,9 +349,8 @@ let test_urlize _ctx =
     (jg_urlize @@ Tstr "<a href='http://foo.foo'>foo</a>")
 
 let test_title _ctx =
-  assert_equal_tvalue
-    (Tstr "This Is It!")
-    (jg_title @@ Tstr "this is it!")
+  assert_equal_tvalue (jg_title @@ Tstr "this is it!") (Tstr "This Is It!");
+  assert_equal_tvalue (jg_title @@ Tstr "my First cAR") (Tstr "My First Car")
 
 let test_striptags _ctx =
   assert_equal_tvalue

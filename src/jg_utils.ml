@@ -52,8 +52,9 @@ module UTF8 = struct
   let capitalize s =
     let first = ref true in
     let cmap u =
-      if !first then (first := false ; Uucp.Case.Map.to_upper u)
-      else `Self
+      if is_space u then `Self
+      else if !first then (first := false ; Uucp.Case.Map.to_upper u)
+      else Uucp.Case.Map.to_lower u
     in
     cmap_utf_8 cmap s
 
