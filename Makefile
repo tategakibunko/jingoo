@@ -64,3 +64,7 @@ uninstall: jingoo.install
 clean:
 	$(DUNE) clean
 	rm -f tests/dune doc/dune
+
+rebuild:
+	make clean
+	make
