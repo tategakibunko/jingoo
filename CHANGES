@@ -4,7 +4,7 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
-version: 1.4.3
+version: 1.4.3, 2021-01-15
 ===========================
 * Fixed jg_captalize(lowercase if it's not first letter).
 
