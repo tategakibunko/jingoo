@@ -304,7 +304,8 @@ and eval_statement env ctx = function
       let value = ref Tnull in
       let ctx = { ctx with serialize = true ; output = fun x -> value := x } in
       let ctx = jg_frame_table ctx (fun table ->
-        jg_set_value table name !self ;
+        if not (List.mem name arg_names || List.mem_assoc name kwargs)
+        then jg_set_value table name !self ;
         jg_eval_aux table name args kwargs macro
       ) in
       let Macro (_, _, code) = macro in
