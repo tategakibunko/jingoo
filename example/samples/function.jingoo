@@ -31,3 +31,10 @@ inv(reverse=true,'a','b').a = {{ (inv(reverse=true,'a','b')).a }}
 {% function const () -%}{{ 4 }}{% endfunction -%}
 
 const() = {{ const () }}
+
+{% function myRange (i) -%}
+  {%- if i == 0 -%}{{ [] }}
+  {%- else -%}{{ [i] + myRange (i - 1) }}
+  {%- endif -%}
+{%- endfunction -%}
+myRange(3) = {% for x in myRange (3) -%}{{ x }}{% endfor %}
