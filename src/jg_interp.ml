@@ -299,10 +299,12 @@ and eval_statement env ctx = function
     let arg_names = ident_names_of_def def_args in
     let kwargs = kwargs_of_def env ctx def_args in
     let macro = Macro (arg_names, kwargs, ast) in
+    let self = ref Tnull in
     let apply ~kwargs args =
       let value = ref Tnull in
       let ctx = { ctx with serialize = true ; output = fun x -> value := x } in
       let ctx = jg_frame_table ctx (fun table ->
+        jg_set_value table name !self ;
         jg_eval_aux table name args kwargs macro
       ) in
       let Macro (_, _, code) = macro in
@@ -310,6 +312,7 @@ and eval_statement env ctx = function
       !value
     in
     let fn = func (fun ?(kwargs=kwargs) args -> apply ~kwargs args) (List.length arg_names) in
+    self := fn ;
     jg_frame_table ctx (fun table ->
       jg_set_value table name fn
     )
