@@ -168,7 +168,7 @@ and eval_statement env ctx = function
     )
 
   | SetStatement(DotExpr(IdentExpr ns, v), expr) ->
-    Hashtbl.add
+    Hashtbl.replace
       (Hashtbl.find ctx.namespace_table ns) v (value_of_expr env ctx expr) ;
     ctx
 
