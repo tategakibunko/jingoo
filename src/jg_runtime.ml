@@ -1576,7 +1576,7 @@ let jg_init_context ?(models=(fun _ -> Tnull)) output env =
     serialize = false;
     output
   } in
-  Array.iter (fun (n, v) -> Hashtbl.add top_frame n v) std_filters;
-  List.iter (fun (n, v) -> Hashtbl.add top_frame n v) env.filters;
+  Array.iter (fun (n, v) -> Hashtbl.replace top_frame n v) std_filters;
+  List.iter (fun (n, v) -> Hashtbl.replace top_frame n v) env.filters;
   Hashtbl.add top_frame "jg_is_autoescape" (Tbool env.autoescape);
   ctx
