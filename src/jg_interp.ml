@@ -168,8 +168,15 @@ and eval_statement env ctx = function
     )
 
   | SetStatement(DotExpr(IdentExpr ns, v), expr) ->
-    Hashtbl.add
+    Hashtbl.replace
       (Hashtbl.find ctx.namespace_table ns) v (value_of_expr env ctx expr) ;
+    ctx
+
+  | SetStatement(BracketExpr(IdentExpr ns, k), expr) ->
+    Hashtbl.replace
+      (Hashtbl.find ctx.namespace_table ns)
+      (match value_of_expr env ctx k with Tstr k -> k | _ -> assert false)
+      (value_of_expr env ctx expr) ;
     ctx
 
   | SetBlockStatement(name, ast) ->

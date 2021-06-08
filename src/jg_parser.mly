@@ -135,6 +135,18 @@ stmt:
     | Some MOD -> SetStatement (k, ModOpExpr(k, $7))
     | Some _ -> assert false
   }
+| SET ident LBRACKET expr RBRACKET set_operator? EQ expr
+  { pel "set";
+    let k = BracketExpr ($2, $4) in
+    match $6 with
+    | None -> SetStatement (k, $8)
+    | Some PLUS -> SetStatement (k, PlusOpExpr(k, $8))
+    | Some MINUS -> SetStatement (k, MinusOpExpr(k, $8))
+    | Some TIMES -> SetStatement (k, TimesOpExpr(k, $8))
+    | Some DIV -> SetStatement (k, DivOpExpr(k, $8))
+    | Some MOD -> SetStatement (k, ModOpExpr(k, $8))
+    | Some _ -> assert false
+  }
 | SET ident preceded(COMMA, ident)* set_operator? EQ expr
   {
     pel "set";
