@@ -1,10 +1,15 @@
 {%- set ns = namespace (foo=0, bar='bar') -%}
+{%- set key_expr_foo = "foo" -%}
+{%- set key_expr_bar = "bar" -%}
 
 {%- for i in [1,2,3] -%}
   {%- set ns.foo = ns.foo + i -%}
   {%- set ns.bar = ns.bar + i -%}
 {%- endfor -%}
 
-{%- if ns.foo == 6 and ns.bar == 'bar123' -%}
+{%- set ns[key_expr_foo] *= 10 -%}
+{%- set ns[key_expr_bar] += '!' -%}
+
+{%- if ns.foo == 60 and ns.bar == 'bar123!' -%}
   Namespace works :)
 {%- endif %}
