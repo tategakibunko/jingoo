@@ -7,6 +7,7 @@
 version: 1.4.4
 ===========================
 * [PR#120] Use Hashtbl.replace instead of Hashtbl.add in jg_init_context.
+! [PR#119] Supports `set namespace[expr] = xxx` style syntax.
 
 version: 1.4.3, 2021-01-15
 ===========================
