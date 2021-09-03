@@ -4,8 +4,9 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
-version: 1.4.4
+version: 1.4.4, 2021-09-04
 ===========================
+* [PR#121] Added `to_json` filter.
 * [PR#120] Use Hashtbl.replace instead of Hashtbl.add in jg_init_context.
 ! [PR#119] Supports `set namespace[expr] = xxx` style syntax.
 
