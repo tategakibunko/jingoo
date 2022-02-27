@@ -49,6 +49,7 @@ rule main = parse
     | "endif"
     | "endmacro"
     | "endraw"
+    | "endset"
     | "endswitch"
     | "endwith"
     | "extends"
@@ -169,7 +170,11 @@ let highlight = function
         print_char := Buffer.add_char buffer ;
         main lexbuf ;
         Tstr (Buffer.contents buffer)
-      with _ -> failwith s
+      with e ->
+        prerr_endline (Printexc.to_string e) ;
+        let s = "\t" ^ Re.Str.global_replace (Re.Str.regexp "\n") "\n\t" s in
+        prerr_endline s ;
+        Tstr s
     end
   | x -> Jg_types.failwith_type_error_1 "highlight" x
 

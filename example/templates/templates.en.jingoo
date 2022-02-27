@@ -63,13 +63,14 @@
 
 {% set filter_names_list =
 [ 'abs', 'attr', 'batch', 'capitalize', 'compose', 'default', 'eq',
-'escape', 'eval', 'exists', 'find', 'flatten', 'float', 'fold',
-'forall', 'ge', 'groupby', 'gt', 'int', 'join', 'last', 'length',
-'list', 'lower', 'le', 'lt', 'map', 'max', 'md5', 'min', 'ne', 'nth',
-'printf', 'random', 'range', 'reject', 'replace', 'reverse', 'round',
-'select', 'slice', 'sort', 'split', 'striptag', 'strlen', 'sublist',
-'substring', 'sum', 'title', 'truncate', 'trim', 'upper', 'urlize',
-'wordcount', 'wordwrap', 'xmlattr' ] %}
+'escape', 'exists', 'find', 'flatten', 'float', 'fmt_float', 'fold',
+'forall', 'ge', 'groupby', 'gt', 'int', 'join', 'last', 'le',
+'length', 'list', 'lower', 'lt', 'map', 'max', 'md5', 'min', 'ne',
+'nth', 'pprint', 'printf', 'random', 'range', 'reject', 'replace',
+'reverse', 'round', 'select', 'slice', 'sort', 'split', 'striptags',
+'strlen', 'sublist', 'substring', 'sum', 'title', 'tojson', 'trim',
+'truncate', 'unique', 'upper', 'urlize', 'wordcount', 'wordwrap',
+'xmlattr' ] %}
 
 {% macro toc_filter_link (id) -%}
   <a href="#filter_{{ id }}" class="toc-link">{{ id }}</a>
