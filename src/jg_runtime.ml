@@ -172,8 +172,8 @@ let jg_nth i value =
 let jg_escape_html str =
   match str with
   | Tsafe str -> Tsafe str
-  | Tstr str -> Tstr(Jg_utils.escape_html str)
-  | other -> Tstr(Jg_utils.escape_html @@ string_of_tvalue other)
+  | Tstr str -> Tsafe(Jg_utils.escape_html str)
+  | other -> Tsafe(Jg_utils.escape_html @@ string_of_tvalue other)
 
 (**/**)
 let jg_apply ?kwargs f args =
