@@ -1034,7 +1034,7 @@ let jg_urlize text =
 
 let jg_striptags_regexp =
   let open Re in
-  lazy (compile @@ seq [ char '<' ; opt (char '?') ; rep1 (compl [ char '>' ]) ; char '>' ])
+  lazy (compile @@ seq [ char '<' ; opt (char '/') ; rep1 (compl [ char '>' ]) ; char '>' ])
 
 let jg_striptags text =
   match text with
