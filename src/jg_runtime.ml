@@ -76,7 +76,7 @@ let rec jg_force = function
 let rec string_of_tvalue ?(default = "") = function
   | Tint x -> string_of_int x
   | Tfloat x -> string_of_float x
-  | Tstr x -> x
+  | Tstr x | Tsafe x -> x
   | Tbool x -> string_of_bool x
   | Tobj _ as x -> string_of_obj "<obj>" x
   | Thash _ as x -> string_of_obj "<hash>" x
@@ -88,7 +88,6 @@ let rec string_of_tvalue ?(default = "") = function
   | Tarray _ -> "<array>"
   | Tlazy _ -> "<lazy>"
   | Tvolatile _ -> "<volatile>"
-  | Tsafe x -> x
 
 and string_of_obj default obj =
   string_of_tvalue ~default @@ jg_obj_lookup obj "__str__"
@@ -159,7 +158,7 @@ let jg_nth_aux value i =
   match value with
   | Tarray a -> a.(i)
   | Tset l | Tlist l -> List.nth l i
-  | Tstr s -> Tstr (UTF8.sub s i 1)
+  | Tstr s | Tsafe s -> Tstr (UTF8.sub s i 1)
   | _ -> failwith_type_error_1 "jg_nth_aux" value
 (**/**)
 
@@ -172,7 +171,7 @@ let jg_nth i value =
 (** [jg_escape_html x] escape [x] string representation using {!Jg_utils.escape_html} *)
 let jg_escape_html str =
   match str with
-  | Tsafe str -> Tstr str
+  | Tsafe str -> Tsafe str
   | Tstr str -> Tstr(Jg_utils.escape_html str)
   | other -> Tstr(Jg_utils.escape_html @@ string_of_tvalue other)
 
@@ -210,7 +209,7 @@ let jg_length_aux x =
   match x with
     | Tlist lst -> List.length lst
     | Tset lst -> List.length lst
-    | Tstr str -> Jg_utils.strlen str
+    | Tstr str | Tsafe str -> Jg_utils.strlen str
     | Tarray arr -> Array.length arr
     | _ -> failwith_type_error_1 "jg_length" x
 
@@ -278,7 +277,7 @@ let jg_iter ctx iterator f iterable =
   | Thash h -> jg_iter_hash ctx iterator f h
   | Tobj l -> jg_iter_obj ctx iterator f l
   | Tarray a -> jg_iter_array ctx iterator f a
-  | Tstr s -> jg_iter_str ctx iterator f s
+  | Tstr s | Tsafe s -> jg_iter_str ctx iterator f s
   | Tlist l | Tset l -> jg_iter_list ctx iterator f l
   | _ -> ()
 
@@ -371,7 +370,7 @@ let jg_negative = function
 
 let rec jg_is_true = function
   | Tbool x -> x
-  | Tstr x -> x <> ""
+  | Tstr x | Tsafe x -> x <> ""
   | Tint x -> x != 0
   | Tfloat x -> (x > epsilon_float) || (x < -. epsilon_float)
   | Tlist x -> x <> []
@@ -384,7 +383,6 @@ let rec jg_is_true = function
   | Tarray a -> Array.length a > 0
   | Tlazy fn -> jg_is_true (Lazy.force fn)
   | Tvolatile fn -> jg_is_true (fn ())
-  | Tsafe x -> x <> ""
 
 let jg_not x =
   Tbool (not (jg_is_true x))
@@ -400,12 +398,18 @@ let jg_plus left right =
     | Tint x1, Tint x2 -> Tint(x1+x2)
     | Tint x1, Tfloat x2 -> Tfloat(float_of_int x1+.x2)
     | Tint x1, Tstr x2 -> Tstr (string_of_int x1 ^ x2)
+    | Tint x1, Tsafe x2 -> Tsafe (string_of_int x1 ^ x2)
 
     | Tfloat x1, Tfloat x2 -> Tfloat(x1+.x2)
     | Tfloat x1, Tint x2 -> Tfloat(x1+.float_of_int x2)
     | Tfloat x1, Tstr x2 -> Tstr (string_of_float x1 ^ x2)
+    | Tfloat x1, Tsafe x2 -> Tsafe (string_of_float x1 ^ x2)
 
-    | Tstr x1, Tstr x2 -> Tstr (x1 ^ x2)
+    | Tsafe x1, Tsafe x2 -> Tsafe (x1 ^ x2)
+    | Tsafe x1, Tint x2 -> Tsafe (x1 ^ string_of_int x2)
+    | Tsafe x1, Tfloat x2 -> Tsafe (x1 ^ string_of_float x2)
+
+    | (Tstr x1 | Tsafe x1), (Tstr x2 | Tsafe x2) -> Tstr (x1 ^ x2)
     | Tstr x1, Tint x2 -> Tstr (x1 ^ string_of_int x2)
     | Tstr x1, Tfloat x2 -> Tstr (x1 ^ string_of_float x2)
 
@@ -482,7 +486,7 @@ and jg_compare_aux left right =
   match left, right with
   | Tint x1, Tint x2 -> compare x1 x2
   | Tfloat x1, Tfloat x2 -> compare x1 x2
-  | Tstr x1, Tstr x2 -> strcmp x1 x2
+  | (Tstr x1 | Tsafe x1), (Tstr x2 | Tsafe x2) -> strcmp x1 x2
   | Tbool x1, Tbool x2 -> compare x1 x2
   | Tlist x1, Tlist x2 -> jg_compare_list ~filter:(fun x -> x) x1 x2
   | Tset x1, Tset x2 -> jg_compare_list ~filter:(fun x -> x) x1 x2
@@ -533,7 +537,7 @@ let rec jg_eq_eq_aux left right =
   match left, right with
     | Tint x1, Tint x2 -> x1=x2
     | Tfloat x1, Tfloat x2 -> x1=x2
-    | Tstr x1, Tstr x2 -> x1=x2
+    | (Tstr x1 | Tsafe x1), (Tstr x2 | Tsafe x2) -> x1=x2
     | Tbool x1, Tbool x2 -> x1=x2
     | Tlist x1, Tlist x2
     | Tset x1, Tset x2 -> jg_list_eq_eq x1 x2
@@ -620,19 +624,22 @@ let jg_get_kvalue ?(defaults=[]) name kwargs =
 let jg_upper x =
   match x with
     | Tstr str -> Tstr (Jg_utils.UTF8.uppercase str)
-    | other -> Tstr (string_of_tvalue other)
+    | Tsafe str -> Tsafe (Jg_utils.UTF8.uppercase str)
+    | _ -> failwith_type_error_1 "jg_upper" x
 
 (** [jg_upper s] Apply lower case to [s]. *)
 let jg_lower x =
   match x with
     | Tstr str -> Tstr (Jg_utils.UTF8.lowercase str)
-    | other -> Tstr (string_of_tvalue other)
+    | Tsafe str -> Tsafe (Jg_utils.UTF8.lowercase str)
+    | _ -> failwith_type_error_1 "jg_lower" x
 
 (** [jg_capitalize txt]
     Apply uppercase to the first letter of [txt] and lowercase to the rest *)
 let jg_capitalize value =
   match value with
     | Tstr str -> Tstr (Jg_utils.UTF8.capitalize str)
+    | Tsafe str -> Tsafe (Jg_utils.UTF8.capitalize str)
     | _ -> failwith_type_error_1 "jg_capitalize" value
 
 (** [jg_title txt] Apply titlecase (lower case except for first letter
@@ -640,6 +647,7 @@ let jg_capitalize value =
 let jg_title text =
   match text with
     | Tstr text -> Tstr (Jg_utils.UTF8.titlecase text)
+    | Tsafe text -> Tsafe (Jg_utils.UTF8.titlecase text)
     | _ -> failwith_type_error_1 "jg_title" text
 
 (** [jg_int x] turns [x] into an integer.
@@ -648,7 +656,7 @@ let jg_int x =
   match x with
     | Tint _ -> x
     | Tfloat x -> Tint (int_of_float  x)
-    | Tstr s -> Tint (int_of_string s)
+    | (Tstr s | Tsafe s) -> Tint (int_of_string s)
     | _ -> failwith_type_error_1 "jg_int" x
 
 (** [jg_float x] turns [x] into a float.
@@ -657,17 +665,16 @@ let jg_float x =
   match x with
     | Tfloat _ -> x
     | Tint x -> Tfloat (float_of_int x)
-    | Tstr s -> Tfloat (float_of_string s)
+    | (Tstr s | Tsafe s) -> Tfloat (float_of_string s)
     | _ -> failwith_type_error_1 "jg_float" x
 
 (** [jg_join sep seq] concatenates the string representation of values
     in [seq], inserting the separator [sep] between each. *)
 let jg_join join_str lst =
   match join_str, lst with
-    | Tstr str, Tlist lst
-    | Tstr str, Tset lst ->
+    | (Tstr str | Tsafe str), (Tlist lst | Tset lst) ->
       Tstr (String.concat str (List.map string_of_tvalue lst))
-    | Tstr str, Tarray array ->
+    | (Tstr str | Tsafe str), Tarray array ->
       let buf = Buffer.create 256 in
       let () =
         Array.iteri
@@ -682,7 +689,7 @@ let jg_join join_str lst =
     of [text] that are delimited by [pat] regex. *)
 let jg_split pat text =
   match pat, text with
-    | Tstr pat, Tstr text ->
+    | Tstr pat, (Tstr text | Tsafe text) ->
       let lst =
 	Re.Str.split (Re.Str.regexp pat) text |>
 	  List.map (fun str -> Tstr str) in
@@ -695,7 +702,7 @@ let jg_split pat text =
   *)
 let jg_substring base count str =
   match base, count, str with
-    | Tint base, Tint count, Tstr str ->
+    | Tint base, Tint count, (Tstr str | Tsafe str) ->
       Tstr (substring base count str)
     | Tint _, Tint _, Tnull ->
       Tstr ""
@@ -704,14 +711,14 @@ let jg_substring base count str =
 (** [jg_truncate len str] is a shorthand for [jg_substring 0 len str] *)
 let jg_truncate len str =
   match len, str with
-    | Tint len, Tstr str ->
+    | Tint len, (Tstr str | Tsafe str) ->
       Tstr (substring 0 len str)
     | _ -> failwith_type_error_2 "jg_truncate" len str
 
 (** [jg_strlen s] returns the length (number of characters) of [s] *)
 let jg_strlen x =
   match x with
-    | Tstr str -> Tint (Jg_utils.strlen str)
+    | (Tstr str | Tsafe str) -> Tint (Jg_utils.strlen str)
     | _ -> failwith_type_error_1 "jg_strlen" x
 
 (** [jg_length seq] returns the number of of elements in sequence [seq].
@@ -721,7 +728,7 @@ let jg_length x =
 
 let jg_md5 x =
   match x with
-    | Tstr str ->
+    | (Tstr str | Tsafe str) ->
       Tstr(str |> Jg_utils.UTF8.lowercase |> Digest.string |> Digest.to_hex)
     | _ -> failwith_type_error_1 "jg_md5" x
 
@@ -735,7 +742,7 @@ let jg_abs value =
     Return the [p] property of object [o]. Support dotted notation. *)
 let jg_attr prop obj =
   match prop with
-  | Tstr path ->
+  | (Tstr path | Tsafe path) ->
     jg_obj_lookup_path obj (String.split_on_char '.' path)
   | _ -> failwith_type_error_2 "jg_attr" prop obj
 
@@ -808,7 +815,7 @@ let jg_random lst =
 *)
 let jg_replace src dst str =
   match src, dst, str with
-    | Tstr src, Tstr dst, Tstr str ->
+    | (Tstr src | Tsafe src), (Tstr dst | Tsafe dst), (Tstr str | Tsafe str) ->
       Tstr (Re.Str.global_replace (Re.Str.regexp src) dst str)
     | _ -> failwith_type_error_3 "jg_replace" src dst str
 
@@ -834,14 +841,14 @@ let jg_sum lst =
 (** [jg_trim s] returns [s] with leading and trailing whitespace. *)
 let jg_trim str =
   match str with
-    | Tstr str -> Tstr (Jg_utils.UTF8.trim str)
+    | (Tstr str | Tsafe str) -> Tstr (Jg_utils.UTF8.trim str)
     | _ -> failwith_type_error_1 "jg_trim" str
 
 (** [jg_list x] convert [x] to a list. Support list, tuple, string and array. *)
 let jg_list value =
   match value with
     | Tlist lst | Tset lst -> Tlist lst
-    | Tstr str ->
+    | (Tstr str | Tsafe str) ->
       let len = strlen str in
       let rec iter ret i =
 	if i >= len then
@@ -948,7 +955,7 @@ let jg_sublist base count lst =
     as delimiter between words. *)
 let jg_wordcount str =
   match str with
-    | Tstr str ->
+    | (Tstr str | Tsafe str) ->
       let space = ref true in
       let n = ref 0 in
       Uutf.String.fold_utf_8
@@ -966,9 +973,9 @@ let jg_wordcount str =
 let jg_round how value =
   match how, value with
     | _, Tint x -> Tint x
-    | Tstr "floor", Tfloat x -> Tfloat (floor x)
-    | Tstr ("ceil" | "common"), Tfloat x -> Tfloat (ceil x)
-    | Tstr other, Tfloat _ ->
+    | (Tstr "floor" | Tsafe "floor"), Tfloat x -> Tfloat (floor x)
+    | (Tstr ("ceil" | "common") | Tsafe ("ceil" | "common")), Tfloat x -> Tfloat (ceil x)
+    | (Tstr other | Tsafe other), Tfloat _ ->
       failwith @@
       spf "invalid args:round method %s not supported(jg_round)" other
     | _ -> failwith_type_error_2 "jg_round" how value
@@ -991,7 +998,8 @@ let jg_range start stop =
   in
   match start, stop with
     | Tint start, Tint stop -> range start stop box_int
-    | Tstr strt, Tstr stp when String.length strt = 1 && String.length stp = 1 ->
+    | (Tstr strt | Tsafe strt), (Tstr stp | Tsafe stp)
+      when String.length strt = 1 && String.length stp = 1 ->
       let strt = Char.code @@ String.unsafe_get strt 0 in
       let stp = Char.code @@ String.unsafe_get stp 0 in
       if strt < 0 || strt > 255 || stp < 0 || stp > 255
@@ -1020,7 +1028,7 @@ let jg_urlize_regexp =
 
 let jg_urlize text =
   match text with
-    | Tstr text ->
+    | (Tstr text | Tsafe text) ->
       Tstr (Re.replace (Lazy.force jg_urlize_regexp) text
               ~f:(fun g ->
                   let o = Re.Group.get g 1 in
@@ -1038,7 +1046,7 @@ let jg_striptags_regexp =
 
 let jg_striptags text =
   match text with
-    | Tstr text ->
+    | (Tstr text | Tsafe text) ->
       Tstr (Re.replace_string (Lazy.force jg_striptags_regexp) ~by:"" text)
     | _ -> failwith_type_error_1 "jg_striptags" text
 
@@ -1056,7 +1064,7 @@ let jg_sort ?(kwargs=[]) lst =
   let attribute = ref "" in
   let jg_compare = ref jg_compare_aux in
   List.iter (function ("reverse", Tbool b) -> reverse := b
-                    | ("attribute", Tstr name) -> attribute := name
+                    | ("attribute", (Tstr name | Tsafe name)) -> attribute := name
                     | ("compare", fn) -> jg_compare := fun a b -> unbox_int (jg_apply fn [ a ; b ])
                     | ("fast", Tbool b) -> fast := b
                     | (kw, _) -> failwith kw) kwargs;
@@ -1085,7 +1093,7 @@ let jg_xmlattr obj =
 
 let jg_wordwrap width break_long_words text =
   match width, break_long_words, text with
-    | Tint width, Tbool break_long_words, Tstr text ->
+    | Tint width, Tbool break_long_words, (Tstr text | Tsafe text) ->
       let concat_line s1 s2 = if s1 = "" then s2 else String.concat " " [s1; s2] in
       let push_line s1 s2 = if s1 = "" then s2 else String.concat "\n" [s1; s2] in
       let rec iter lines line count = function
@@ -1117,7 +1125,7 @@ let fun_or_attribute ~kwargs ~arg =
   match arg with
   | Tfun fn -> fun x -> fn ~kwargs x
   | _ -> match kwargs with
-    | [ ("attribute", Tstr path) ] ->
+    | [ ("attribute", (Tstr path | Tsafe path)) ] ->
       fun x -> jg_obj_lookup_path x (String.split_on_char '.' path)
     | _ -> raise Not_found
 
@@ -1175,7 +1183,7 @@ let jg_map ?(kwargs=[]) fn list =
 let jg_max_min_aux is_max fst iter value kwargs =
   let compare =
     match kwargs with
-    | [("attribute", Tstr att)] ->
+    | [("attribute", (Tstr att | Tsafe att))] ->
       let path = String.split_on_char '.' att in
       fun a b -> jg_compare_aux (jg_obj_lookup_path a path) (jg_obj_lookup_path b path)
     | _ -> jg_compare_aux in
@@ -1233,7 +1241,7 @@ let jg_fold = fun fn acc seq ->
   match fn, seq with
   | Tfun _, Tarray a -> Array.fold_left (wrap fn) acc a
   | Tfun _, Tlist l -> List.fold_left (wrap fn) acc l
-  | Tfun _, Tstr s ->
+  | Tfun _, (Tstr s | Tsafe s) ->
     let len = UTF8.length s in
     let rec loop i acc =
       if i >= len then acc
@@ -1359,7 +1367,7 @@ let jg_printf_prepare instr args =
     See {{: https://caml.inria.fr/pub/docs/manual-ocaml/libref/Printf.html } OCaml's Printf module }.
 *)
 let jg_printf = function
-  | Tstr s ->
+  | (Tstr s | Tsafe s) ->
     let instr = jg_printf_aux s in
     let n = jg_printf_aux_nb_args instr in
     let f args = Tstr (String.concat "" @@ jg_printf_prepare instr args) in
@@ -1493,7 +1501,7 @@ let jg_to_json o =
     | Tfloat f -> write_float ob f
     | Tnull -> write_null ob ()
     | Tbool b -> write_bool ob b
-    | Tstr s -> write_string ob s
+    | Tstr s | Tsafe s -> write_string ob s
     | Tobj assoc -> write_assoc ob assoc
     | Thash hash -> write_hash ob hash
     | Tlist list | Tset list -> write_list ob list
@@ -1526,7 +1534,7 @@ let jg_test_odd x =
     | _ -> Tbool(false)
 
 let jg_test_iterable_aux = function
-  | Tlist _ | Tset _ | Thash _ | Tobj _ | Tarray _ | Tstr _ | Tnull-> true
+  | Tlist _ | Tset _ | Thash _ | Tobj _ | Tarray _ | Tstr _ | Tsafe _ | Tnull-> true
   | _ -> false
 
 (** [jg_test_upper x] tests if [x] is iterable. *)
@@ -1535,13 +1543,13 @@ let jg_test_iterable = fun x -> Tbool (jg_test_iterable_aux x)
 (** [jg_test_upper x] tests if [x] is an lowercased string. *)
 let jg_test_lower x =
   match x with
-    | Tstr str -> Tbool(Jg_utils.UTF8.is_lower str)
+    | Tstr str | Tsafe str -> Tbool(Jg_utils.UTF8.is_lower str)
     | _ -> Tbool(false)
 
 (** [jg_test_upper x] tests if [x] is an uppercased string. *)
 let jg_test_upper x =
   match x with
-    | Tstr str -> Tbool(Jg_utils.UTF8.is_upper str)
+    | Tstr str | Tsafe str -> Tbool(Jg_utils.UTF8.is_upper str)
     | _ -> Tbool(false)
 
 (** [jg_test_number x] tests if [x] is a number (i.e. an int or a float). *)
@@ -1554,7 +1562,7 @@ let jg_test_number x =
 (** [jg_test_sameas x y] tests if [y] and [x] are physically equals. *)
 let jg_test_sameas value target =
   match value, target with
-    | Tstr x, Tstr y -> Tbool(x == y)
+    | (Tstr x | Tsafe x), (Tstr y | Tsafe y) -> Tbool(x == y)
     | Tint x, Tint y -> Tbool(x == y)
     | Tfloat x, Tfloat y -> Tbool(x == y)
     | Tbool x, Tbool y -> Tbool(x == y)
