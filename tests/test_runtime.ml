@@ -791,6 +791,18 @@ let test_flatten _ctx =
   test (Tlist [Tint 1; Tint 2; Tint 3]);
   test (Tlist [Tlist [Tint 1]; Tarray [|Tint 2|]; Tint 3])
 
+let test_to_json _ctx =
+  let test exp x = assert_equal_tvalue (Tstr exp) (jg_to_json x) in
+  test
+    "null"
+    Tnull;
+  test
+    {|"Un évènement avec des \"quotes\" ou des 'single-quote', des \\\" et des \\'"|}
+    (Tstr {|Un évènement avec des "quotes" ou des 'single-quote', des \" et des \'|}) ;
+  test
+    {|{"a":"foo","b":0,"c":{"d":[]}}|}
+    (Tobj ["a",Tstr"foo";"b",Tint 0;"c",Tobj["d",Tlist[]]])
+
 let suite = "runtime test" >::: [
   "test_escape" >:: test_escape;
   "test_string_of_tvalue" >:: test_string_of_tvalue;
@@ -875,5 +887,6 @@ let suite = "runtime test" >::: [
   "test_printf" >:: test_printf;
   "test_compose" >:: test_compose;
   "test_unique" >:: test_unique;
-  "test_flatten" >:: test_flatten
+  "test_flatten" >:: test_flatten;
+  "test_to_json" >:: test_to_json;
 ]
