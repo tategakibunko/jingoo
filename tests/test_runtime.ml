@@ -791,8 +791,8 @@ let test_flatten _ctx =
   test (Tlist [Tint 1; Tint 2; Tint 3]);
   test (Tlist [Tlist [Tint 1]; Tarray [|Tint 2|]; Tint 3])
 
-let test_to_json _ctx =
-  let test exp x = assert_equal_tvalue (Tstr exp) (jg_to_json x) in
+let test_tojson _ctx =
+  let test exp x = assert_equal_tvalue (Tstr exp) (jg_tojson x) in
   test
     "null"
     Tnull;
@@ -888,5 +888,5 @@ let suite = "runtime test" >::: [
   "test_compose" >:: test_compose;
   "test_unique" >:: test_unique;
   "test_flatten" >:: test_flatten;
-  "test_to_json" >:: test_to_json;
+  "test_tojson" >:: test_tojson;
 ]

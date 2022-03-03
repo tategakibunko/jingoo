@@ -1394,9 +1394,9 @@ let jg_flatten =
   | Tarray x -> Tlist (aux Array.fold_left x)
   | x -> failwith_type_error_1 "jg_flatten" x
 
-(** [jg_to_json value]
+(** [jg_tojson value]
     Convert [value] into a json string. *)
-let jg_to_json o =
+let jg_tojson o =
 
   (* copy/paste from Yojson adapted to Jingoo *)
 
@@ -1607,7 +1607,7 @@ let std_filters = [|
   ("e", func_arg1_no_kw jg_escape_html); (* alias for escape *)
   ("float", func_arg1_no_kw jg_float);
   ("int", func_arg1_no_kw jg_int);
-  ("to_json", func_arg1_no_kw jg_to_json);
+  ("tojson", func_arg1_no_kw jg_tojson);
   ("last", func_arg1_no_kw jg_last);
   ("length", func_arg1_no_kw jg_length);
   ("list", func_arg1_no_kw jg_list);
