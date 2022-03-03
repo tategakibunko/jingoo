@@ -49,6 +49,7 @@ rule main = parse
     | "endif"
     | "endmacro"
     | "endraw"
+    | "endset"
     | "endswitch"
     | "endwith"
     | "extends"
