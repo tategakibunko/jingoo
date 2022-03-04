@@ -7,6 +7,7 @@
 version: 1.5.0
 ===========================
 * [PR#124] Fixed jg_highlight.
+o [PR#123] Defined `safe` filter as `jg_safe`.
 ! [PR#121] To match the official jinja2, rename filter `to_json` to `tojson`.
 o [PR#121] Support Tsafe value in jg_runtime.
 
