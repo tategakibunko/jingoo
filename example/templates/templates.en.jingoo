@@ -67,10 +67,10 @@
 'forall', 'ge', 'groupby', 'gt', 'int', 'join', 'last', 'le',
 'length', 'list', 'lower', 'lt', 'map', 'max', 'md5', 'min', 'ne',
 'nth', 'pprint', 'printf', 'random', 'range', 'reject', 'replace',
-'reverse', 'round', 'select', 'slice', 'sort', 'split', 'striptags',
-'strlen', 'sublist', 'substring', 'sum', 'title', 'tojson', 'trim',
-'truncate', 'unique', 'upper', 'urlize', 'wordcount', 'wordwrap',
-'xmlattr' ] %}
+'reverse', 'round', 'safe', 'select', 'slice', 'sort', 'split',
+'striptags', 'strlen', 'sublist', 'substring', 'sum', 'title',
+'tojson', 'trim', 'truncate', 'unique', 'upper', 'urlize',
+'wordcount', 'wordwrap', 'xmlattr' ] %}
 
 {% macro toc_filter_link (id) -%}
   <a href="#filter_{{ id }}" class="toc-link">{{ id }}</a>
@@ -458,6 +458,12 @@
           {{ code ('round (method, val)') }}. {{ code ('method') }}
           can be {{ code ('"floor"') }} or {{ code ('"ceil"') }}.
         </p>
+      {% endcall %}
+
+      {% call section ([ built_in_filters_section_title, 'safe' ], '', false) %}
+      <p class="p">
+        Mark a string value as safe: it won't be escaped.
+      </p>
       {% endcall %}
 
       {% call section ([ built_in_filters_section_title, 'select' ], '', false) %}

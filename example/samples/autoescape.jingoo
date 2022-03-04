@@ -5,3 +5,6 @@
 {%- autoescape false -%}
 {{ script }}
 {% endautoescape -%}
+{%- autoescape true -%}
+{{ script | safe + '' | safe }}
+{% endautoescape -%}
