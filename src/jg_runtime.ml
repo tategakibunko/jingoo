@@ -1513,6 +1513,13 @@ let jg_tojson o =
   write_json ob o ;
   Tstr (Buffer.contents ob)
 
+(** [jg_safe s] mark string [s] as safe value. *)
+let jg_safe =
+  function
+  | Tstr x -> Tsafe x
+  | Tsafe _ as x -> x
+  | x -> failwith_type_error_1 "jg_safe" x
+
 (** [jg_test_divisibleby divisor dividend]
     tests if [dividend] is divisible by [divisor]. *)
 let jg_test_divisibleby num target =
@@ -1630,6 +1637,7 @@ let std_filters = [|
   ("xmlattr", func_arg1_no_kw jg_xmlattr);
   ("pprint", func_arg1_no_kw jg_pprint);
   ("flatten", func_arg1_no_kw jg_flatten);
+  ("safe", func_arg1_no_kw jg_safe);
 
   ("attr", func_arg2_no_kw jg_attr);
   ("batch", func_arg2 (jg_batch ?defaults:None));

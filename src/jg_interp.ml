@@ -77,10 +77,6 @@ let rec value_of_expr env ctx = function
     let _ = List.fold_left (eval_statement env) ctx ast in
     !value
 
-  | ApplyExpr(IdentExpr("safe"), [name, expr]) ->
-     assert (name = None) ;
-     value_of_expr env ctx expr
-
   | ApplyExpr(expr, args) ->
     let name = apply_name_of expr in
     let nargs = nargs_of env ctx args in
