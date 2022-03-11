@@ -24,6 +24,7 @@ let fail ({ Lexing.lex_curr_p = { Lexing.pos_fname ; pos_lnum ; pos_bol ; pos_cn
 
 }
 
+let string_delimiter = ("\"" | "'" | "&#39;" | "&#34;" | "&quot;" | "&apos;")
 let ident_first_char = [ 'A'-'Z' 'a'-'z' '_' ]
 let ident_char =  [ 'A'-'Z' 'a'-'z' '_' '0'-'9' ]
 
@@ -113,7 +114,7 @@ rule main = parse
       main lexbuf
     }
   | "{#" { comment (Buffer.create 42) lexbuf }
-  | ("\"" | "'" | "&#39;" | "&#34;") as s {
+  | string_delimiter as s {
       if !logic then string (Buffer.create 42) s lexbuf
       else begin
         !print_string s ;
@@ -144,24 +145,27 @@ and string buffer term = parse
     Buffer.add_string buffer s ;
     string buffer term lexbuf
   }
-  | ("&#34;"|"&#39;"|_) as s {
+  | string_delimiter as s {
       if s = term
       then begin
         print_class !string_class (Printf.sprintf "%s%s%s" s (Buffer.contents buffer) s) ;
         main lexbuf
-      end
-      else begin
+      end else begin
         Buffer.add_string buffer s ;
         string buffer term lexbuf
       end
     }
+  | _ as c {
+    Buffer.add_char buffer c ;
+    string buffer term lexbuf
+  }
 
 {
 
 open Jg_types
 
 let highlight = function
-  | Tstr s ->
+  | Tstr s | Tsafe s ->
     begin try
         let buffer = Buffer.create (String.length s) in
         let lexbuf = Lexing.from_string s in
@@ -169,7 +173,7 @@ let highlight = function
         print_string := Buffer.add_string buffer ;
         print_char := Buffer.add_char buffer ;
         main lexbuf ;
-        Tstr (Buffer.contents buffer)
+        Tsafe (Buffer.contents buffer)
       with e ->
         prerr_endline (Printexc.to_string e) ;
         let s = "\t" ^ Re.Str.global_replace (Re.Str.regexp "\n") "\n\t" s in
