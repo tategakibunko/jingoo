@@ -44,7 +44,7 @@ let rec value_of_expr env ctx = function
   | DotExpr(left, prop) -> jg_obj_lookup (value_of_expr env ctx left) prop
   | BracketExpr(left, expr) ->
     (match value_of_expr env ctx expr with
-     | Tstr prop -> jg_obj_lookup (value_of_expr env ctx left) prop
+     | Tstr prop | Tsafe prop -> jg_obj_lookup (value_of_expr env ctx left) prop
      | Tint i -> jg_nth_aux (value_of_expr env ctx left) i
      | _ -> Tnull)
   | TestOpExpr(IdentExpr(name), IdentExpr("defined")) -> jg_test_defined ctx name
@@ -53,11 +53,11 @@ let rec value_of_expr env ctx = function
   | TestOpExpr(DotExpr(IdentExpr(name), prop), IdentExpr("undefined")) -> jg_test_obj_undefined ctx name prop
   | TestOpExpr(BracketExpr(IdentExpr(name), expr), IdentExpr("defined")) ->
     (match value_of_expr env ctx expr with
-     | Tstr prop -> jg_test_obj_defined ctx name prop
+     | Tstr prop | Tsafe prop -> jg_test_obj_defined ctx name prop
      | _ -> Tbool false)
   | TestOpExpr(BracketExpr(IdentExpr(name), expr), IdentExpr("undefined")) ->
     (match value_of_expr env ctx expr with
-     | Tstr prop -> jg_test_obj_undefined ctx name prop
+     | Tstr prop | Tsafe prop -> jg_test_obj_undefined ctx name prop
      | _ -> Tbool true)
   | TestOpExpr(IdentExpr(name), IdentExpr("none")) -> jg_test_none ctx name
   | TestOpExpr(IdentExpr(_), IdentExpr("escaped")) -> jg_test_escaped ctx
@@ -171,7 +171,7 @@ and eval_statement env ctx = function
   | SetStatement(BracketExpr(IdentExpr ns, k), expr) ->
     Hashtbl.replace
       (Hashtbl.find ctx.namespace_table ns)
-      (match value_of_expr env ctx k with Tstr k -> k | _ -> assert false)
+      (match value_of_expr env ctx k with Tstr k | Tsafe k -> k | _ -> assert false)
       (value_of_expr env ctx expr) ;
     ctx
 
@@ -249,7 +249,7 @@ and eval_statement env ctx = function
 
   | IncludeStatement(e, with_ctx) ->
     begin match value_of_expr env ctx e with
-      | Tstr path ->
+      | Tstr path | Tsafe path ->
         if with_ctx then
           let ast = ast_from_file ~env path in
           List.fold_left (eval_statement env) ctx ast
@@ -263,7 +263,7 @@ and eval_statement env ctx = function
 
   | RawIncludeStatement(e) ->
     begin match value_of_expr env ctx e with
-      | Tstr path ->
+      | Tstr path | Tsafe path ->
         let file_path = get_file_path env path in
         let source = Jg_utils.read_file_as_string file_path in
         jg_output ctx (Tstr source) ~safe:true
@@ -421,7 +421,7 @@ let extract_macros env stmts =
         :: !macros;
       Statements []
 
-    | IncludeStatement(LiteralExpr(Tstr path), _) as stmt ->
+    | IncludeStatement(LiteralExpr(Tstr path | Tsafe path), _) as stmt ->
       ignore @@ self.ast self @@ ast_from_file ~env path;
       stmt
 
