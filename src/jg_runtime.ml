@@ -171,7 +171,7 @@ let jg_nth i value =
 (** [jg_escape_html x] escape [x] string representation using {!Jg_utils.escape_html} *)
 let jg_escape_html str =
   match str with
-  | Tsafe str -> Tsafe str
+  | Tsafe _ -> str
   | Tstr str -> Tsafe(Jg_utils.escape_html str)
   | other -> Tsafe(Jg_utils.escape_html @@ string_of_tvalue other)
 
