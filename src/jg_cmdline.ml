@@ -26,7 +26,7 @@ let () =
      "input filename. Use - for reading stdin.");
 
     ("-o", Arg.Set_string outfile,
-     "FILENAME redirect output to FILENAME. Use - for reading stdin.");
+     "FILENAME redirect output to FILENAME. Use - for writing on stdout.");
 
     ("-template_dirs", Arg.Set_string dirs,
      "DIR1,DIR2,... Search these directories when {% include/extend %}");
