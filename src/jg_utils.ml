@@ -181,6 +181,26 @@ let escape_html str =
           loop (istr + 1) (ibuf + 1) in
     loop 0 0
 
+(**
+   Note that '/' is not quoted.
+   https://jinja.palletsprojects.com/en/3.1.x/templates/#jinja-filters.urlencode
+ *)
+let encode_url str =
+  let hexbuf = Bytes.of_string "%__" in
+  let encode_char_to_hex c =
+    let ic = int_of_char c in
+    Bytes.set hexbuf 1 "0123456789ABCDEF".[(ic land 0xF0) lsr 4];
+    Bytes.set hexbuf 2 "0123456789ABCDEF".[ic land 0x0F];
+    Bytes.to_string hexbuf in
+  let buf = Buffer.create 1024 in
+  String.iter (fun c ->
+      match c with
+      | '0'..'9' | 'a'..'z' | 'A'..'Z' | '.' | '-' | '_' | '*' | '/' -> Buffer.add_char buf c
+      | ' ' -> Buffer.add_char buf '+'
+      | _ -> Buffer.add_string buf (encode_char_to_hex c)
+  ) str;
+  Buffer.contents buf
+
 let chomp str =
   Re.replace_string (Re.compile @@ Re.seq [ Re.rep1 (Re.compl [ Re.notnl ]) ; Re.eos ] ) ~by:"" str
 

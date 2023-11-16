@@ -32,6 +32,10 @@ let test_escape _ctx =
     (Tstr "Lo&amp;rem&gt;\n I&lt;ps&quot;um")
     (jg_escape_html (Tstr "Lo&rem>\n I<ps\"um"))
 
+let test_urlencode _ctx =
+  assert_equal_tvalue (Tstr "http%3A//example.com/foo+bar") (jg_urlencode (Tstr "http://example.com/foo bar"));
+  assert_equal_tvalue (Tstr "http%3A//example.com/tag/%E5%B1%B1") (jg_urlencode (Tstr "http://example.com/tag/山"))
+
 let test_string_of_tvalue _ctx =
   assert_equal "a" (string_of_tvalue (Tstr "a"));
   assert_equal "1" (string_of_tvalue (Tint 1));
@@ -805,6 +809,7 @@ let test_tojson _ctx =
 
 let suite = "runtime test" >::: [
   "test_escape" >:: test_escape;
+  "test_urlencode" >:: test_urlencode;
   "test_string_of_tvalue" >:: test_string_of_tvalue;
   "test_plus" >:: test_plus;
   "test_minus" >:: test_minus;

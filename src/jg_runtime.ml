@@ -1588,6 +1588,14 @@ let jg_test_sequence target =
 let jg_test_string target =
   jg_strp target
 
+(** [jg_urlencode x] returns url encoded string of [x] *)
+let rec jg_urlencode = function
+  | Tstr str -> Tstr (Jg_utils.encode_url str)
+  | Tlist list -> Tlist (List.map jg_urlencode list)
+  | Tarray ary -> Tarray (Array.map jg_urlencode ary)
+  | Tset set -> Tset (List.map jg_urlencode set)
+  | other -> failwith_type_error_1 "jg_urlencode" other
+  
 (** [func_arg1] (Deprecated)
     Link to Jg_types.func_arg1 to keep backward compatibility for jingoo(<= 1.2.21).
     Use Jg_types.func_arg1 instead for jingoo(>= 1.3.0)
@@ -1638,6 +1646,7 @@ let std_filters = [|
   ("pprint", func_arg1_no_kw jg_pprint);
   ("flatten", func_arg1_no_kw jg_flatten);
   ("safe", func_arg1_no_kw jg_safe);
+  ("urlencode", func_arg1_no_kw jg_urlencode);
 
   ("attr", func_arg2_no_kw jg_attr);
   ("batch", func_arg2 (jg_batch ?defaults:None));
