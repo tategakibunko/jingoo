@@ -4,8 +4,9 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
-version: 1.5.0
+version: 1.5.0, 2023-11-16
 ===========================
+o [PR#132] Added `urlencode` filter.
 * [PR#125] Improve Tsafe support.
 * [PR#124] Fixed jg_highlight.
 o [PR#123] Defined `safe` filter as `jg_safe`.
