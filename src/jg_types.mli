@@ -76,7 +76,7 @@ and kwargs = (string * tvalue) list
 
 (**/**)
 and ast = statement list
-[@@deriving show { with_path = false }]
+[@@deriving show]
 
 and statement =
     TextStatement of string
