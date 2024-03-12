@@ -4,6 +4,10 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.5.1
+===========================
+* [PR#133] Remove unnecessary with_path argument from deriving show in signature. Replace String.lowercase to String.lowercase_ascii.
+
 version: 1.5.0, 2023-11-16
 ===========================
 o [PR#132] Added `urlencode` filter.
