@@ -192,7 +192,7 @@ let test_truncate _ctx =
 [@@@warning "-3"]
 let test_md5 _ctx =
   let src = "hoge" in
-  let md5 = String.lowercase src |> Digest.string |> Digest.to_hex in
+  let md5 = String.lowercase_ascii src |> Digest.string |> Digest.to_hex in
   assert_equal_tvalue (jg_md5 (Tstr src)) (Tstr md5)
 [@@@warning "+3"]
 
