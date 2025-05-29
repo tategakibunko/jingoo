@@ -485,7 +485,7 @@
       {% call section ([ built_in_filters_section_title, 'split' ], '', false) %}
       {% endcall %}
 
-      {% call section ([ built_in_filters_section_title, 'striptag' ], '', false) %}
+      {% call section ([ built_in_filters_section_title, 'striptags' ], '', false) %}
       {% endcall %}
 
       {% call section ([ built_in_filters_section_title, 'strlen' ], 'filter_strlen', false) %}
