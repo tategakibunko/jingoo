@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Loaded (jingoo.Jingoo.Jg_interp.Loaded)</title><meta charset="utf-8"/><link rel="stylesheet" href="../../../../odoc.support/odoc.css"/><meta name="generator" content="odoc 2.4.1"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><script src="../../../../odoc.support/highlight.pack.js"></script><script>hljs.initHighlightingOnLoad();</script></head><body class="odoc"><nav class="odoc-nav"><a href="../index.html">Up</a> – <a href="../../../index.html">jingoo</a> &#x00BB; <a href="../../index.html">Jingoo</a> &#x00BB; <a href="../index.html">Jg_interp</a> &#x00BB; Loaded</nav><header class="odoc-preamble"><h1>Module <code><span>Jg_interp.Loaded</span></code></h1></header><div class="odoc-content"><div class="odoc-spec"><div class="spec type anchored" id="type-t"><a href="#type-t" class="anchor"></a><code><span><span class="keyword">type</span> t</span><span> =
+  <a href="../../Jg_types/index.html#type-environment">Jg_types.environment</a>
+  * <a href="../../Jg_types/index.html#type-ast">Jg_types.ast</a>
+  * <span><span>(<span><a href="../../Jg_types/index.html#type-context">Jg_types.context</a> <span class="arrow">&#45;&gt;</span></span> string * <a href="../../Jg_types/index.html#type-macro">Jg_types.macro</a>)</span> list</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-load_aux"><a href="#val-load_aux" class="anchor"></a><code><span><span class="keyword">val</span> load_aux : 
+  <span><span class="label">env</span>:<a href="../../Jg_types/index.html#type-environment">Jg_types.environment</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><a href="../../Jg_types/index.html#type-ast">Jg_types.ast</a> <span class="arrow">&#45;&gt;</span></span>
+  <a href="../../Jg_types/index.html#type-environment">Jg_types.environment</a>
+  * <a href="../../Jg_types/index.html#type-ast">Jg_types.ast</a>
+  * <span><span>(<span><a href="../../Jg_types/index.html#type-context">Jg_types.context</a> <span class="arrow">&#45;&gt;</span></span> string * <a href="../../Jg_types/index.html#type-macro">Jg_types.macro</a>)</span> list</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-from_file"><a href="#val-from_file" class="anchor"></a><code><span><span class="keyword">val</span> from_file : 
+  <span><span class="optlabel">?env</span>:<a href="../../Jg_types/index.html#type-environment">Jg_types.environment</a> <span class="arrow">&#45;&gt;</span></span>
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <a href="../../Jg_types/index.html#type-environment">Jg_types.environment</a>
+  * <a href="../../Jg_types/index.html#type-ast">Jg_types.ast</a>
+  * <span><span>(<span><a href="../../Jg_types/index.html#type-context">Jg_types.context</a> <span class="arrow">&#45;&gt;</span></span> string * <a href="../../Jg_types/index.html#type-macro">Jg_types.macro</a>)</span> list</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-from_string"><a href="#val-from_string" class="anchor"></a><code><span><span class="keyword">val</span> from_string : 
+  <span><span class="optlabel">?env</span>:<a href="../../Jg_types/index.html#type-environment">Jg_types.environment</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?file_path</span>:<span class="type-var">'a</span> <span class="arrow">&#45;&gt;</span></span>
+  <span>string <span class="arrow">&#45;&gt;</span></span>
+  <a href="../../Jg_types/index.html#type-environment">Jg_types.environment</a>
+  * <a href="../../Jg_types/index.html#type-ast">Jg_types.ast</a>
+  * <span><span>(<span><a href="../../Jg_types/index.html#type-context">Jg_types.context</a> <span class="arrow">&#45;&gt;</span></span> string * <a href="../../Jg_types/index.html#type-macro">Jg_types.macro</a>)</span> list</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-from_chan"><a href="#val-from_chan" class="anchor"></a><code><span><span class="keyword">val</span> from_chan : 
+  <span><span class="optlabel">?env</span>:<a href="../../Jg_types/index.html#type-environment">Jg_types.environment</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?file_path</span>:string <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="xref-unresolved">Stdlib</span>.in_channel <span class="arrow">&#45;&gt;</span></span>
+  <a href="../../Jg_types/index.html#type-environment">Jg_types.environment</a>
+  * <a href="../../Jg_types/index.html#type-ast">Jg_types.ast</a>
+  * <span><span>(<span><a href="../../Jg_types/index.html#type-context">Jg_types.context</a> <span class="arrow">&#45;&gt;</span></span> string * <a href="../../Jg_types/index.html#type-macro">Jg_types.macro</a>)</span> list</span></span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-eval_aux"><a href="#val-eval_aux" class="anchor"></a><code><span><span class="keyword">val</span> eval_aux : 
+  <span><span>(<a href="../../Jg_types/index.html#type-environment">Jg_types.environment</a>
+   * <span><a href="../../Jg_types/index.html#type-statement">Jg_types.statement</a> list</span>
+   * <span><span>(<span><a href="../../Jg_types/index.html#type-context">Jg_types.context</a> <span class="arrow">&#45;&gt;</span></span> string * <a href="../../Jg_types/index.html#type-macro">Jg_types.macro</a>)</span> list</span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">ctx</span>:<a href="../../Jg_types/index.html#type-context">Jg_types.context</a> <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div></div><div class="odoc-spec"><div class="spec value anchored" id="val-eval"><a href="#val-eval" class="anchor"></a><code><span><span class="keyword">val</span> eval : 
+  <span><span>(<a href="../../Jg_types/index.html#type-environment">Jg_types.environment</a>
+   * <span><a href="../../Jg_types/index.html#type-statement">Jg_types.statement</a> list</span>
+   * <span><span>(<span><a href="../../Jg_types/index.html#type-context">Jg_types.context</a> <span class="arrow">&#45;&gt;</span></span> string * <a href="../../Jg_types/index.html#type-macro">Jg_types.macro</a>)</span> list</span>)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?models</span>:<a href="../../Jg_types/index.html#type-frame">Jg_types.frame</a> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="label">output</span>:<span>(<span><a href="../../Jg_types/index.html#type-tvalue">Jg_types.tvalue</a> <span class="arrow">&#45;&gt;</span></span> unit)</span> <span class="arrow">&#45;&gt;</span></span>
+  <span><span class="optlabel">?ctx</span>:<a href="../../Jg_types/index.html#type-context">Jg_types.context</a> <span class="arrow">&#45;&gt;</span></span>
+  <span>unit <span class="arrow">&#45;&gt;</span></span>
+  unit</span></code></div></div></div></body></html>

@@ -1,0 +1,2086 @@
+
+
+
+
+
+
+<!doctype html>
+<html>
+
+  <head>
+    <meta charset="utf-8">
+    <title>Jingoo - Template designer documentation</title>
+    <link rel="stylesheet" href="templates.css">
+  </head>
+
+  <body>
+
+    <div class="languages">
+      <a href="templates.en.html" class="flag flag-en"></a>
+      <a href="templates.fr.html" class="flag flag-fr"></a>
+      <a href="templates.jp.html" class="flag flag-jp"></a>
+    </div>
+
+    <div class="toc">
+      <div class="toc-title">Filters</div><a href="#filter_abs" class="toc-link">abs</a><a href="#filter_attr" class="toc-link">attr</a><a href="#filter_batch" class="toc-link">batch</a><a href="#filter_capitalize" class="toc-link">capitalize</a><a href="#filter_compose" class="toc-link">compose</a><a href="#filter_default" class="toc-link">default</a><a href="#filter_eq" class="toc-link">eq</a><a href="#filter_escape" class="toc-link">escape</a><a href="#filter_exists" class="toc-link">exists</a><a href="#filter_find" class="toc-link">find</a><a href="#filter_flatten" class="toc-link">flatten</a><a href="#filter_float" class="toc-link">float</a><a href="#filter_fmt_float" class="toc-link">fmt_float</a><a href="#filter_fold" class="toc-link">fold</a><a href="#filter_forall" class="toc-link">forall</a><a href="#filter_ge" class="toc-link">ge</a><a href="#filter_groupby" class="toc-link">groupby</a><a href="#filter_gt" class="toc-link">gt</a><a href="#filter_int" class="toc-link">int</a><a href="#filter_join" class="toc-link">join</a><a href="#filter_last" class="toc-link">last</a><a href="#filter_le" class="toc-link">le</a><a href="#filter_length" class="toc-link">length</a><a href="#filter_list" class="toc-link">list</a><a href="#filter_lower" class="toc-link">lower</a><a href="#filter_lt" class="toc-link">lt</a><a href="#filter_map" class="toc-link">map</a><a href="#filter_max" class="toc-link">max</a><a href="#filter_md5" class="toc-link">md5</a><a href="#filter_min" class="toc-link">min</a><a href="#filter_ne" class="toc-link">ne</a><a href="#filter_nth" class="toc-link">nth</a><a href="#filter_pprint" class="toc-link">pprint</a><a href="#filter_printf" class="toc-link">printf</a><a href="#filter_random" class="toc-link">random</a><a href="#filter_range" class="toc-link">range</a><a href="#filter_reject" class="toc-link">reject</a><a href="#filter_replace" class="toc-link">replace</a><a href="#filter_reverse" class="toc-link">reverse</a><a href="#filter_round" class="toc-link">round</a><a href="#filter_safe" class="toc-link">safe</a><a href="#filter_select" class="toc-link">select</a><a href="#filter_slice" class="toc-link">slice</a><a href="#filter_sort" class="toc-link">sort</a><a href="#filter_split" class="toc-link">split</a><a href="#filter_striptags" class="toc-link">striptags</a><a href="#filter_strlen" class="toc-link">strlen</a><a href="#filter_sublist" class="toc-link">sublist</a><a href="#filter_substring" class="toc-link">substring</a><a href="#filter_sum" class="toc-link">sum</a><a href="#filter_title" class="toc-link">title</a><a href="#filter_tojson" class="toc-link">tojson</a><a href="#filter_trim" class="toc-link">trim</a><a href="#filter_truncate" class="toc-link">truncate</a><a href="#filter_unique" class="toc-link">unique</a><a href="#filter_upper" class="toc-link">upper</a><a href="#filter_urlencode" class="toc-link">urlencode</a><a href="#filter_urlize" class="toc-link">urlize</a><a href="#filter_wordcount" class="toc-link">wordcount</a><a href="#filter_wordwrap" class="toc-link">wordwrap</a><a href="#filter_xmlattr" class="toc-link">xmlattr</a></div>
+
+    <div class="container">
+
+      <p class="title">Statements</p>
+
+      <div class="section" ><ul class="breadcrumb"><li>Statements</li><li>Autoescape</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-autoescape" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-autoescape" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-autoescape" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-autoescape" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%-</span> <span class="jghl-kw">set</span> script = <span class="jghl-str">&quot;&lt;script&gt;&lt;/script&gt;&quot;</span> <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">autoescape</span> true <span class="jghl-stmt">-%}</span>
+<span class="jghl-expr">{{</span> script <span class="jghl-expr">}}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">endautoescape</span> <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">autoescape</span> false <span class="jghl-stmt">-%}</span>
+<span class="jghl-expr">{{</span> script <span class="jghl-expr">}}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">endautoescape</span> <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">autoescape</span> true <span class="jghl-stmt">-%}</span>
+<span class="jghl-expr">{{</span> script <span class="jghl-kw">|</span> safe + <span class="jghl-str">&apos;&apos;</span> <span class="jghl-kw">|</span> safe <span class="jghl-expr">}}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">endautoescape</span> <span class="jghl-stmt">-%}</span>
+</pre>
+      <pre class="tab-content tab-result">&amp;lt;script&amp;gt;&amp;lt;/script&amp;gt;
+&lt;script&gt;&lt;/script&gt;
+&lt;script&gt;&lt;/script&gt;
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" ><ul class="breadcrumb"><li>Statements</li><li>For</li></ul>
+    <div class="section-content">
+      
+        
+          <p class="p">Loop over each item in a sequence.</p>
+          <p class="p">Inside of a for-loop block, you can access some special variables:</p>
+          <dl class="dl"><dt class="dt">loop.index</dt><dd class="dd">The current iteration of the loop. (1 indexed)</dd><dt class="dt">loop.index0</dt><dd class="dd">The current iteration of the loop. (0 indexed)</dd><dt class="dt">loop.revindex</dt><dd class="dd">The number of iterations from the end of the loop (1 indexed)</dd><dt class="dt">loop.revindex0</dt><dd class="dd">The number of iterations from the end of the loop (0 indexed)</dd><dt class="dt">loop.first</dt><dd class="dd">True if first iteration.</dd><dt class="dt">loop.last</dt><dd class="dd">True if last iteration.</dd><dt class="dt">loop.length</dt><dd class="dd">The number of items in the sequence.</dd><dt class="dt">loop.cycle</dt><dd class="dd">A helper function to cycle between a list of sequences.</dd></dl>
+        
+      
+      
+  
+  <form class="demo">
+    <input type="radio" class="tab-input tab-input-models" id="models-for" name="nav-tab" >
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-for" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-for" name="nav-tab" >
+    <div class="tabs">
+      <label for="models-for" class="tab-label tab-label-models">MODELS</label>
+      <label for="jingoo-for" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-for" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      <pre class="tab-content tab-models">{{ { links: [ [ &quot;http://yahoo.co.jp&quot;, &quot;yahoo japan&quot; ],
+	      [ &quot;http://google.co.jp&quot;, &quot;google japan&quot; ] ],
+     links2:[ (&quot;http://yahoo.co.jp&quot;, &quot;yahoo japan&quot;),
+              (&quot;http://google.co.jp&quot;, &quot;google japan&quot;) ],
+     obj: { name: &quot;alice&quot;, age: 42, sex: &quot;F&quot; },
+     str1: &quot;abc&quot;,
+     str2: &quot;日本語&quot;
+   } }}
+</pre>
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%-</span> <span class="jghl-kw">for</span> item <span class="jghl-kw">in</span> [ 0, 1, 2, 3, 4, 5 ] <span class="jghl-stmt">-%}</span>
+  - <span class="jghl-expr">{{</span> item <span class="jghl-expr">}}</span>: <span class="jghl-expr">{{</span> loop.cycle ([<span class="jghl-str">&quot;even&quot;</span>,<span class="jghl-str">&quot;odd&quot;</span>]) <span class="jghl-expr">}}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">for</span> item <span class="jghl-kw">in</span> links <span class="jghl-stmt">-%}</span>
+&lt;a href=&quot;<span class="jghl-expr">{{</span> item[0] <span class="jghl-expr">}}</span>&quot;&gt;<span class="jghl-expr">{{</span> item[1] <span class="jghl-expr">}}</span>&lt;/a&gt;
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">for</span> (href, title) <span class="jghl-kw">in</span> links2 <span class="jghl-stmt">-%}</span>
+&lt;a href=&quot;<span class="jghl-expr">{{</span> href <span class="jghl-expr">}}</span>&quot;&gt;<span class="jghl-expr">{{</span> title <span class="jghl-expr">}}</span>&lt;/a&gt;
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">for</span> (key, value) <span class="jghl-kw">in</span> obj <span class="jghl-stmt">-%}</span>
+  - <span class="jghl-expr">{{</span> key <span class="jghl-expr">}}</span>: <span class="jghl-expr">{{</span> value <span class="jghl-expr">}}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">for</span> s <span class="jghl-kw">in</span> str1 <span class="jghl-stmt">-%}</span>
+  <span class="jghl-expr">{{</span> s <span class="jghl-expr">}}</span>(<span class="jghl-expr">{{</span> loop.index <span class="jghl-expr">}}</span>)
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">for</span> s <span class="jghl-kw">in</span> str2 <span class="jghl-stmt">-%}</span>
+<span class="jghl-expr">{{</span> s <span class="jghl-expr">}}</span>(<span class="jghl-expr">{{</span> loop.index <span class="jghl-expr">}}</span>)
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">-%}</span>
+</pre>
+      <pre class="tab-content tab-result">- 0: even
+- 1: odd
+- 2: even
+- 3: odd
+- 4: even
+- 5: odd
+&lt;a href=&quot;http://yahoo.co.jp&quot;&gt;yahoo japan&lt;/a&gt;
+&lt;a href=&quot;http://google.co.jp&quot;&gt;google japan&lt;/a&gt;
+&lt;a href=&quot;http://yahoo.co.jp&quot;&gt;yahoo japan&lt;/a&gt;
+&lt;a href=&quot;http://google.co.jp&quot;&gt;google japan&lt;/a&gt;
+- name: alice
+- age: 42
+- sex: F
+a(1)
+b(2)
+c(3)
+日(1)
+本(2)
+語(3)
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" ><ul class="breadcrumb"><li>Statements</li><li>macro</li></ul>
+    <div class="section-content">
+      
+        
+          <p class="p">Macro are useful to put often used idioms into reusable component.</p>
+          <p class="p">
+            Note that macros are hoisted, and their scope is the toplevel scope.
+            It means that you define two macro with the same name, the second will erase the first,
+            <strong>even in the macro invocation occuring before the second definition.</strong>
+          </p>
+          <p class="p">
+            Optionally, you can repeat the name of the macro in the <code>endmacro</code> part.
+          </p>
+        
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-macro" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-macro" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-macro" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-macro" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%</span> <span class="jghl-kw">macro</span> li (content) <span class="jghl-stmt">%}</span>&lt;li&gt;<span class="jghl-expr">{{</span> content <span class="jghl-expr">}}</span>&lt;/li&gt;<span class="jghl-stmt">{%</span> <span class="jghl-kw">endmacro</span> <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">macro</span> oli (content) <span class="jghl-stmt">%}</span><span class="jghl-expr">{{</span> li (content) <span class="jghl-expr">}}</span><span class="jghl-stmt">{%</span> <span class="jghl-kw">endmacro</span> oli <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">macro</span> const () <span class="jghl-stmt">%}</span><span class="jghl-expr">{{</span> oli(<span class="jghl-str">&apos;Item4&apos;</span>) <span class="jghl-expr">}}</span><span class="jghl-stmt">{%</span> <span class="jghl-kw">endmacro</span> <span class="jghl-stmt">-%}</span>
+&lt;ol&gt;
+  <span class="jghl-expr">{{</span> oli (<span class="jghl-str">&apos;Item1&apos;</span>) <span class="jghl-expr">}}</span>
+  <span class="jghl-expr">{{</span> oli (<span class="jghl-str">&apos;Item2&apos;</span>) <span class="jghl-expr">}}</span>
+  <span class="jghl-expr">{{</span> oli (<span class="jghl-str">&apos;Item3&apos;</span>) <span class="jghl-expr">}}</span>
+  <span class="jghl-expr">{{</span> const () <span class="jghl-expr">}}</span>
+&lt;/ol&gt;
+</pre>
+      <pre class="tab-content tab-result">&lt;ol&gt;
+  &lt;li&gt;Item1&lt;/li&gt;
+  &lt;li&gt;Item2&lt;/li&gt;
+  &lt;li&gt;Item3&lt;/li&gt;
+  &lt;li&gt;Item4&lt;/li&gt;
+&lt;/ol&gt;
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" ><ul class="breadcrumb"><li>Statements</li><li>call</li></ul>
+    <div class="section-content">
+      
+        
+          <p class="p">Use <code>call</code> statement to pass a macro to another macro.</p>
+        
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-call" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-call" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-call" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-call" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%-</span> <span class="jghl-kw">macro</span> present (name) <span class="jghl-stmt">-%}</span>
+Hello, I am <span class="jghl-expr">{{</span> name <span class="jghl-expr">}}</span>.<span class="jghl-expr">{{</span> caller() <span class="jghl-expr">}}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">endmacro</span> <span class="jghl-stmt">-%}</span>
+<span class="jghl-expr">{{</span> present (<span class="jghl-str">&quot;Bob&quot;</span>) <span class="jghl-expr">}}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">call</span> present (<span class="jghl-str">&quot;Alice&quot;</span>) <span class="jghl-stmt">%}</span> I&apos;m a programmer.<span class="jghl-stmt">{%</span> <span class="jghl-kw">endcall</span> <span class="jghl-stmt">%}</span>
+</pre>
+      <pre class="tab-content tab-result">Hello, I am Bob.
+Hello, I am Alice. I&apos;m a programmer.
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" ><ul class="breadcrumb"><li>Statements</li><li>function</li></ul>
+    <div class="section-content">
+      
+        
+          <p class="p">Function can be seen as macros that return a value instead of printing it.</p>
+        
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-function" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-function" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-function" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-function" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%</span> <span class="jghl-kw">function</span> incr (i) <span class="jghl-stmt">%}</span><span class="jghl-expr">{{</span>i+1<span class="jghl-expr">}}</span><span class="jghl-stmt">{%</span> <span class="jghl-kw">endfunction</span> <span class="jghl-stmt">-%}</span>
+incr(1) = <span class="jghl-expr">{{</span> incr (1) <span class="jghl-expr">}}</span>
+incr(-1) = <span class="jghl-expr">{{</span> incr (-1) <span class="jghl-expr">}}</span>
+
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">function</span> lt1 (i) <span class="jghl-stmt">%}</span><span class="jghl-expr">{{</span> i &lt; 1 <span class="jghl-expr">}}</span><span class="jghl-stmt">{%</span> <span class="jghl-kw">endfunction</span> <span class="jghl-stmt">-%}</span>
+lt1(1) = <span class="jghl-expr">{{</span> lt1 (1) <span class="jghl-expr">}}</span>
+lt1(-1) = <span class="jghl-expr">{{</span> lt1 (-1) <span class="jghl-expr">}}</span>
+
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">function</span> obj (x, y) <span class="jghl-stmt">%}</span><span class="jghl-expr">{{</span> {a:x,b:y} <span class="jghl-expr">}}</span><span class="jghl-stmt">{%</span> <span class="jghl-kw">endfunction</span> <span class="jghl-stmt">-%}</span>
+
+obj(1,2).a = <span class="jghl-expr">{{</span> obj(1,2).a <span class="jghl-expr">}}</span>
+obj(1,2).b = <span class="jghl-expr">{{</span> obj(1,2).b <span class="jghl-expr">}}</span>
+
+obj(&apos;a&apos;,2.5).a = <span class="jghl-expr">{{</span> obj(<span class="jghl-str">&apos;a&apos;</span>,2.5).a <span class="jghl-expr">}}</span>
+obj(&apos;a&apos;,2.5).b = <span class="jghl-expr">{{</span> obj(<span class="jghl-str">&apos;a&apos;</span>,2.5).b <span class="jghl-expr">}}</span>
+
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">function</span> inv (reverse=false, x, y) <span class="jghl-stmt">-%}</span>
+  <span class="jghl-stmt">{%-</span> <span class="jghl-kw">if</span> reverse <span class="jghl-stmt">%}</span><span class="jghl-expr">{{</span> {a:y,b:x} <span class="jghl-expr">}}</span><span class="jghl-stmt">{%</span> <span class="jghl-kw">else</span> <span class="jghl-stmt">%}</span><span class="jghl-expr">{{</span> {a:x,b:y} <span class="jghl-expr">}}</span><span class="jghl-stmt">{%</span> <span class="jghl-kw">endif</span> <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">endfunction</span> <span class="jghl-stmt">-%}</span>
+
+inv(&apos;a&apos;,&apos;b&apos;).a = <span class="jghl-expr">{{</span> (inv(<span class="jghl-str">&apos;a&apos;</span>,<span class="jghl-str">&apos;b&apos;</span>)).a <span class="jghl-expr">}}</span>
+inv(reverse=true,&apos;a&apos;,&apos;b&apos;).a = <span class="jghl-expr">{{</span> (inv(reverse=true,<span class="jghl-str">&apos;a&apos;</span>,<span class="jghl-str">&apos;b&apos;</span>)).a <span class="jghl-expr">}}</span>
+
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">function</span> add_val (val=0, x) <span class="jghl-stmt">-%}</span>
+  <span class="jghl-expr">{{</span> [ x, (x + val) ] <span class="jghl-expr">}}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">endfunction</span> <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">for</span> x <span class="jghl-kw">in</span> [-1,0,1,2] <span class="jghl-kw">|</span> map (add_val, val=-2) <span class="jghl-stmt">-%}</span>
+  add_val(val=-2,<span class="jghl-expr">{{</span>x[0]<span class="jghl-expr">}}</span>) = <span class="jghl-expr">{{</span>x[1]<span class="jghl-expr">}}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">-%}</span>
+
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">function</span> const () <span class="jghl-stmt">-%}</span><span class="jghl-expr">{{</span> 4 <span class="jghl-expr">}}</span><span class="jghl-stmt">{%</span> <span class="jghl-kw">endfunction</span> <span class="jghl-stmt">-%}</span>
+
+const() = <span class="jghl-expr">{{</span> const () <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">incr(1) = 2
+incr(-1) = 0
+
+lt1(1) = false
+lt1(-1) = true
+
+obj(1,2).a = 1
+obj(1,2).b = 2
+
+obj(&apos;a&apos;,2.5).a = a
+obj(&apos;a&apos;,2.5).b = 2.5
+
+inv(&apos;a&apos;,&apos;b&apos;).a = a
+inv(reverse=true,&apos;a&apos;,&apos;b&apos;).a = b
+
+add_val(val=-2,-1) = -3
+add_val(val=-2,0) = -2
+add_val(val=-2,1) = -1
+add_val(val=-2,2) = 0
+const() = 4
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" ><ul class="breadcrumb"><li>Statements</li><li>if</li></ul>
+    <div class="section-content">
+      
+        
+          <p class="p">
+            The if statement allows us to check if an expression is true or false,
+            and execute different code according to the result.
+          </p>
+          <p>
+            <code>0</code>, <code>null</code>, <code>&apos;&apos;</code>, <code>&quot;&quot;</code>, <code>[]</code>,
+            or <code>{}</code> are considered as <code>false</code> when used in a <code>if</code>/<code>elif</code> test.
+            The rest is <code>true</code>.
+          <p>
+        
+      
+      
+  
+  <form class="demo">
+    <input type="radio" class="tab-input tab-input-models" id="models-if" name="nav-tab" >
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-if" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-if" name="nav-tab" >
+    <div class="tabs">
+      <label for="models-if" class="tab-label tab-label-models">MODELS</label>
+      <label for="jingoo-if" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-if" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      <pre class="tab-content tab-models">{{ { hoge : &quot;baz&quot; } }}
+</pre>
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%-</span> <span class="jghl-kw">if</span> hoge == <span class="jghl-str">&quot;foo&quot;</span> <span class="jghl-stmt">-%}</span>
+hoge == &quot;foo&quot;
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">elseif</span> hoge == <span class="jghl-str">&quot;bar&quot;</span> <span class="jghl-stmt">-%}</span>
+hoge == &quot;bar&quot;
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">else</span> <span class="jghl-kw">if</span> hoge == <span class="jghl-str">&quot;hoge&quot;</span> <span class="jghl-stmt">-%}</span>
+hoge == &quot;hoge&quot;
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">elif</span> hoge == <span class="jghl-str">&quot;baz&quot;</span> <span class="jghl-stmt">-%}</span>
+hoge == &quot;baz&quot;
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">else</span> <span class="jghl-stmt">-%}</span>
+But... What is hoge?
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">endif</span> <span class="jghl-stmt">%}</span>
+</pre>
+      <pre class="tab-content tab-result">hoge == &quot;baz&quot;
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" ><ul class="breadcrumb"><li>Statements</li><li>switch</li></ul>
+    <div class="section-content">
+      
+        
+          <p class="p">
+            The switch statement allows us to use compare a variable with a set of literal values.
+          </p>
+        
+      
+      
+  
+  <form class="demo">
+    <input type="radio" class="tab-input tab-input-models" id="models-switch" name="nav-tab" >
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-switch" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-switch" name="nav-tab" >
+    <div class="tabs">
+      <label for="models-switch" class="tab-label tab-label-models">MODELS</label>
+      <label for="jingoo-switch" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-switch" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      <pre class="tab-content tab-models">{{ { foo : &apos;foo&apos; } }}
+</pre>
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%</span> <span class="jghl-kw">switch</span> foo <span class="jghl-stmt">%}</span>
+  <span class="jghl-stmt">{%-</span> <span class="jghl-kw">case</span> <span class="jghl-str">&apos;bar&apos;</span> <span class="jghl-kw">||</span> <span class="jghl-str">&apos;baz&apos;</span> <span class="jghl-stmt">%}</span>1
+  <span class="jghl-stmt">{%-</span> <span class="jghl-kw">case</span> <span class="jghl-str">&apos;foo&apos;</span> <span class="jghl-stmt">%}</span>2
+  <span class="jghl-stmt">{%-</span> <span class="jghl-kw">default</span> <span class="jghl-stmt">%}</span>3
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">endswitch</span> <span class="jghl-stmt">%}</span>
+</pre>
+      <pre class="tab-content tab-result">2
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" ><ul class="breadcrumb"><li>Statements</li><li>Keywords</li><li>in</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-in" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-in" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-in" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-in" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%</span> <span class="jghl-kw">if</span> 1 <span class="jghl-kw">in</span> [1,2,3] <span class="jghl-stmt">-%}</span>
+&lt;p&gt;Yes, it works! &lt;code&gt;1&lt;/code&gt; is in &lt;code&gt;[1,2,3]&lt;/code&gt;&lt;/p&gt;
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">endif</span> <span class="jghl-stmt">%}</span>
+</pre>
+      <pre class="tab-content tab-result">&lt;p&gt;Yes, it works! &lt;code&gt;1&lt;/code&gt; is in &lt;code&gt;[1,2,3]&lt;/code&gt;&lt;/p&gt;
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" ><ul class="breadcrumb"><li>Statements</li><li>Filter</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-filter" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%</span> <span class="jghl-kw">filter</span> upper <span class="jghl-stmt">-%}</span>
+must be upper
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">endfilter</span> <span class="jghl-stmt">%}</span>
+</pre>
+      <pre class="tab-content tab-result">MUST BE UPPER
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" ><ul class="breadcrumb"><li>Statements</li><li>Objects properties</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    <input type="radio" class="tab-input tab-input-models" id="models-obj-property" name="nav-tab" >
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-obj-property" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-obj-property" name="nav-tab" >
+    <div class="tabs">
+      <label for="models-obj-property" class="tab-label tab-label-models">MODELS</label>
+      <label for="jingoo-obj-property" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-obj-property" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      <pre class="tab-content tab-models">{{ { person : { name : &quot;alice&quot;, age: 42 } } }}
+</pre>
+      <pre class="tab-content tab-jingoo">- person.name: <span class="jghl-expr">{{</span> person.name <span class="jghl-expr">}}</span>
+- person.age: <span class="jghl-expr">{{</span> person.age <span class="jghl-expr">}}</span>
+- person[&quot;name&quot;]: <span class="jghl-expr">{{</span> person[<span class="jghl-str">&quot;name&quot;</span>] <span class="jghl-expr">}}</span>
+- person[&quot;age&quot;]: <span class="jghl-expr">{{</span> person[<span class="jghl-str">&quot;age&quot;</span>] <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">- person.name: alice
+- person.age: 42
+- person[&quot;name&quot;]: alice
+- person[&quot;age&quot;]: 42
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+
+      <div class="section" ><ul class="breadcrumb"><li>Statements</li><li>Raw</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-raw" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-raw" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-raw" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-raw" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%</span> <span class="jghl-kw">raw</span> <span class="jghl-stmt">-%}</span>
+Not expanded: <span class="jghl-expr">{{</span> hoge <span class="jghl-expr">}}</span>
+Not a for loop: <span class="jghl-stmt">{%</span> <span class="jghl-kw">for</span> x <span class="jghl-kw">in</span> long_list <span class="jghl-stmt">%}</span><span class="jghl-expr">{{</span>x<span class="jghl-expr">}}</span><span class="jghl-stmt">{%</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">%}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">endraw</span> <span class="jghl-stmt">%}</span>
+</pre>
+      <pre class="tab-content tab-result">Not expanded: {{ hoge }}
+Not a for loop: {% for x in long_list %}{{x}}{% endfor %}
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" ><ul class="breadcrumb"><li>Statements</li><li>Variable assignment</li></ul>
+    <div class="section-content">
+      
+        
+          <p class="p">
+            All blocks introduce a new scope when assigning variables. You can read a variable
+            defined in a parent block, but you can not assign a new value to this variable.
+            A new variable will be created for each assignment. It will shadow the old definition,
+            but as soon as you will leave the block, the old definition
+          </p>
+          <p class="p">
+            The only exception to that rule are <code>if</code> statements which do not introduce a scope.
+          </p>
+          <p class="p">
+            See <a href="#namespace">Namespace</a> for variable assignement propagating across scopes.
+          </p>
+        
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-set" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-set" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-set" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-set" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%-</span> <span class="jghl-kw">set</span> hoge = <span class="jghl-str">&quot;ok&quot;</span> <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">set</span> foo, bar = (<span class="jghl-str">&quot;foo&quot;</span>, <span class="jghl-str">&quot;bar&quot;</span>) <span class="jghl-stmt">-%}</span>
+hoge: <span class="jghl-expr">{{</span> hoge <span class="jghl-expr">}}</span>
+foo: <span class="jghl-expr">{{</span> foo <span class="jghl-expr">}}</span>
+bar: <span class="jghl-expr">{{</span> bar <span class="jghl-expr">}}</span>
+
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">set</span> baz = 0 <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">set</span> baz += 1 <span class="jghl-stmt">-%}</span>
+baz: <span class="jghl-expr">{{</span> baz <span class="jghl-expr">}}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">set</span> baz += 1 <span class="jghl-stmt">-%}</span>
+baz: <span class="jghl-expr">{{</span> baz <span class="jghl-expr">}}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">set</span> baz -= 1 <span class="jghl-stmt">-%}</span>
+baz: <span class="jghl-expr">{{</span> baz <span class="jghl-expr">}}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">set</span> baz *= 6 <span class="jghl-stmt">-%}</span>
+baz: <span class="jghl-expr">{{</span> baz <span class="jghl-expr">}}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">set</span> baz /= 2 <span class="jghl-stmt">-%}</span>
+baz: <span class="jghl-expr">{{</span> baz <span class="jghl-expr">}}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">set</span> baz %= 2 <span class="jghl-stmt">-%}</span>
+baz: <span class="jghl-expr">{{</span> baz <span class="jghl-expr">}}</span>
+
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">set</span> iterated = false <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">for</span> item <span class="jghl-kw">in</span> [ 1, 2, 3 ] <span class="jghl-stmt">-%}</span>
+  <span class="jghl-stmt">{%</span> <span class="jghl-kw">set</span> iterated = true <span class="jghl-stmt">%}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">if</span> <span class="jghl-kw">not</span> iterated <span class="jghl-stmt">%}</span>Did not iterate!<span class="jghl-stmt">{%</span> <span class="jghl-kw">endif</span> <span class="jghl-stmt">%}</span>
+</pre>
+      <pre class="tab-content tab-result">hoge: ok
+foo: foo
+bar: bar
+
+baz: 1
+baz: 2
+baz: 1
+baz: 6
+baz: 3
+baz: 1
+
+Did not iterate!
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" ><ul class="breadcrumb"><li>Statements</li><li>Variable assignment</li><li>Namespace</li></ul>
+    <div class="section-content">
+      
+        
+          <p class="p">
+            Namespace are used to create variables you can modify from a child block.
+          </p>
+        
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-namespace" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-namespace" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-namespace" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-namespace" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%-</span> <span class="jghl-kw">set</span> ns = namespace (foo=0, bar=<span class="jghl-str">&apos;bar&apos;</span>) <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">set</span> key_expr_foo = <span class="jghl-str">&quot;foo&quot;</span> <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">set</span> key_expr_bar = <span class="jghl-str">&quot;bar&quot;</span> <span class="jghl-stmt">-%}</span>
+
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">for</span> i <span class="jghl-kw">in</span> [1,2,3] <span class="jghl-stmt">-%}</span>
+  <span class="jghl-stmt">{%-</span> <span class="jghl-kw">set</span> ns.foo = ns.foo + i <span class="jghl-stmt">-%}</span>
+  <span class="jghl-stmt">{%-</span> <span class="jghl-kw">set</span> ns.bar = ns.bar + i <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">-%}</span>
+
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">set</span> ns[key_expr_foo] *= 10 <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">set</span> ns[key_expr_bar] += <span class="jghl-str">&apos;!&apos;</span> <span class="jghl-stmt">-%}</span>
+
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">if</span> ns.foo == 60 <span class="jghl-kw">and</span> ns.bar == <span class="jghl-str">&apos;bar123!&apos;</span> <span class="jghl-stmt">-%}</span>
+  Namespace works :)
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">endif</span> <span class="jghl-stmt">%}</span>
+</pre>
+      <pre class="tab-content tab-result">Namespace works :)
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" ><ul class="breadcrumb"><li>Statements</li><li>Variable assignment</li><li>Block capture</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-set_block" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-set_block" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-set_block" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-set_block" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%-</span> <span class="jghl-kw">set</span> list <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">macro</span> li (content) <span class="jghl-stmt">%}</span>&lt;li&gt;<span class="jghl-expr">{{</span> content <span class="jghl-expr">}}</span>&lt;/li&gt;<span class="jghl-stmt">{%</span> <span class="jghl-kw">endmacro</span> <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">set</span> item4 = <span class="jghl-str">&apos;&lt;Escaping works&gt;&apos;</span> <span class="jghl-stmt">-%}</span>
+&lt;ol&gt;
+  <span class="jghl-expr">{{</span> li (<span class="jghl-str">&apos;Item1&apos;</span>) <span class="jghl-expr">}}</span>
+  <span class="jghl-expr">{{</span> li (<span class="jghl-str">&apos;Item2&apos;</span>) <span class="jghl-expr">}}</span>
+  <span class="jghl-expr">{{</span> li (<span class="jghl-str">&apos;Item3&apos;</span>) <span class="jghl-expr">}}</span>
+  <span class="jghl-expr">{{</span> li (item4) <span class="jghl-expr">}}</span>
+&lt;/ol&gt;
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">endset</span> <span class="jghl-stmt">-%}</span>
+
+Stored output:
+<span class="jghl-expr">{{</span> list <span class="jghl-expr">}}</span>
+
+Variables defined inside block are not exposed:
+<span class="jghl-expr">{{</span> item4 <span class="jghl-expr">}}</span>
+
+Stored output again:
+<span class="jghl-expr">{{</span> list <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">Stored output:
+&lt;ol&gt;
+  &lt;li&gt;Item1&lt;/li&gt;
+  &lt;li&gt;Item2&lt;/li&gt;
+  &lt;li&gt;Item3&lt;/li&gt;
+  &lt;li&gt;&amp;lt;Escaping works&amp;gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+Variables defined inside block are not exposed:
+
+
+Stored output again:
+&lt;ol&gt;
+  &lt;li&gt;Item1&lt;/li&gt;
+  &lt;li&gt;Item2&lt;/li&gt;
+  &lt;li&gt;Item3&lt;/li&gt;
+  &lt;li&gt;&amp;lt;Escaping works&amp;gt;&lt;/li&gt;
+&lt;/ol&gt;
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" ><ul class="breadcrumb"><li>Statements</li><li>Whitespace control</li></ul>
+    <div class="section-content">
+      
+        <p class="p">Use <code>{%-</code> to strip whitespaces <strong>before</strong> this token.</p>
+        <p class="p">Use <code>-%}</code> to strip whitespaces <strong>after</strong> this token.</p>
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-whitespace-control" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-whitespace-control" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-whitespace-control" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-whitespace-control" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%-</span> <span class="jghl-kw">for</span> i <span class="jghl-kw">in</span> [1,2,3] <span class="jghl-stmt">-%}</span>
+  <span class="jghl-expr">{{</span> i <span class="jghl-expr">}}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">%}</span>
+</pre>
+      <pre class="tab-content tab-result">123
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" ><ul class="breadcrumb"><li>Statements</li><li>With</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-with" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-with" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-with" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-with" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%</span> <span class="jghl-kw">with</span> foo = 10, hoge = 20 <span class="jghl-stmt">-%}</span>
+foo: <span class="jghl-expr">{{</span> foo <span class="jghl-expr">}}</span>
+hoge: <span class="jghl-expr">{{</span> hoge <span class="jghl-expr">}}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">endwith</span> <span class="jghl-stmt">%}</span>
+</pre>
+      <pre class="tab-content tab-result">foo: 10
+hoge: 20
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <p class="title">Tests</p>
+      <p class="subtitle">Tests are just functions that return a boolean.</p>
+
+      <div class="section" ><ul class="breadcrumb"><li>Tests</li><li>The IS keyword</li></ul>
+    <div class="section-content">
+      
+        <p class="p">
+          Tests can be used with the standard function call syntax,
+          but also with the <code>is</code> keyword in statements or expressions.
+        </p>
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-is" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-is" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-is" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-is" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo">- 6 is divisibleby 4: <span class="jghl-expr">{{</span> 6 <span class="jghl-kw">is</span> divisibleby 4 <span class="jghl-expr">}}</span>
+- 6 is divisibleby (4): <span class="jghl-expr">{{</span> 6 <span class="jghl-kw">is</span> divisibleby (4) <span class="jghl-expr">}}</span>
+- divisibleby(3,6): <span class="jghl-expr">{{</span> divisibleby(3,6) <span class="jghl-expr">}}</span>
+- 3 is iterable: <span class="jghl-expr">{{</span> 3 <span class="jghl-kw">is</span> iterable <span class="jghl-expr">}}</span>
+- [1,2,3] is iterable: <span class="jghl-expr">{{</span> [1,2,3] <span class="jghl-kw">is</span> iterable <span class="jghl-expr">}}</span>
+- &quot;hoge&quot; is iterable: <span class="jghl-expr">{{</span> <span class="jghl-str">&quot;hoge&quot;</span> <span class="jghl-kw">is</span> iterable <span class="jghl-expr">}}</span>
+- null is iterable: <span class="jghl-expr">{{</span> <span class="jghl-kw">null</span> <span class="jghl-kw">is</span> iterable <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">- 6 is divisibleby 4: false
+- 6 is divisibleby (4): false
+- divisibleby(3,6): true
+- 3 is iterable: false
+- [1,2,3] is iterable: true
+- &quot;hoge&quot; is iterable: true
+- null is iterable: true
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <p class="title">Operators</p>
+
+      <div class="section" ><ul class="breadcrumb"><li>Operators</li><li>Boolean operators</li></ul>
+    <div class="section-content">
+      
+        
+          <p class="p">
+            Evaluation of boolean operators is sequential, left-to-right.
+          </p>
+          <p class="p">
+            In <code>e1 &amp;&amp; e2</code>,
+            <code>e1</code> is evaluated first, and if it returns <code>false</code>,
+            <code>e2</code> is not evaluated at all.
+          </p>
+          <p class="p">
+            In <code>e1 || e2</code>,
+            <code>e1</code> is evaluated first, and if it returns <code>true</code>, <code>e2</code>
+            is not evaluated at all.
+          </p>
+          <p class="p">Use <code>not</code> and <code>!</code> operators to negate a boolean.</p>
+        
+      
+      
+  
+  <form class="demo">
+    <input type="radio" class="tab-input tab-input-models" id="models-and-or" name="nav-tab" >
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-and-or" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-and-or" name="nav-tab" >
+    <div class="tabs">
+      <label for="models-and-or" class="tab-label tab-label-models">MODELS</label>
+      <label for="jingoo-and-or" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-and-or" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      <pre class="tab-content tab-models">{{ { foo : &quot;FOO&quot;, bar: &quot;BAR&quot; } }}
+</pre>
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%</span> <span class="jghl-kw">if</span> foo == <span class="jghl-str">&quot;BAR&quot;</span> <span class="jghl-kw">||</span> bar == <span class="jghl-str">&quot;BAR&quot;</span> <span class="jghl-stmt">%}</span>✓<span class="jghl-stmt">{%</span> <span class="jghl-kw">endif</span> <span class="jghl-stmt">%}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">if</span> foo == <span class="jghl-str">&quot;BAR&quot;</span> <span class="jghl-kw">or</span> bar == <span class="jghl-str">&quot;BAR&quot;</span> <span class="jghl-stmt">%}</span>✓<span class="jghl-stmt">{%</span> <span class="jghl-kw">endif</span> <span class="jghl-stmt">%}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">if</span> foo == <span class="jghl-str">&quot;FOO&quot;</span> &amp;&amp; bar == <span class="jghl-str">&quot;BAR&quot;</span> <span class="jghl-stmt">%}</span>✓<span class="jghl-stmt">{%</span> <span class="jghl-kw">endif</span> <span class="jghl-stmt">%}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">if</span> foo == <span class="jghl-str">&quot;FOO&quot;</span> <span class="jghl-kw">and</span> bar == <span class="jghl-str">&quot;BAR&quot;</span> <span class="jghl-stmt">%}</span>✓<span class="jghl-stmt">{%</span> <span class="jghl-kw">endif</span> <span class="jghl-stmt">%}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">if</span> <span class="jghl-kw">not</span> (foo == <span class="jghl-str">&quot;BAR&quot;</span> <span class="jghl-kw">and</span> bar == <span class="jghl-str">&quot;BAR&quot;</span>) <span class="jghl-stmt">%}</span>✗<span class="jghl-stmt">{%</span> <span class="jghl-kw">endif</span> <span class="jghl-stmt">%}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">if</span> ! (foo == <span class="jghl-str">&quot;BAR&quot;</span> <span class="jghl-kw">||</span> bar == <span class="jghl-str">&quot;FOO&quot;</span>) <span class="jghl-stmt">%}</span>✗<span class="jghl-stmt">{%</span> <span class="jghl-kw">endif</span> <span class="jghl-stmt">%}</span>
+</pre>
+      <pre class="tab-content tab-result">✓
+✓
+✓
+✓
+✗
+✗
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" ><ul class="breadcrumb"><li>Operators</li><li>Basic operators</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-operators" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-operators" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-operators" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-operators" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo">1 + 1 = <span class="jghl-expr">{{</span> 1 + 1 <span class="jghl-expr">}}</span>
+1 - 1 = <span class="jghl-expr">{{</span> 1 - 1 <span class="jghl-expr">}}</span>
+2 * 3 = <span class="jghl-expr">{{</span> 2 * 3 <span class="jghl-expr">}}</span>
+5 / 2 = <span class="jghl-expr">{{</span> 5 / 2 <span class="jghl-expr">}}</span>
+2 ** 8 = <span class="jghl-expr">{{</span> 2 ** 8 <span class="jghl-expr">}}</span>
+8 % 3 = <span class="jghl-expr">{{</span> 8 % 3 <span class="jghl-expr">}}</span>
+
+&quot;a&quot; + &quot;b&quot; = <span class="jghl-expr">{{</span> <span class="jghl-str">&quot;a&quot;</span> + <span class="jghl-str">&quot;b&quot;</span> <span class="jghl-expr">}}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">for</span> i <span class="jghl-kw">in</span> [1,2] + [3,4] <span class="jghl-stmt">%}</span><span class="jghl-expr">{{</span>i<span class="jghl-expr">}}</span><span class="jghl-stmt">{%</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">%}</span>
+({a:&quot;foo&quot;} + {b:&quot;bar&quot;}).a = <span class="jghl-expr">{{</span> ({a:<span class="jghl-str">&quot;foo&quot;</span>} + {b:<span class="jghl-str">&quot;bar&quot;</span>}).a <span class="jghl-expr">}}</span>
+({a:&quot;foo&quot;} + {b:&quot;bar&quot;}).b = <span class="jghl-expr">{{</span> ({a:<span class="jghl-str">&quot;foo&quot;</span>} + {b:<span class="jghl-str">&quot;bar&quot;</span>}).b <span class="jghl-expr">}}</span>
+({a:&quot;foo&quot;} + {a:&quot;bar&quot;}).a = <span class="jghl-expr">{{</span> ({a:<span class="jghl-str">&quot;foo&quot;</span>} + {a:<span class="jghl-str">&quot;bar&quot;</span>}).a <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">1 + 1 = 2
+1 - 1 = 0
+2 * 3 = 6
+5 / 2 = 2
+2 ** 8 = 256.
+8 % 3 = 2
+
+&quot;a&quot; + &quot;b&quot; = ab
+1234
+({a:&quot;foo&quot;} + {b:&quot;bar&quot;}).a = foo
+({a:&quot;foo&quot;} + {b:&quot;bar&quot;}).b = bar
+({a:&quot;foo&quot;} + {a:&quot;bar&quot;}).a = bar
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" ><ul class="breadcrumb"><li>Operators</li><li>Ternary operators</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-ternary" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-ternary" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-ternary" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-ternary" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-expr">{{</span> (1 + 1 == 2) ? <span class="jghl-str">&apos;yes&apos;</span> : <span class="jghl-str">&apos;no&apos;</span> <span class="jghl-expr">}}</span>
+<span class="jghl-expr">{{</span> (1 + 1 == 3) ? <span class="jghl-str">&apos;no&apos;</span> : (1 + 1 == 2) ? <span class="jghl-str">&apos;yes&apos;</span> : <span class="jghl-str">&apos;no&apos;</span> <span class="jghl-expr">}}</span>
+<span class="jghl-expr">{{</span> <span class="jghl-kw">null</span> ? <span class="jghl-str">&apos;yes&apos;</span> : <span class="jghl-str">&apos;no&apos;</span> <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">yes
+yes
+no
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" ><ul class="breadcrumb"><li>Operators</li><li>Fat arrow operator</li></ul>
+    <div class="section-content">
+      
+        
+          <p class="p">The fat arrow operator <code>=&gt;</code> is used to define anonymous functions.</p>
+          <p class="p">It is right associative and have the lowest precedence of all the operators.</p>
+        
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-fat-arrow" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-fat-arrow" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-fat-arrow" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-fat-arrow" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo">((i) =&gt; i + 1)(1) = <span class="jghl-expr">{{</span> ((i) =&gt; i + 1)(1) <span class="jghl-expr">}}</span>
+(i =&gt; i + 1)(-1) = <span class="jghl-expr">{{</span> (i =&gt; i + 1)(-1) <span class="jghl-expr">}}</span>
+((a, b) =&gt; a + b)(1, 2) = <span class="jghl-expr">{{</span> ((a, b) =&gt; a + b)(1, 2) <span class="jghl-expr">}}</span>
+(() =&gt; &apos;foo&apos;)() = <span class="jghl-expr">{{</span> (() =&gt; <span class="jghl-str">&apos;foo&apos;</span>)() <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">((i) =&gt; i + 1)(1) = 2
+(i =&gt; i + 1)(-1) = 0
+((a, b) =&gt; a + b)(1, 2) = 3
+(() =&gt; &apos;foo&apos;)() = foo
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <p class="title">Built-in filters</p>
+
+      <div class="section" id="filter_abs"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_abs">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>abs</li></ul>
+    <div class="section-content">
+      
+      <p class="p"><code>abs (num)</code> Return the absolute value of <code>num</code>.</p>
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_attr"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_attr">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>attr</li></ul>
+    <div class="section-content">
+      
+      <p class="p"><code>attr (name, obj)</code></p>
+      <p class="p"><code>{{ foo | attr (&quot;bar&quot;) }}</code> is <code>{{ foo.bar }}</code>.</p>
+      <p class="p"><code>{{ foo | attr (&quot;bar.baz&quot;) }}</code> is <code>{{ foo.bar.baz }}</code>.</p>
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_batch"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_batch">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>batch</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    <input type="radio" class="tab-input tab-input-models" id="models-filter_batch" name="nav-tab" >
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_batch" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_batch" name="nav-tab" >
+    <div class="tabs">
+      <label for="models-filter_batch" class="tab-label tab-label-models">MODELS</label>
+      <label for="jingoo-filter_batch" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_batch" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      <pre class="tab-content tab-models">{{ { list: [ 10, 20, 30, 40, 50, 60, 70, 80, 90, 100] } }}
+</pre>
+      <pre class="tab-content tab-jingoo">Batch of length 4 padded with &quot;X&quot;:
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">for</span> row <span class="jghl-kw">in</span> batch (4, list, fill_with=<span class="jghl-str">&quot;X&quot;</span>) <span class="jghl-stmt">-%}</span>
+|<span class="jghl-stmt">{%</span> <span class="jghl-kw">for</span> x <span class="jghl-kw">in</span> row <span class="jghl-stmt">%}</span> <span class="jghl-expr">{{</span> x <span class="jghl-expr">}}</span> |<span class="jghl-stmt">{%</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">%}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">-%}</span>
+</pre>
+      <pre class="tab-content tab-result">Batch of length 4 padded with &quot;X&quot;:
+| 10 | 20 | 30 | 40 |
+| 50 | 60 | 70 | 80 |
+| 90 | 100 | X | X |
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_capitalize"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_capitalize">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>capitalize</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_capitalize" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_capitalize" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-filter_capitalize" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_capitalize" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-expr">{{</span> <span class="jghl-str">&apos;this phrase should be capitalized!&apos;</span> <span class="jghl-kw">|</span> capitalize <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">This phrase should be capitalized!
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_compose"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_compose">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>compose</li></ul>
+    <div class="section-content">
+      
+      <p class="p"><code>compose (f, g)</code></p>
+      <p class="p">
+        The composition function. <code>compose (f, g)) (x)</code>
+        is <code>f (g (x))</code>.
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_default"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_default">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>default</li></ul>
+    <div class="section-content">
+      
+      <p class="p"><code>default (default_value, value)</code></p>
+      <p class="p">
+        Return <code>value</code> if it is defined from <code>null</code>,
+        and <code>default</code> otherwise.
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_eq"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_eq">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>eq</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_escape"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_escape">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>escape</li></ul>
+    <div class="section-content">
+      
+        <p class="p">
+          <code>escape (string)</code>. Replaces <code>&amp;</code>, <code>&quot;</code>,
+          <code>&lt;</code> and <code>&gt;</code> with their corresponding HTML entities.
+        </p>
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_eval"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_eval">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>eval</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_eval" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_eval" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-filter_eval" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_eval" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%</span> <span class="jghl-kw">set</span> msg = <span class="jghl-str">&apos;Hello, world!&apos;</span> <span class="jghl-stmt">-%}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">set</span> src = <span class="jghl-str">&apos;From eval!&apos;</span> <span class="jghl-stmt">-%}</span>
+
+Only the last expression is returned:
+- &quot;<span class="jghl-expr">{{</span> eval(<span class="jghl-str">&quot;{{ msg }} {{ src }}&quot;</span>) <span class="jghl-expr">}}</span>&quot;
+- &quot;<span class="jghl-expr">{{</span> eval(<span class="jghl-str">&quot;{{ msg + &apos; &apos; + src }}&quot;</span>) <span class="jghl-expr">}}</span>&quot;
+
+Be careful with trailing whitespaces:
+- &quot;<span class="jghl-expr">{{</span> eval(<span class="jghl-str">&quot;{{ msg + &apos; &apos; + src }} &quot;</span>) <span class="jghl-expr">}}</span>&quot;
+</pre>
+      <pre class="tab-content tab-result">Only the last expression is returned:
+- &quot;From eval!&quot;
+- &quot;Hello, world! From eval!&quot;
+
+Be careful with trailing whitespaces:
+- &quot; &quot;
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_exists"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_exists">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>exists</li></ul>
+    <div class="section-content">
+      
+        <p class="p">
+          <code>exists (fn, seq)</code>
+        </p>
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_exists" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_exists" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-filter_exists" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_exists" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%</span> <span class="jghl-kw">if</span> exists (eq(0), [0,1,2,3,4]) <span class="jghl-stmt">%}</span>YES<span class="jghl-stmt">{%</span> <span class="jghl-kw">endif</span> <span class="jghl-stmt">%}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">if</span> <span class="jghl-kw">not</span> (exists (eq(5), [0,1,2,3,4])) <span class="jghl-stmt">%}</span>NO<span class="jghl-stmt">{%</span> <span class="jghl-kw">endif</span> <span class="jghl-stmt">%}</span>
+</pre>
+      <pre class="tab-content tab-result">YES
+NO
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_find"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_find">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>find</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_float"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_float">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>float</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_flatten"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_flatten">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>flatten</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_flatten" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_flatten" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-filter_flatten" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_flatten" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%-</span> <span class="jghl-kw">set</span> test = [[1,2],[3],4] <span class="jghl-kw">|</span> flatten <span class="jghl-stmt">-%}</span>
+test[0]: <span class="jghl-expr">{{</span> test[0] <span class="jghl-expr">}}</span>
+test[1]: <span class="jghl-expr">{{</span> test[1] <span class="jghl-expr">}}</span>
+test[2]: <span class="jghl-expr">{{</span> test[2] <span class="jghl-expr">}}</span>
+test[3]: <span class="jghl-expr">{{</span> test[3] <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">test[0]: 1
+test[1]: 2
+test[2]: 3
+test[3]: 4
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_fold"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_fold">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>fold</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_forall"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_forall">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>forall</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_ge"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_ge">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>ge</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_gt"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_gt">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>gt</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_groupby"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_groupby">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>groupby</li></ul>
+    <div class="section-content">
+      
+        <p class="p">
+          <code>groupby (fn, seq)</code>
+        </p>
+      
+      
+  
+  <form class="demo">
+    <input type="radio" class="tab-input tab-input-models" id="models-filter_groupby" name="nav-tab" >
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_groupby" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_groupby" name="nav-tab" >
+    <div class="tabs">
+      <label for="models-filter_groupby" class="tab-label tab-label-models">MODELS</label>
+      <label for="jingoo-filter_groupby" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_groupby" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      <pre class="tab-content tab-models">{{ { persons : [ { name : &quot;alice&quot;, age: 42, sex : &quot;F&quot; },
+                 { name : &quot;bob&quot;, age: 34, sex : &quot;M&quot; },
+                 { name : &quot;carol&quot;, age: 29, sex : &quot;F&quot; } ] }
+}}
+</pre>
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%-</span> <span class="jghl-kw">for</span> g <span class="jghl-kw">in</span> persons <span class="jghl-kw">|</span> groupby (attr(<span class="jghl-str">&apos;sex&apos;</span>)) <span class="jghl-kw">|</span> sort (attribute=<span class="jghl-str">&apos;grouper&apos;</span>) <span class="jghl-stmt">-%}</span>
+- Gender: <span class="jghl-expr">{{</span> g.grouper <span class="jghl-expr">}}</span>
+  <span class="jghl-stmt">{%-</span> <span class="jghl-kw">for</span> p <span class="jghl-kw">in</span> g.list <span class="jghl-kw">|</span> sort (attribute=<span class="jghl-str">&apos;name&apos;</span>) <span class="jghl-stmt">%}</span>
+  - <span class="jghl-expr">{{</span> p.name <span class="jghl-expr">}}</span>
+  <span class="jghl-stmt">{%-</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">%}</span>
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">-%}</span>
+</pre>
+      <pre class="tab-content tab-result">- Gender: F
+  - alice
+  - carol
+- Gender: M
+  - bob
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_int"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_int">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>int</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_join"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_join">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>join</li></ul>
+    <div class="section-content">
+      
+        <p class="p">
+          <code>join (sep, seq)</code>
+        </p>
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_join" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_join" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-filter_join" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_join" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-expr">{{</span> join (<span class="jghl-str">&quot;, &quot;</span>, [1,2,3,4,5,6,7,8]) <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">1, 2, 3, 4, 5, 6, 7, 8
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_last"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_last">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>last</li></ul>
+    <div class="section-content">
+      
+        <p class="p">
+          <code>last (seq)</code>.
+          Return the last element of sequence <code>seq</code>.
+        </p>
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_le"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_le">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>le</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_length"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_length">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>length</li></ul>
+    <div class="section-content">
+      
+        <p class="p">
+          <code>length (seq)</code>.
+          Return the number of elements in sequence <code>seq</code>.
+        </p>
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_list"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_list">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>list</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_lt"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_lt">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>lt</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_lower"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_lower">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>lower</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_map"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_map">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>map</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_max"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_max">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>max</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_max" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_max" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-filter_max" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_max" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-expr">{{</span> max([10, 30, 20]) <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">30
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_md5"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_md5">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>md5</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_min"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_min">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>min</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_min" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_min" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-filter_min" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_min" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-expr">{{</span> min ([10, 20, 5, 30]) <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">5
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_ne"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_ne">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>ne</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_nth"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_nth">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>nth</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_printf"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_printf">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>printf</li></ul>
+    <div class="section-content">
+      
+        <p class="p">
+          <code>printf(fmt, a1, a2, ..., aN)</code>
+          Fill <code>fmt</code> with <code>a1</code> <code>a2</code> ... <code>aN</code>.
+          Support a subset of OCaml <code>format</code> type: <code>%d</code> <code>%s</code> and <code>%f</code>.
+        </p>
+        <p class="p">
+          NB: <code>%s</code> would accept any type as long as it can to represented as a string.
+        </p>
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_printf" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_printf" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-filter_printf" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_printf" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-expr">{{</span> printf (<span class="jghl-str">&quot;%d %s, %d people, that&apos;s %.1f apple per person.&quot;</span>, 8, <span class="jghl-str">&quot;apples&quot;</span>, 4, 0.5) <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">8 apples, 4 people, that&amp;apos;s 0.5 apple per person.
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_random"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_random">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>random</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_range"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_range">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>range</li></ul>
+    <div class="section-content">
+      
+        <p class="p">
+          <code>range (start, stop)</code>
+        </p>
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_range" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_range" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-filter_range" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_range" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo">- range(0,3): <span class="jghl-stmt">{%</span> <span class="jghl-kw">for</span> x <span class="jghl-kw">in</span> range(0,3) <span class="jghl-stmt">%}</span><span class="jghl-expr">{{</span>x<span class="jghl-expr">}}</span><span class="jghl-stmt">{%</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">%}</span>
+- range(3,0): <span class="jghl-stmt">{%</span> <span class="jghl-kw">for</span> x <span class="jghl-kw">in</span> range(3,0) <span class="jghl-stmt">%}</span><span class="jghl-expr">{{</span>x<span class="jghl-expr">}}</span><span class="jghl-stmt">{%</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">%}</span>
+- range(&quot;a&quot;,&quot;e&quot;): <span class="jghl-stmt">{%</span> <span class="jghl-kw">for</span> x <span class="jghl-kw">in</span> range(<span class="jghl-str">&quot;a&quot;</span>,<span class="jghl-str">&quot;e&quot;</span>) <span class="jghl-stmt">%}</span><span class="jghl-expr">{{</span>x<span class="jghl-expr">}}</span><span class="jghl-stmt">{%</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">%}</span>
+</pre>
+      <pre class="tab-content tab-result">- range(0,3): 0123
+- range(3,0): 3210
+- range(&quot;a&quot;,&quot;e&quot;): abcde
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_reject"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_reject">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>reject</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_replace"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_replace">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>replace</li></ul>
+    <div class="section-content">
+      
+        <p class="p">
+          <code>replace (src, dst, s)</code>
+          The syntax for regular expressions is the same as in Gnu Emacs.
+        </p>
+        <p class="p">
+          Return a string identical to <code>s</code>
+          except that all substrings of <code>s</code>
+          that match regexp <code>src</code>
+          have been replaced by <code>dst</code>.
+        </p>
+        <p class="p">
+          The replacement template <code>dst</code> can contain
+          <code>\1</code>, <code>\2</code>, etc;
+          these sequences will be replaced by the text matched by the corresponding
+          group in the regular expression <code>src</code>.
+          <code>\0</code> stands for the text matched by the whole regular expression.
+        </p>
+        <p class="p">
+          Note: in <code>src</code> and <code>dst</code>
+          any backslash character in the regular expression
+          must be doubled to make it past the Jingoo string parser.
+        </p>
+        <p class="p">
+          In particular, if you want a regular expression that matches a single
+          backslash character, you need to quote it by adding a second
+          backslash. Then you need to quote both backslashes (according to the
+          syntax of string constants in Jingoo) by doubling them again, so you
+          need to write four backslash characters: <code>&quot;\\\\&quot;</code>.
+        </p>
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_replace" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_replace" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-filter_replace" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_replace" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-expr">{{</span> replace (<span class="jghl-str">&quot;ho&quot;</span>, <span class="jghl-str">&quot;hi&quot;</span>, <span class="jghl-str">&quot;hoge&quot;</span>) <span class="jghl-expr">}}</span>
+<span class="jghl-expr">{{</span> replace (<span class="jghl-str">&quot;日本&quot;</span>, <span class="jghl-str">&quot;英&quot;</span>, <span class="jghl-str">&quot;日本語&quot;</span>) <span class="jghl-expr">}}</span>
+<span class="jghl-expr">{{</span> replace (<span class="jghl-str">&apos;&quot;\\([^&quot;]*\\)&quot;&apos;</span>, <span class="jghl-str">&apos;--- \\1 ---&apos;</span>, <span class="jghl-str">&apos;&quot;FOO&quot;&apos;</span>) <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">hige
+英語
+--- FOO ---
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_reverse"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_reverse">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>reverse</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_round"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_round">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>round</li></ul>
+    <div class="section-content">
+      
+        <p class="p">
+          <code>round (method, val)</code>. <code>method</code>
+          can be <code>&quot;floor&quot;</code> or <code>&quot;ceil&quot;</code>.
+        </p>
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_round" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_round" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-filter_round" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_round" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo">- 1.5 | round (&quot;floor&quot;): <span class="jghl-expr">{{</span> 1.5 <span class="jghl-kw">|</span> round (<span class="jghl-str">&quot;floor&quot;</span>) <span class="jghl-expr">}}</span>
+- 1.5 | round (&quot;ceil&quot;): <span class="jghl-expr">{{</span> 1.5 <span class="jghl-kw">|</span> round(<span class="jghl-str">&quot;ceil&quot;</span>) <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">- 1.5 | round (&quot;floor&quot;): 1.
+- 1.5 | round (&quot;ceil&quot;): 2.
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_safe"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_safe">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>safe</li></ul>
+    <div class="section-content">
+      
+      <p class="p">
+        Mark a string value as safe: it won't be escaped.
+      </p>
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_select"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_select">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>select</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_slice"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_slice">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>slice</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    <input type="radio" class="tab-input tab-input-models" id="models-filter_slice" name="nav-tab" >
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_slice" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_slice" name="nav-tab" >
+    <div class="tabs">
+      <label for="models-filter_slice" class="tab-label tab-label-models">MODELS</label>
+      <label for="jingoo-filter_slice" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_slice" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      <pre class="tab-content tab-models">{{ { list: [ 10, 20, 30, 40, 50, 60, 70, 80, 90, 100] } }}
+</pre>
+      <pre class="tab-content tab-jingoo">List sliced in 4:
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">for</span> s <span class="jghl-kw">in</span> slice (4, list) <span class="jghl-stmt">-%}</span>
+- [<span class="jghl-stmt">{%</span> <span class="jghl-kw">for</span> x <span class="jghl-kw">in</span> s <span class="jghl-stmt">%}</span> <span class="jghl-expr">{{</span> x <span class="jghl-expr">}}</span><span class="jghl-stmt">{%</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">%}</span> ]
+<span class="jghl-stmt">{%</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">-%}</span>
+</pre>
+      <pre class="tab-content tab-result">List sliced in 4:
+- [ 10 20 30 ]
+- [ 40 50 60 ]
+- [ 70 80 ]
+- [ 90 100 ]
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_sort"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_sort">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>sort</li></ul>
+    <div class="section-content">
+      
+        <p class="p">
+          <code>sort (seq)</code>. Support the following optionnal keywords:
+          <dl class="dl"><dt class="dt">reverse</dt><dd class="dd">Sort using descending order.</dd><dt class="dt">attribute</dt><dd class="dd">Compare items using a given attribute. Support dotted notation.</dd><dt class="dt">compare</dt><dd class="dd">Provide a comparison function to be used instead of built-in.</dd></dl>
+        </p>
+      
+      
+  
+  <form class="demo">
+    <input type="radio" class="tab-input tab-input-models" id="models-filter_sort" name="nav-tab" >
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_sort" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_sort" name="nav-tab" >
+    <div class="tabs">
+      <label for="models-filter_sort" class="tab-label tab-label-models">MODELS</label>
+      <label for="jingoo-filter_sort" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_sort" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      <pre class="tab-content tab-models">{{ { data: [ [&quot;A&quot;, 0], [&quot;Z&quot;, 2], [&quot;b&quot;, 1] ] } }}
+</pre>
+      <pre class="tab-content tab-jingoo"><span class="jghl-stmt">{%-</span> <span class="jghl-kw">function</span> ic_fst_cmp (a, b) <span class="jghl-stmt">-%}</span>
+  <span class="jghl-expr">{{</span> compare (lower (a[0]), lower(b[0])) <span class="jghl-expr">}}</span>
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">endfunction</span> <span class="jghl-stmt">-%}</span>
+
+<span class="jghl-stmt">{%-</span> <span class="jghl-kw">set</span> data = [(<span class="jghl-str">&quot;A&quot;</span>, 0), (<span class="jghl-str">&quot;Z&quot;</span>, 2), (<span class="jghl-str">&quot;b&quot;</span>, 1)] <span class="jghl-stmt">-%}</span>
+
+sort(data):
+ <span class="jghl-stmt">{%</span> <span class="jghl-kw">for</span> x <span class="jghl-kw">in</span> data <span class="jghl-kw">|</span> sort <span class="jghl-stmt">%}</span> <span class="jghl-expr">{{</span> x[0] <span class="jghl-expr">}}</span><span class="jghl-stmt">{%</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">%}</span>
+sort(data, compare=if_fst_cmp):
+ <span class="jghl-stmt">{%</span> <span class="jghl-kw">for</span> x <span class="jghl-kw">in</span> data <span class="jghl-kw">|</span> sort (compare=ic_fst_cmp) <span class="jghl-stmt">%}</span> <span class="jghl-expr">{{</span> x[0] <span class="jghl-expr">}}</span><span class="jghl-stmt">{%</span> <span class="jghl-kw">endfor</span> <span class="jghl-stmt">%}</span>
+</pre>
+      <pre class="tab-content tab-result">sort(data):
+  A Z b
+sort(data, compare=if_fst_cmp):
+  A b Z
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_split"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_split">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>split</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_striptags"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_striptags">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>striptags</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_strlen"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_strlen">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>strlen</li></ul>
+    <div class="section-content">
+      
+        <p class="p">
+          <code>strlen (string)</code>. Number of UTF-8 characters.
+        </p>
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_strlen" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_strlen" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-filter_strlen" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_strlen" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo">- strlen(&quot;hogehoge&quot;): <span class="jghl-expr">{{</span> strlen(<span class="jghl-str">&quot;hogehoge&quot;</span>) <span class="jghl-expr">}}</span>
+- strlen(&quot;日本語&quot;): <span class="jghl-expr">{{</span> strlen(<span class="jghl-str">&quot;日本語&quot;</span>) <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">- strlen(&quot;hogehoge&quot;): 8
+- strlen(&quot;日本語&quot;): 3
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_sublist"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_sublist">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>sublist</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_substring"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_substring">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>substring</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_substring" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_substring" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-filter_substring" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_substring" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo">- substring (3, 2, &quot;hogehoge&quot;): &quot;<span class="jghl-expr">{{</span> substring (3, 2, <span class="jghl-str">&quot;hogehoge&quot;</span>) <span class="jghl-expr">}}</span>&quot;
+- substring (0, 2, &quot;日本語&quot;): &quot;<span class="jghl-expr">{{</span> substring (0, 2, <span class="jghl-str">&quot;日本語&quot;</span>) <span class="jghl-expr">}}</span>&quot;
+</pre>
+      <pre class="tab-content tab-result">- substring (3, 2, &quot;hogehoge&quot;): &quot;eh&quot;
+- substring (0, 2, &quot;日本語&quot;): &quot;日本&quot;
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_sum"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_sum">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>sum</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_sum" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_sum" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-filter_sum" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_sum" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-expr">{{</span> [ 0, 1, 2, 3, -1 ] <span class="jghl-kw">|</span> sum <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">5
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_title"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_title">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>title</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_title" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_title" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-filter_title" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_title" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo"><span class="jghl-expr">{{</span> <span class="jghl-str">&apos;this phrase should be in title case!&apos;</span> <span class="jghl-kw">|</span> title <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">This Phrase Should Be In Title Case!
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_truncate"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_truncate">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>truncate</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_trim"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_trim">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>trim</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_upper"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_upper">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>upper</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_upper" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_upper" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-filter_upper" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_upper" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo">upper test: <span class="jghl-expr">{{</span> <span class="jghl-str">&quot;must be upper&quot;</span> <span class="jghl-kw">|</span> upper <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">upper test: MUST BE UPPER
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_urlencode"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_urlencode">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>urlencode</li></ul>
+    <div class="section-content">
+      
+        <p class="p">
+          <code>urlencode (s, for_qs)</code>
+          %-encodes unsafe characters in URLs. Safe characters (not encoded): A-z 0-9 and . - _ * /
+        </p>
+        <p class="p">
+          If the optional flag <code>for_qs=true</code> is set, spaces are encoded to + instead of %20 (defaults to false).
+        </p>
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_urlencode" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_urlencode" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-filter_urlencode" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_urlencode" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo">for_qs(default): <span class="jghl-expr">{{</span> <span class="jghl-str">&quot;http://example.com/foo bar&quot;</span> <span class="jghl-kw">|</span> urlencode <span class="jghl-expr">}}</span>
+for_qs(false): <span class="jghl-expr">{{</span> <span class="jghl-str">&quot;http://example.com/foo bar&quot;</span> <span class="jghl-kw">|</span> urlencode(for_qs=false) <span class="jghl-expr">}}</span>
+for_qs(true): <span class="jghl-expr">{{</span> <span class="jghl-str">&quot;http://example.com/foo bar&quot;</span> <span class="jghl-kw">|</span> urlencode(for_qs=true) <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">for_qs(default): http%3A//example.com/foo%20bar
+for_qs(false): http%3A//example.com/foo%20bar
+for_qs(true): http%3A//example.com/foo+bar
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_urlize"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_urlize">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>urlize</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_wordcount"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_wordcount">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>wordcount</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+  <form class="demo">
+    
+    <input type="radio" class="tab-input tab-input-jingoo" id="jingoo-filter_wordcount" name="nav-tab" checked>
+    <input type="radio" class="tab-input tab-input-result" id="result-filter_wordcount" name="nav-tab" >
+    <div class="tabs">
+      
+      <label for="jingoo-filter_wordcount" class="tab-label tab-label-jingoo">JINGOO</label>
+      <label for="result-filter_wordcount" class="tab-label tab-label-result">RESULT</label>
+    </div>
+    <div class="tab-container">
+      
+      <pre class="tab-content tab-jingoo">Word count for &quot;hoge hage hige&quot; = <span class="jghl-expr">{{</span> <span class="jghl-str">&quot;hoge hage hige&quot;</span> <span class="jghl-kw">|</span> wordcount <span class="jghl-expr">}}</span>
+Word count for &quot;hoge hage&quot; = <span class="jghl-expr">{{</span> <span class="jghl-str">&quot;hoge hage&quot;</span> <span class="jghl-kw">|</span> wordcount <span class="jghl-expr">}}</span>
+</pre>
+      <pre class="tab-content tab-result">Word count for &quot;hoge hage hige&quot; = 3
+Word count for &quot;hoge hage&quot; = 2
+</pre>
+    </div>
+  </form>
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_wordwrap"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_wordwrap">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>wordwrap</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+      <div class="section" id="filter_xmlattr"><a class="ocamllink" href="../ocaml/jingoo/Jingoo/Jg_runtime/index.html#val-jg_xmlattr">ocamldoc</a><ul class="breadcrumb"><li>Built-in filters</li><li>xmlattr</li></ul>
+    <div class="section-content">
+      
+      
+      
+  
+    </div>
+  </div>
+
+    </div>
+
+  </body>
+</html>

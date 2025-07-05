@@ -1,0 +1,287 @@
+* { box-sizing: border-box ; }
+
+body {
+    font-family: "Lucida Sans Unicode", sans-serif ;
+    margin: 0;
+}
+
+.container {
+    width: 100% ;
+    max-width: 960px ;
+    margin: 0 auto;
+    position: relative;
+}
+
+.tab-input { display: none ; }
+
+.tabs {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    flex-shrink: 0;
+    justify-content: flex-start;
+}
+
+.tab-label {
+    align-items: center;
+    padding: 5px 10px;
+    text-transform: capitalize ;
+    font-size: small ;
+    font-variant: small-caps ;
+    cursor: pointer ;
+}
+
+.tab-content {
+    padding: 15px ;
+    font-family: "Lucida Console", monospace ;
+    background-color: #2D3335 ;
+    color: #E3E5E2 ;
+    font-size: 13px ;
+    margin: 0 ;
+    overflow: auto ;
+}
+
+.ocamllink {
+    float: right ;
+    padding: 5px 10px ;
+    text-decoration: none ;
+    color: white ;
+    font-variant: small-caps ;
+    font-weight: bold ;
+}
+
+@media only screen and (max-width:960px) {
+
+    .tab-content {
+        width: 100% ;
+        display: none ;
+    }
+
+    .tab-input-models:checked ~ .tab-container > .tab-models,
+    .tab-input-jingoo:checked ~ .tab-container > .tab-jingoo,
+    .tab-input-result:checked ~ .tab-container > .tab-result {
+        display: block ;
+    }
+
+    .tab-input-models:checked ~ .tabs .tab-label-models,
+    .tab-input-jingoo:checked ~ .tabs .tab-label-jingoo,
+    .tab-input-result:checked ~ .tabs .tab-label-result,
+    .tab-label:hover {
+        border-color: #2D3335 ;
+        color: #222;
+    }
+
+    .demo-tabs { margin-bottom: 0px ; }
+
+    .tab-label {
+        border: 1px solid transparent ;
+        color: #4A4A4A;
+        margin-bottom: -1px;
+    }
+
+    .demo {
+        margin-bottom: 30px ;
+    }
+
+    .toc {
+        width: 100%;
+        padding-top: calc(10px + 10px + 1em);
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .toc-title {
+        width: 100%;
+        padding: 0 5px;
+        font-weight: bold;
+    }
+
+    .toc-link {
+        color: #2D3335;
+        text-decoration: none;
+        margin: 2px 5px;
+        font-variant: small-caps;
+    }
+
+}
+
+@media only screen and (min-width:961px) {
+
+    .tabs {
+        justify-content: space-between ;
+    }
+
+    .tab-label {
+        margin: 0 5px ;
+        border: 1px solid #2D3335 ;
+        border-bottom: none ;
+    }
+
+    .tab-container {
+        display: flex ;
+        flex-wrap: wrap ;
+    }
+
+    .tab-content {
+        overflow: auto ;
+        margin: 0 5px ;
+    }
+
+    .tab-jingoo {
+        flex: 2 0 0 ;
+    }
+
+    .tab-result {
+        flex: 1 1 0 ;
+    }
+
+    .tab-models {
+        flex: 1 1 100% ;
+        margin-right: calc(100% / 3 + 20px) ;
+        order: 3 ;
+        background-color: #EEE ;
+        color: #555 ;
+    }
+
+    .tab-label-models {
+        display: none ;
+    }
+
+    .demo {
+        margin: 0 -5px 30px -5px ;
+    }
+
+    .dl {
+        border: 1px solid #DBDBDB ;
+        padding: 0 10px ;
+        line-height: 2em ;
+    }
+
+    .dt {
+        float: left;
+        clear: left;
+        width: 15ex;
+        margin-right: 10px ;
+        font-family: monospace ;
+        font-weight: bold ;
+    }
+
+    .dd:not(:last-child) {
+        margin: 0 ;
+        border-bottom: 1px solid #DBDBDB ;
+    }
+
+    .toc {
+        position: fixed ;
+        top: 0 ;
+        left: 0 ;
+        height: 100vh ;
+        overflow: auto ;
+        padding: 20px ;
+        width: 20ex ;
+    }
+
+    .toc-title {
+        font-weight: bold ;
+        display: block ;
+        margin-bottom: 5px ;
+    }
+
+    .toc-link {
+        color: #2D3335 ;
+        display: block ;
+        text-decoration: none ;
+        border-left: 1px solid #CCC ;
+        margin-left: 5px ;
+        padding-left: 10px ;
+        font-variant: small-caps ;
+    }
+
+}
+
+code {
+    background-color: #EEE ;
+    color: #333 ;
+    display: inline-block ;
+    padding: 0 5px ;
+}
+
+.p {
+    line-height: 1.4em ;
+    margin: 20px 0 ;
+}
+
+.jghl-kw { color: #E090D7 ; }
+.jghl-expr { color: #8CC4FC ; }
+.jghl-stmt { color: #F9E94F ; }
+.jghl-str { color: #FBAF3E ; }
+
+.section-content {
+    padding: 0 20px ;
+}
+
+.title {
+    border: 1px solid #2D3335 ;
+    margin: 30px 0 ;
+    padding: 20px ;
+    text-align: center ;
+    font-family: "Lucida", serif ;
+    font-variant: small-caps ;
+    font-weight: bold ;
+    font-size: xx-large ;
+    color: #2D3335 ;
+}
+
+.breadcrumb {
+    padding: 5px 10px;
+    list-style: none;
+    background-color: #eee;
+    font-size: x-small;
+    font-style: italic ;
+}
+
+.breadcrumb > li {
+    display: inline;
+}
+
+.breadcrumb > li:not(:last-child)::after {
+    padding: 8px ;
+    content: '/' ;
+}
+
+.breadcrumb > li:last-child {
+    font-weight: bold ;
+    font-size: 18px ;
+    text-transform: uppercase ;
+}
+
+.languages {
+    position: absolute ;
+    top: 10px ;
+    right: 10px ;
+    display: flex ;
+}
+
+.flag {
+    display: block ;
+    width: 25px ;
+    height: 15px ;
+    background-size: cover ;
+    margin-left: 5px ;
+    border: 1px solid black ;
+    box-sizing: content-box ;
+    background-position: center ;
+}
+
+.flag-fr {
+    background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjkwMCIgaGVpZ2h0PSI2MDAiPjxyZWN0IHdpZHRoPSI5MDAiIGhlaWdodD0iNjAwIiBmaWxsPSIjRUQyOTM5Ii8+PHJlY3Qgd2lkdGg9IjYwMCIgaGVpZ2h0PSI2MDAiIGZpbGw9IiNmZmYiLz48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjYwMCIgZmlsbD0iIzAwMjM5NSIvPjwvc3ZnPg==);
+}
+
+.flag-en {
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MCAzMCIgd2lkdGg9IjEyMDAiIGhlaWdodD0iNjAwIj48Y2xpcFBhdGggaWQ9InQiPjxwYXRoIGQ9Ik0zMCwxNSBoMzAgdjE1IHogdjE1IGgtMzAgeiBoLTMwIHYtMTUgeiB2LTE1IGgzMCB6Ii8+PC9jbGlwUGF0aD48cGF0aCBkPSJNMCwwIHYzMCBoNjAgdi0zMCB6IiBmaWxsPSIjMDAyNDdkIi8+PHBhdGggZD0iTTAsMCBMNjAsMzAgTTYwLDAgTDAsMzAiIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSI2Ii8+PHBhdGggZD0iTTAsMCBMNjAsMzAgTTYwLDAgTDAsMzAiIGNsaXAtcGF0aD0idXJsKCN0KSIgc3Ryb2tlPSIjY2YxNDJiIiBzdHJva2Utd2lkdGg9IjQiLz48cGF0aCBkPSJNMzAsMCB2MzAgTTAsMTUgaDYwIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMTAiLz48cGF0aCBkPSJNMzAsMCB2MzAgTTAsMTUgaDYwIiBzdHJva2U9IiNjZjE0MmIiIHN0cm9rZS13aWR0aD0iNiIvPjwvc3ZnPg==);
+}
+
+.flag-jp {
+    background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjkwMCIgaGVpZ2h0PSI2MDAiPjxyZWN0IGZpbGw9IiNmZmYiIGhlaWdodD0iNjAwIiB3aWR0aD0iOTAwIi8+PGNpcmNsZSBmaWxsPSIjYmMwMDJkIiBjeD0iNDUwIiBjeT0iMzAwIiByPSIxODAiLz48L3N2Zz4=);
+    display: none ;
+}
