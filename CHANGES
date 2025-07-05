@@ -4,7 +4,7 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
-version: 1.5.1
+version: 1.5.1, 2025-07-05
 ===========================
 * [PR#133] Remove unnecessary with_path argument from deriving show in signature. Replace String.lowercase to String.lowercase_ascii.
 * [ISSUE#134] Now `urlencode` filter encodes spaces to '%20'. If optional keyword argument `for_qs` is true(false by default), then spaces are encoded to '+'.
