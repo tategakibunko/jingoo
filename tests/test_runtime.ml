@@ -33,7 +33,9 @@ let test_escape _ctx =
     (jg_escape_html (Tstr "Lo&rem>\n I<ps\"um"))
 
 let test_urlencode _ctx =
-  assert_equal_tvalue (Tstr "http%3A//example.com/foo+bar") (jg_urlencode (Tstr "http://example.com/foo bar"));
+  assert_equal_tvalue (Tstr "http%3A//example.com/foo%20bar") (jg_urlencode (Tstr "http://example.com/foo bar")); (* in jinja2, for_qs is false by default *)
+  assert_equal_tvalue (Tstr "http%3A//example.com/foo%20bar") (jg_urlencode (Tstr "http://example.com/foo bar") ~kwargs:[("for_qs", Tbool false)]);
+  assert_equal_tvalue (Tstr "http%3A//example.com/foo+bar") (jg_urlencode (Tstr "http://example.com/foo bar") ~kwargs:[("for_qs", Tbool true)]);
   assert_equal_tvalue (Tstr "http%3A//example.com/tag/%E5%B1%B1") (jg_urlencode (Tstr "http://example.com/tag/山"))
 
 let test_string_of_tvalue _ctx =

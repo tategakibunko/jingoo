@@ -1,0 +1,3 @@
+for_qs(default): {{ "http://example.com/foo bar" | urlencode }}
+for_qs(false): {{ "http://example.com/foo bar" | urlencode(for_qs=false) }}
+for_qs(true): {{ "http://example.com/foo bar" | urlencode(for_qs=true) }}

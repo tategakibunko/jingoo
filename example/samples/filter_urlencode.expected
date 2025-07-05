@@ -1,0 +1,3 @@
+for_qs(default): http%3A//example.com/foo%20bar
+for_qs(false): http%3A//example.com/foo%20bar
+for_qs(true): http%3A//example.com/foo+bar

@@ -184,8 +184,10 @@ let escape_html str =
 (**
    Note that '/' is not quoted.
    https://jinja.palletsprojects.com/en/3.1.x/templates/#jinja-filters.urlencode
+
+   If [for_qs] is true, spaces are encoded to '+', otherwise '%20'.
  *)
-let encode_url str =
+let encode_url ?(for_qs=false) str =
   let hexbuf = Bytes.of_string "%__" in
   let encode_char_to_hex c =
     let ic = int_of_char c in
@@ -196,7 +198,7 @@ let encode_url str =
   String.iter (fun c ->
       match c with
       | '0'..'9' | 'a'..'z' | 'A'..'Z' | '.' | '-' | '_' | '*' | '/' -> Buffer.add_char buf c
-      | ' ' -> Buffer.add_char buf '+'
+      | ' ' when for_qs = true -> Buffer.add_char buf '+'
       | _ -> Buffer.add_string buf (encode_char_to_hex c)
   ) str;
   Buffer.contents buf

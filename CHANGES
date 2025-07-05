@@ -7,6 +7,7 @@
 version: 1.5.1
 ===========================
 * [PR#133] Remove unnecessary with_path argument from deriving show in signature. Replace String.lowercase to String.lowercase_ascii.
+* [ISSUE#134] Now `urlencode` filter encodes spaces to '%20'. If optional keyword argument `for_qs` is true(false by default), then spaces are encoded to '+'.
 
 version: 1.5.0, 2023-11-16
 ===========================

@@ -1588,12 +1588,17 @@ let jg_test_sequence target =
 let jg_test_string target =
   jg_strp target
 
-(** [jg_urlencode x] returns url encoded string of [x] *)
-let rec jg_urlencode = function
-  | Tstr str -> Tstr (Jg_utils.encode_url str)
-  | Tlist list -> Tlist (List.map jg_urlencode list)
-  | Tarray ary -> Tarray (Array.map jg_urlencode ary)
-  | Tset set -> Tset (List.map jg_urlencode set)
+(** [jg_urlencode x] returns url encoded string of [x]
+
+    If [for_qs] keyword argument is true, spaces are encoded to '+', otherwise '%20'.
+*)
+let rec jg_urlencode ?(defaults=[("for_qs", Tbool false)]) ?(kwargs = []) value =
+  let for_qs = jg_get_kvalue "for_qs" kwargs ~defaults in
+  match value with
+  | Tstr str -> Tstr (Jg_utils.encode_url ~for_qs:(unbox_bool for_qs) str)
+  | Tlist list -> Tlist (List.map (jg_urlencode ~defaults ~kwargs) list)
+  | Tarray ary -> Tarray (Array.map (jg_urlencode ~defaults ~kwargs) ary)
+  | Tset set -> Tset (List.map (jg_urlencode ~defaults ~kwargs) set)
   | other -> failwith_type_error_1 "jg_urlencode" other
   
 (** [func_arg1] (Deprecated)
@@ -1646,7 +1651,7 @@ let std_filters = [|
   ("pprint", func_arg1_no_kw jg_pprint);
   ("flatten", func_arg1_no_kw jg_flatten);
   ("safe", func_arg1_no_kw jg_safe);
-  ("urlencode", func_arg1_no_kw jg_urlencode);
+  ("urlencode", func_arg1 (jg_urlencode ?defaults:None));
 
   ("attr", func_arg2_no_kw jg_attr);
   ("batch", func_arg2 (jg_batch ?defaults:None));
