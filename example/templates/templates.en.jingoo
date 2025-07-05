@@ -69,7 +69,7 @@
 'nth', 'pprint', 'printf', 'random', 'range', 'reject', 'replace',
 'reverse', 'round', 'safe', 'select', 'slice', 'sort', 'split',
 'striptags', 'strlen', 'sublist', 'substring', 'sum', 'title',
-'tojson', 'trim', 'truncate', 'unique', 'upper', 'urlize',
+'tojson', 'trim', 'truncate', 'unique', 'upper', 'urlencode', 'urlize',
 'wordcount', 'wordwrap', 'xmlattr' ] %}
 
 {% macro toc_filter_link (id) -%}
@@ -513,6 +513,16 @@
       {% endcall %}
 
       {% call section ([ built_in_filters_section_title, 'upper' ], 'filter_upper', false) %}
+      {% endcall %}
+
+      {% call section ([ built_in_filters_section_title, 'urlencode' ], 'filter_urlencode', false) %}
+        <p class="p">
+          {{ code ('urlencode (s, for_qs)') }}
+          %-encodes unsafe characters in URLs. Safe characters (not encoded): A-z 0-9 and . - _ * /
+        </p>
+        <p class="p">
+          If the optional flag {{ code ('for_qs=true') }} is set, spaces are encoded to + instead of %20 (defaults to false).
+        </p>
       {% endcall %}
 
       {% call section ([ built_in_filters_section_title, 'urlize' ], '', false) %}
