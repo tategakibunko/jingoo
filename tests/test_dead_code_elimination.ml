@@ -4,11 +4,11 @@ open Jg_types
 
 let assert_eq expected source =
   let lexbuf = Lexing.from_string source in
-  Jg_lexer.reset_context () ;
+  let ctx = Jg_lexer.new_context () in
   Jg_lexer.init_lexer_pos None lexbuf ;
   let ast =
     try
-      Jg_parser.input Jg_lexer.main lexbuf
+      Jg_parser.input (Jg_lexer.main ctx) lexbuf
       |> Jg_ast_optimize.dead_code_elimination
     with e -> failwith (Jg_utils.get_parser_error e lexbuf)
   in
