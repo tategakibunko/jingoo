@@ -363,10 +363,9 @@ and init_context ?(env=std_env) ?(models=(fun _ -> Tnull)) ~output () =
   jg_init_context ~models output env
 
 and ast_from_lexbuf filename lexbuf =
-  Parsing.clear_parser ();
-  Jg_lexer.reset_context ();
+  let ctx = Jg_lexer.new_context () in
   Jg_lexer.init_lexer_pos filename lexbuf;
-  let ast = Jg_parser.input Jg_lexer.main lexbuf in
+  let ast = Jg_parser.input (Jg_lexer.main ctx) lexbuf in
   ast
 
 and error e lexbuf =
