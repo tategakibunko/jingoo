@@ -4,6 +4,10 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.5.2
+===========================
+* [PR#136] Remove global state to support parallel execution.
+
 version: 1.5.1, 2025-07-05
 ===========================
 * [PR#133] Remove unnecessary with_path argument from deriving show in signature. Replace String.lowercase to String.lowercase_ascii.
