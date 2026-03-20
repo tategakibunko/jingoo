@@ -4,6 +4,10 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.5.3
+===========================
+* [ISSUE#139] Fixed the inconsistent license names.
+
 version: 1.5.2, 2026-02-06
 ===========================
 * [PR#136] Remove global state to support parallel execution.
