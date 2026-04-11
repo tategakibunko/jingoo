@@ -6,6 +6,7 @@
 
 version: 1.5.3
 ===========================
+* [PR#141] Improve parsing exception message errors.
 * [ISSUE#139] Fixed the inconsistent license names.
 
 version: 1.5.2, 2026-02-06
