@@ -368,12 +368,12 @@ and ast_from_lexbuf filename lexbuf =
   let ast = Jg_parser.input (Jg_lexer.main ctx) lexbuf in
   ast
 
-and error e lexbuf =
+and synerror lexbuf =
   let curr = lexbuf.Lexing.lex_curr_p in
   let l = curr.Lexing.pos_lnum in
   let c = curr.Lexing.pos_cnum - curr.Lexing.pos_bol in
   let t = Lexing.lexeme lexbuf in
-  let msg = Printf.sprintf "Error line %d, col %d, token %s (%s)" l c t e in
+  let msg = Printf.sprintf "Error line %d, col %d, token %s" l c t in
   raise (SyntaxError msg)
 
 and ast_from_chan filename ch =
@@ -383,12 +383,9 @@ and ast_from_chan filename ch =
     close_in ch;
     ast
   with
-  | SyntaxError e ->
-    close_in ch ;
-    error e lexbuf
   | Jg_parser.Error ->
     close_in ch ;
-    error "" lexbuf
+    synerror lexbuf
 
 and ast_from_file ~env filename =
   let filename = get_file_path env filename in
@@ -398,7 +395,9 @@ and ast_from_file ~env filename =
 and ast_from_string string =
   let lexbuf = Lexing.from_string string in
   try ast_from_lexbuf None lexbuf
-  with SyntaxError e -> error e lexbuf
+  with
+  | Jg_parser.Error ->
+    synerror lexbuf
 
 (* Remove macros from ast and return a list of them. *)
 let extract_macros env stmts =
