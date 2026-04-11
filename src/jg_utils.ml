@@ -231,7 +231,7 @@ let get_parser_error exn lexbuf =
   let fname = curr.Lexing.pos_fname in
   let line = curr.Lexing.pos_lnum in
   let tok = Lexing.lexeme lexbuf in
-  let msg = match exn with Jg_types.SyntaxError msg -> msg | _ -> Printexc.to_string exn in
+  let msg = Printexc.to_string exn in
   Printf.sprintf "%s: '%s' at line %d in file %s" msg tok line fname
 
 let read_file_as_string filename =

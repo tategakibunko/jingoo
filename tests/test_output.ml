@@ -152,7 +152,7 @@ let test_with_2 _test_ctxt =
     "{% with hoge, 'foo', bar %}\
      {{ hoge }}{{ hige }}\
      {% endwith %}"
-    Jg_parser.Error
+    (Jg_types.SyntaxError "Error line 1, col 12, token ,")
 ;;
 
 let test_defined test_ctxt =
