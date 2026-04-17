@@ -213,8 +213,8 @@
       {% endcall %}
 
       {% call section ([ 'Statements', 'Whitespace control' ], 'whitespace-control', false) %}
-        <p class="p">Use {{ code ('{%-') }} to strip whitespaces <strong>before</strong> this token.</p>
-        <p class="p">Use {{ code ('-%}') }} to strip whitespaces <strong>after</strong> this token.</p>
+        <p class="p">Use {{ code ('{%-') }} or {{ code ('{{-') }} to strip whitespaces <strong>before</strong> this token.</p>
+        <p class="p">Use {{ code ('-%}') }} or {{ code ('-}}') }} to strip whitespaces <strong>after</strong> this token.</p>
       {% endcall %}
 
       {% call section ([ 'Statements', 'With' ], 'with', false) %}

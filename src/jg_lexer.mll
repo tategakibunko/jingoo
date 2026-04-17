@@ -132,7 +132,7 @@ and main_bis ctx = parse
       | "" -> main ctx lexbuf
       | content -> TEXT content
   }
-  | "{{" {
+  | ("{{" | (blank | newline)* "{{-") {
     if ctx.mode = `Logic then fail lexbuf @@ "Unexpected '{{' token" ;
     update_context ctx `Logic (Some "}}");
     (* print_endline @@ spf "text:%s" (Buffer.contents buf); *)
@@ -149,7 +149,7 @@ and main_bis ctx = parse
     ;
     main ctx lexbuf
   }
-  | "}}" as str {
+  | ("}}" | "-}}" (blank | newline)*) as str {
     match ctx.terminator with
       | None ->
 	add_str ctx str; main ctx lexbuf
