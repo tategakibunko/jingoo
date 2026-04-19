@@ -6,6 +6,8 @@
 
 version: 1.5.3
 ===========================
+* [PR#142] jg_lexer: fixed whitespace control for variable expression. (ISSUE#139)
+* [ISSUE#138] Support for trim expression markers.
 * [PR#141] Improve parsing exception message errors.
 * [ISSUE#139] Fixed the inconsistent license names.
 
