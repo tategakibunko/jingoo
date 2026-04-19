@@ -225,7 +225,12 @@ let test_set test_ctxt =
 let test_white_space_control test_ctxt =
   assert_interp ~test_ctxt "\n{% set x = 1 %}\n" "\n\n";
   assert_interp ~test_ctxt "\n{%- set x = 1 %}\n" "\n";
-  assert_interp ~test_ctxt "\n{%- set x = 1 -%}\n" ""
+  assert_interp ~test_ctxt "\n{%- set x = 1 -%}\n" "";
+
+  assert_interp ~test_ctxt "\n{{ \"foo\" }}\n" "\nfoo\n";
+  assert_interp ~test_ctxt "\n{{- \"foo\" }}\n" "foo\n";
+  assert_interp ~test_ctxt "\n{{ \"foo\" -}}\n" "\nfoo";
+  assert_interp ~test_ctxt "\n{{- \"foo\" -}}\n" "foo"
 ;;
 
 let test_invalid_iterable test_ctxt =
