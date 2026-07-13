@@ -4,7 +4,7 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
-version: 1.5.3
+version: 1.5.3, 2026-07-13
 ===========================
 * [PR#142] jg_lexer: fixed whitespace control for variable expression. (ISSUE#139)
 * [ISSUE#138] Support for trim expression markers.
