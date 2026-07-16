@@ -132,7 +132,8 @@ and main_bis ctx = parse
       | "" -> main ctx lexbuf
       | content -> TEXT content
   }
-  | ("{{" | (blank | newline)* "{{-") {
+  | ("{{" | (blank | newline)* "{{-") as str {
+    String.iter (function '\n' -> Lexing.new_line lexbuf | _ -> () ) str;
     if ctx.mode = `Logic then fail lexbuf @@ "Unexpected '{{' token" ;
     update_context ctx `Logic (Some "}}");
     (* print_endline @@ spf "text:%s" (Buffer.contents buf); *)
@@ -150,6 +151,7 @@ and main_bis ctx = parse
     main ctx lexbuf
   }
   | ("}}" | "-}}" (blank | newline)*) as str {
+    String.iter (function '\n' -> Lexing.new_line lexbuf | _ -> () ) str;
     match ctx.terminator with
       | None ->
 	add_str ctx str; main ctx lexbuf
