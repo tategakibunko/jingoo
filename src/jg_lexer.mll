@@ -35,14 +35,26 @@
     spf "File '%s', line %d, char %d: %s" pos_fname pos_lnum (pos_cnum - pos_bol) str
 
   let init_lexer_pos fname lexbuf =
-    let curr = lexbuf.Lexing.lex_curr_p in
     let pos : Lexing.position = {
       Lexing.pos_fname = (match fname with Some fname -> fname | _ -> "");
       Lexing.pos_lnum = 1;
-      Lexing.pos_bol = curr.Lexing.pos_lnum;
+      Lexing.pos_bol = 0;
       Lexing.pos_cnum = 0
     } in
     lexbuf.Lexing.lex_curr_p <- pos
+
+  let crawl_new_line str lexbuf =
+      String.iteri (fun i c ->
+      match c with
+        | '\n' ->
+          let lsp = lexbuf.Lexing.lex_start_p in
+          let lcp = lexbuf.Lexing.lex_curr_p in
+          lexbuf.Lexing.lex_curr_p <-
+            { lcp with
+              pos_lnum = lcp.pos_lnum + 1;
+              pos_bol = lsp.pos_cnum + i + 1;
+            }
+        | _ -> () ) str
 
   let update_context ctx mode terminator =
     let token_required =
@@ -121,18 +133,19 @@ and main_bis ctx = parse
   | ("{%" | (blank | newline)* "{%-")
        blank* "raw" blank*
      ("%}" | "-%}" (blank | newline)*) as str {
-    String.iter (function '\n' -> Lexing.new_line lexbuf | _ -> () ) str;
+    crawl_new_line str lexbuf ;
     raw ctx lexbuf
   }
   | ("{%" | (blank | newline)* "{%-") as str {
-    String.iter (function '\n' -> Lexing.new_line lexbuf | _ -> () ) str;
+    crawl_new_line str lexbuf ;
     if ctx.mode = `Logic then fail lexbuf @@ "Unexpected '{%' token" ;
     update_context ctx `Logic (Some "%}");
     match get_buf ctx with
       | "" -> main ctx lexbuf
       | content -> TEXT content
   }
-  | ("{{" | (blank | newline)* "{{-") {
+  | ("{{" | (blank | newline)* "{{-") as str {
+    crawl_new_line str lexbuf ;
     if ctx.mode = `Logic then fail lexbuf @@ "Unexpected '{{' token" ;
     update_context ctx `Logic (Some "}}");
     (* print_endline @@ spf "text:%s" (Buffer.contents buf); *)
@@ -150,6 +163,7 @@ and main_bis ctx = parse
     main ctx lexbuf
   }
   | ("}}" | "-}}" (blank | newline)*) as str {
+    crawl_new_line str lexbuf ;
     match ctx.terminator with
       | None ->
 	add_str ctx str; main ctx lexbuf
@@ -159,7 +173,7 @@ and main_bis ctx = parse
       | _ -> fail lexbuf @@ spf "syntax error '%s'" str
   }
   | ("%}" | "-%}" (blank | newline)*) as str {
-    String.iter (function '\n' -> Lexing.new_line lexbuf | _ -> () ) str ;
+    crawl_new_line str lexbuf ;
     match ctx.terminator with
       | None ->
 	add_str ctx str; main ctx lexbuf
@@ -291,7 +305,7 @@ and raw ctx = parse
   | ("{%" | (blank | newline)* "{%-")
       blank* "endraw" blank*
     ("%}" | "-%}" (blank | newline)*) as str {
-    String.iter (function '\n' -> Lexing.new_line lexbuf | _ -> () ) str ;
+    crawl_new_line str lexbuf ;
     TEXT (get_buf ctx)
   }
   | _ as c {

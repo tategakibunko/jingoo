@@ -152,7 +152,33 @@ let test_with_2 _test_ctxt =
     "{% with hoge, 'foo', bar %}\
      {{ hoge }}{{ hige }}\
      {% endwith %}"
-    (Jg_types.SyntaxError "Error line 1, col 12, token ,")
+    (Jg_types.SyntaxError "Error line 1, col 13, token ,")
+;;
+
+let test_location_1 _test_ctxt =
+  assert_interp_raises
+    "{{ 'foo' for }}"
+    (Jg_types.SyntaxError "Error line 1, col 10, token for")
+;;
+
+let test_location_2 _test_ctxt =
+  assert_interp_raises
+    "\n{{ 'foo' for }}"
+    (Jg_types.SyntaxError "Error line 2, col 10, token for")
+;;
+
+let test_location_3 _test_ctxt =
+  assert_interp_raises
+    "super long line\n\
+     {{-}}"
+    (Jg_types.SyntaxError "Error line 2, col 4, token }}")
+;;
+
+let test_location_4 _test_ctxt =
+  assert_interp_raises
+    "super {{ 'long' -}}\n\
+     {{}}line"
+    (Jg_types.SyntaxError "Error line 2, col 3, token }}")
 ;;
 
 let test_defined test_ctxt =
@@ -287,6 +313,10 @@ let suite = "runtime test" >::: [
   "test_is" >:: test_is;
   "test_with" >:: test_with;
   "test_with_2" >:: test_with_2;
+  "test_location_1" >:: test_location_1;
+  "test_location_2" >:: test_location_2;
+  "test_location_3" >:: test_location_3;
+  "test_location_4" >:: test_location_4;
   "test_white_space_control" >:: test_white_space_control;
   "test_invalid_iterable" >:: test_invalid_iterable;
   "test_pprint" >:: test_pprint;

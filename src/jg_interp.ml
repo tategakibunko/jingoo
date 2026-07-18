@@ -369,9 +369,9 @@ and ast_from_lexbuf filename lexbuf =
   ast
 
 and synerror lexbuf =
-  let curr = lexbuf.Lexing.lex_curr_p in
+  let curr = lexbuf.Lexing.lex_start_p in
   let l = curr.Lexing.pos_lnum in
-  let c = curr.Lexing.pos_cnum - curr.Lexing.pos_bol in
+  let c = curr.Lexing.pos_cnum - curr.Lexing.pos_bol + 1 in
   let t = Lexing.lexeme lexbuf in
   let msg = Printf.sprintf "Error line %d, col %d, token %s" l c t in
   raise (SyntaxError msg)
