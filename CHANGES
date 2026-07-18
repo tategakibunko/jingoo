@@ -4,6 +4,10 @@
 "!": change that can break compatibility with older version
 ------------------------------------------------------------
 
+version: 1.5.4
+===========================
+* [PR#143] Fix multiple error report position issues.
+
 version: 1.5.3, 2026-07-13
 ===========================
 * [PR#142] jg_lexer: fixed whitespace control for variable expression. (ISSUE#139)
